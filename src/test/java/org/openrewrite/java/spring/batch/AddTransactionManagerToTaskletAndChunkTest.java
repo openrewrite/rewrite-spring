@@ -472,48 +472,6 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
     }
 
     @Test
-    void addTransactionManagerToCallInsideLambda() {
-        // language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-              import org.springframework.batch.core.step.tasklet.Tasklet;
-
-              import java.util.function.Supplier;
-
-              class MyJobConfig {
-                  StepBuilderFactory stepBuilderFactory;
-
-                  Step myStep(Tasklet tasklet) {
-                      Supplier<Step> step = () -> stepBuilderFactory.get("myStep").tasklet(tasklet).build();
-                      return step.get();
-                  }
-              }
-              """,
-            """
-              import org.springframework.batch.core.Step;
-              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-              import org.springframework.batch.core.step.tasklet.Tasklet;
-              import org.springframework.transaction.PlatformTransactionManager;
-
-              import java.util.function.Supplier;
-
-              class MyJobConfig {
-                  StepBuilderFactory stepBuilderFactory;
-
-                  Step myStep(Tasklet tasklet, PlatformTransactionManager transactionManager) {
-                      Supplier<Step> step = () -> stepBuilderFactory.get("myStep").tasklet(tasklet, transactionManager).build();
-                      return step.get();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void addParameterToMethodDeclaringLocalAndAnonymousClass() {
         // language=java
         rewriteRun(
@@ -529,6 +487,7 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
                   StepBuilderFactory stepBuilderFactory;
 
                   Step myStep(Tasklet tasklet) {
+                      Supplier<Step> lambda = () -> stepBuilderFactory.get("lambda").tasklet(tasklet).build();
                       class Local {
                           Step make() {
                               return stepBuilderFactory.get("local").tasklet(tasklet).build();
@@ -556,6 +515,7 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
                   StepBuilderFactory stepBuilderFactory;
 
                   Step myStep(Tasklet tasklet, PlatformTransactionManager transactionManager) {
+                      Supplier<Step> lambda = () -> stepBuilderFactory.get("lambda").tasklet(tasklet, transactionManager).build();
                       class Local {
                           Step make() {
                               return stepBuilderFactory.get("local").tasklet(tasklet, transactionManager).build();
@@ -619,7 +579,6 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
           )
         );
     }
-
 
     @Nested
     class NoChange {
