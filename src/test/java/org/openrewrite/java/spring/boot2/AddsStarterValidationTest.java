@@ -38,7 +38,6 @@ class AddsStarterValidationTest implements RewriteTest {
     @Test
     void shouldAddValidationStarterIfBVIsUsed() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("project",
             srcMainJava(
               //language=Java
@@ -173,6 +172,79 @@ class AddsStarterValidationTest implements RewriteTest {
                           <dependency>
                               <groupId>javax.validation</groupId>
                               <artifactId>validation-api</artifactId>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void shouldNotAddValidationStarterIfHibernateValidatorDeclared() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              //language=Java
+              java("""
+                import javax.validation.constraints.NotNull;
+
+                class Foo {
+                    @NotNull
+                    String bar = "";
+                }
+                """),
+              //language=XML
+              pomXml("""
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <parent>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-parent</artifactId>
+                          <version>2.2.13.RELEASE</version>
+                          <relativePath/>
+                      </parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>acme</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-starter-web</artifactId>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.hibernate.validator</groupId>
+                              <artifactId>hibernate-validator</artifactId>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """,
+                """
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <parent>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-parent</artifactId>
+                          <version>2.3.12.RELEASE</version>
+                          <relativePath/>
+                      </parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>acme</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                      <dependencies>
+                          <dependency>
+                              <groupId>javax.validation</groupId>
+                              <artifactId>validation-api</artifactId>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-starter-web</artifactId>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.hibernate.validator</groupId>
+                              <artifactId>hibernate-validator</artifactId>
                           </dependency>
                       </dependencies>
                   </project>
