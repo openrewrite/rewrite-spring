@@ -88,11 +88,12 @@ public class PreciseBeanType extends Recipe {
                             JavaType.FullyQualified actualElementType = (JavaType.FullyQualified) actualType.getElemType();
                             J.ArrayType arrayType = (J.ArrayType) m.getReturnTypeExpression();
                             maybeAddImport(actualElementType);
-                            if (arrayType.getElementType() instanceof JavaType.FullyQualified) {
-                                maybeRemoveImport((JavaType.FullyQualified) arrayType.getElementType());
+                            if (arrayType.getElementType().getType() instanceof JavaType.FullyQualified) {
+                                maybeRemoveImport((JavaType.FullyQualified) arrayType.getElementType().getType());
                             }
                             m = withReturnTypeExpression(m, arrayType
-                                    .withElementType(TypeTree.build(actualElementType.getClassName()).withType(actualType))
+                                    .withElementType(TypeTree.build(actualElementType.getClassName()).withType(actualElementType))
+                                    .withType(actualType)
                             );
                         }
                     }
