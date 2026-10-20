@@ -26,6 +26,7 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import static java.util.Collections.singletonList;
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
 
 public class MigrateAuditorAwareToOptional extends Recipe {
 
@@ -68,7 +69,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                     JContainer.build(singletonList(JRightPadded.build(returnType.withPrefix(Space.EMPTY)))),
                     new JavaType.Parameterized(null, JavaType.ShallowClass.build("java.util.Optional"),
                             singletonList(returnType.getType())));
-            J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx).withReturnTypeExpression(optional);
+            J.MethodDeclaration md = withReturnTypeExpression(super.visitMethodDeclaration(method, ctx), optional);
             doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
             maybeAddImport("java.util.Optional");
             return md;
