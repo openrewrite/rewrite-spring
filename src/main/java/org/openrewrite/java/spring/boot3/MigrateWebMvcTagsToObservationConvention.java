@@ -236,13 +236,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
                                 }
                                 if (TAGS_AND_TAG_ARRAY.matches(init) || TAGS_OF_TAG_ARRAY.matches(init)) {
-                                    List<Expression> validArgs = ListUtils.map(init.getArguments(), expression -> {
-                                        if (expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))) {
-                                            //noinspection DataFlowIssue
-                                            return null;
-                                        }
-                                        return expression;
-                                    });
+                                    List<Expression> validArgs = ListUtils.filter(init.getArguments(), expression ->
+                                            !(expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))));
                                     if (validArgs.isEmpty()) {
                                         //noinspection DataFlowIssue
                                         return null;

@@ -75,8 +75,8 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
 
         if (cd.getBody().getStatements().size() > 2) {
             //noinspection DataFlowIssue
-            List<Statement> additionalStatements = ListUtils.map(cd.getBody().getStatements(), s ->
-                    s == successCallback || s == failureCallback ? null : s);
+            List<Statement> additionalStatements = ListUtils.filter(cd.getBody().getStatements(), s ->
+                    !(s == successCallback || s == failureCallback));
             Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
                     .withPrefix(successCallback.getPrefix());
             newClassDeclaration = newClassDeclaration.withBody(cd.getBody()
@@ -128,8 +128,8 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
                             successCallback.getBody(),
                             failureCallback.getBody());
 
-            List<Statement> additionalStatements = ListUtils.map(nc.getBody().getStatements(), s ->
-                    s == successCallback || s == failureCallback ? null : s);
+            List<Statement> additionalStatements = ListUtils.filter(nc.getBody().getStatements(), s ->
+                    !(s == successCallback || s == failureCallback));
             Statement acceptMethodWithPrefix = newClassDeclaration.getBody().getStatements().get(0)
                     .withPrefix(successCallback.getPrefix());
             newClassDeclaration = newClassDeclaration.withBody(nc.getBody().
