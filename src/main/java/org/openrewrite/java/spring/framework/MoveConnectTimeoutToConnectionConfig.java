@@ -167,8 +167,8 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                             b = template.apply(new Cursor(getCursor().getParentOrThrow(), b), declaration.getCoordinates().after(),
                                     variable.getName().withPrefix(Space.EMPTY), migration.getValue());
                         }
-                        return b.withStatements(ListUtils.map(b.getStatements(),
-                                statement -> removed.contains(statement.getId()) ? null : statement));
+                        return b.withStatements(ListUtils.filter(b.getStatements(),
+                                statement -> !removed.contains(statement.getId())));
                     }
 
                     private Set<String> reassignedNames(J.Block block) {

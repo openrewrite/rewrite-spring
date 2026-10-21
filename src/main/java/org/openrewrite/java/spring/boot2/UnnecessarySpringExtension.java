@@ -74,8 +74,8 @@ public class UnnecessarySpringExtension extends Recipe {
                                             maybeRemoveImport(EXTEND_WITH);
                                             maybeRemoveImport(SPRING_EXTENSION);
                                             J.Annotation newAnnotation = annotation.withArguments(singletonList(((J.NewArray) expression)
-                                                    .withInitializer(ListUtils.map(((J.NewArray) expression).getInitializer(),
-                                                            e -> TypeUtils.isAssignableTo("java.lang.Class<" + SPRING_EXTENSION + ">", e.getType()) ? null : e))));
+                                                    .withInitializer(ListUtils.filter(((J.NewArray) expression).getInitializer(),
+                                                            e -> !TypeUtils.isAssignableTo("java.lang.Class<" + SPRING_EXTENSION + ">", e.getType())))));
                                             return maybeAutoFormat(annotation, newAnnotation, ctx);
                                         }
                                     }

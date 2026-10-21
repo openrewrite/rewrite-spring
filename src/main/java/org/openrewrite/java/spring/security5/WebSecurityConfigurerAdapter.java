@@ -204,8 +204,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                         continue;
                                     }
                                     String uniqueName = computeBeanNameFromClassName(fc.getSimpleName(), beanType.getClassName());
-                                    List<J.Annotation> fcLeadingAnnotations = ListUtils.map(fc.getLeadingAnnotations(),
-                                            anno -> TypeUtils.isOfClassType(anno.getType(), FQN_CONFIGURATION) ? null : anno);
+                                    List<J.Annotation> fcLeadingAnnotations = ListUtils.filter(fc.getLeadingAnnotations(),
+                                            anno -> !TypeUtils.isOfClassType(anno.getType(), FQN_CONFIGURATION));
                                     s = m
                                             .withName(m.getName().withSimpleName(uniqueName))
                                             .withMethodType(m.getMethodType().withName(uniqueName))
@@ -292,7 +292,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY, emptyList(), inmemoryAuthConfigType.getClassName(), inmemoryAuthConfigType, null))
                         .withName(m.getName().withSimpleName(newMethodName))
                         .withMethodType(type)
-                        .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
+                        .withModifiers(ListUtils.filter(m.getModifiers(), modifier -> !EXPLICIT_ACCESS_LEVELS.contains(modifier.getType())));
 
                 if (!keepParams) {
                     m = m.withParameters(emptyList());

@@ -291,8 +291,8 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
 
         private J.ClassDeclaration maybeRemoveConfiguration(J.ClassDeclaration c) {
             maybeRemoveImport(CONFIGURATION_FQN);
-            return c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), annotation ->
-                    CONFIGURATION_MATCHER.matches(annotation) ? null : annotation));
+            return c.withLeadingAnnotations(ListUtils.filter(c.getLeadingAnnotations(), annotation ->
+                    !CONFIGURATION_MATCHER.matches(annotation)));
         }
 
         private J.ClassDeclaration maybeAddAutoconfiguration(J.ClassDeclaration c, ExecutionContext ctx) {
