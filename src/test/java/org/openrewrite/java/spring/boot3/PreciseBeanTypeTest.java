@@ -180,8 +180,8 @@ class PreciseBeanTypeTest implements RewriteTest {
               }
               """,
             spec -> spec.afterRecipe(cu -> {
-                J.MethodDeclaration md = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
-                J.ArrayType returnType = (J.ArrayType) md.getReturnTypeExpression();
+                var md = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                var returnType = (J.ArrayType) md.getReturnTypeExpression();
                 assertThat(returnType.getType()).hasToString("java.util.ArrayList[]");
                 assertThat(returnType.getElementType().getType()).hasToString("java.util.ArrayList");
                 assertThat(md.getMethodType().getReturnType()).isSameAs(returnType.getType());
