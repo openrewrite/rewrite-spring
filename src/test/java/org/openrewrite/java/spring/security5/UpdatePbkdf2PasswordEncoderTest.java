@@ -52,7 +52,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
 
               class T {
                   void encoderWithDefaults() {
-                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
                   }
               }
               """
@@ -85,7 +85,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
 
               class T {
                   void encoderWithDefaults() {
-                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
                   }
                   void encoderWithCustomSecret() {
                       String secret = "secret";
@@ -131,10 +131,10 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
                   final int finalSaltLength = 8;
                   int nonFinalSaltLength = 8;
                   void encoderWithDefaults() {
-                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
                   }
                   void encoderWithDefaultsFromConstant() {
-                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
                   }
                   void encoderWithCustomSecretAndSaltLength() {
                       Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder("secret", 20, 185000, PBKDF2WithHmacSHA256);
@@ -175,7 +175,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
 
               class T {
                   void encoderWithDefaults() {
-                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
                   }
                   void encoderWithCustomSecretAndIterations() {
                       Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder("secret", 8, 200000, PBKDF2WithHmacSHA256);
@@ -213,7 +213,7 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
     }
 
     @Test
-    void replaceVersion55FactoryCall() {
+    void keepVersion55FactoryCall() {
         // language=java
         rewriteRun(
           java(
@@ -223,15 +223,6 @@ class UpdatePbkdf2PasswordEncoderTest implements RewriteTest {
               class T {
                   void m() {
                       Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5();
-                  }
-              }
-              """,
-            """
-              import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-
-              class T {
-                  void m() {
-                      Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
                   }
               }
               """

@@ -49,7 +49,6 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
     private static final MethodMatcher ONE_ARG_CONSTRUCTOR_MATCHER = new MethodMatcher(PBKDF2_PASSWORD_ENCODER_CLASS + " <constructor>(java.lang.CharSequence)");
     private static final MethodMatcher TWO_ARG_CONSTRUCTOR_MATCHER = new MethodMatcher(PBKDF2_PASSWORD_ENCODER_CLASS + " <constructor>(java.lang.CharSequence, int)");
     private static final MethodMatcher THREE_ARG_CONSTRUCTOR_MATCHER = new MethodMatcher(PBKDF2_PASSWORD_ENCODER_CLASS + " <constructor>(java.lang.CharSequence, int, int)");
-    private static final MethodMatcher VERSION5_5_FACTORY_MATCHER = new MethodMatcher(PBKDF2_PASSWORD_ENCODER_CLASS + " defaultsForSpringSecurity_v5_5(..)");
 
     private static final String DEFAULT_SECRET = "";
     private static final Integer DEFAULT_SALT_LENGTH = 8;
@@ -130,24 +129,13 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                 return j;
             }
 
-            @Override
-            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J j = super.visitMethodInvocation(method, ctx);
-                if (j instanceof J.MethodInvocation && VERSION5_5_FACTORY_MATCHER.matches((J.MethodInvocation) j)) {
-                    maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
-                    method = (J.MethodInvocation) j;
-                    return newFactoryMethodTemplate(ctx).apply(getCursor(), method.getCoordinates().replace());
-                }
-                return j;
-            }
-
             boolean resolvedValueMatchesLiteral(Expression expression, Object value) {
                 Expression resolvedExpression = resolveExpression(expression, getCursor());
                 return resolvedExpression instanceof J.Literal && Objects.equals(((J.Literal) resolvedExpression).getValue(), value);
             }
 
             private JavaTemplate newFactoryMethodTemplate(ExecutionContext ctx) {
-                return JavaTemplate.builder("Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()")
+                return JavaTemplate.builder("Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5()")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
