@@ -30,10 +30,12 @@ import org.openrewrite.java.tree.TypeUtils;
 public class RemoveEnableBatchProcessing extends Recipe {
 
     @Getter
-    final String displayName = "Enable Spring Batch Annotation";
+    final String displayName = "Remove `@EnableBatchProcessing` from Spring Boot applications";
 
     @Getter
-    final String description = "Add or remove the `@EnableBatchProcessing` annotation from a Spring Boot application.";
+    final String description = "Remove `@EnableBatchProcessing` from classes annotated with `@SpringBootApplication`, " +
+            "as in Spring Boot 3 it makes the batch auto-configuration back off. " +
+            "An annotation with attributes is kept, so its configuration is not lost.";
 
     private static final String ENABLE_BATCH_PROCESSING = "org.springframework.batch.core.configuration.annotation.EnableBatchProcessing";
 
