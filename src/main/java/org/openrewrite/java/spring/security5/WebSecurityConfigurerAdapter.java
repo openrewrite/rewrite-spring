@@ -322,7 +322,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     J.ClassDeclaration classDecl = classDeclCursor.getValue();
                     if (!classDeclCursor.getMessage(HAS_CONFLICT, true)) {
                         if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
-                            b = handleHttpSecurity(b, parentMethod);
+                            b = handleHttpSecurity(b, parentMethod, ctx);
                         } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
                             b = handleWebSecurity(b, parentMethod);
                         } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
@@ -344,16 +344,19 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return b;
             }
 
-            private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
-                b = b.withStatements(ListUtils.map(b.getStatements(), stmt -> {
-                    if (stmt instanceof J.MethodInvocation) {
-                        J.MethodInvocation mi = (J.MethodInvocation) stmt;
-                        if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(mi.getMethodType())) {
-                            return null;
-                        }
+            private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod, ExecutionContext ctx) {
+                for (Statement stmt : b.getStatements()) {
+                    if (stmt instanceof J.MethodInvocation && CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(((J.MethodInvocation) stmt).getMethodType())) {
+                        // Inline the defaults that `WebSecurityConfigurerAdapter#configure(HttpSecurity)` applied
+                        b = JavaTemplate.builder("#{http:any(org.springframework.security.config.annotation.web.builders.HttpSecurity)}.authorizeRequests((requests) -> requests.anyRequest().authenticated());\n" +
+                                                 "#{http}.formLogin();\n" +
+                                                 "#{http}.httpBasic();")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8", "spring-security-web-5.8"))
+                                .build()
+                                .apply(updateCursor(b), stmt.getCoordinates().replace(), ((J.MethodInvocation) stmt).getArguments().get(0));
+                        break;
                     }
-                    return stmt;
-                }));
+                }
                 return JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()

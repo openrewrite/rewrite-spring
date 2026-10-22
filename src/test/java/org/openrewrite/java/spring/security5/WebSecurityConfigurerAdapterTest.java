@@ -201,56 +201,40 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void configureHttpSecurityMethodRemovesSuperCall() {
+    void configureHttpSecurityMethodInlinesSuperCall() {
         //language=java
         rewriteRun(
           java(
             """
-              package com.example.websecuritydemo;
-
-              import static org.springframework.security.config.Customizer.withDefaults;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
               @Configuration
-              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
                       super.configure(http);
-                      http
-                          .authorizeHttpRequests((authz) -> authz
-                              .anyRequest().authenticated()
-                          )
-                          .httpBasic(withDefaults());
+                      http.csrf().disable();
                   }
-
               }
               """,
             """
-              package com.example.websecuritydemo;
-
-              import static org.springframework.security.config.Customizer.withDefaults;
-
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
 
               @Configuration
-              public class SecurityConfiguration {
-
+              class SecurityConfiguration {
                   @Bean
                   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests((authz) -> authz
-                              .anyRequest().authenticated()
-                          )
-                          .httpBasic(withDefaults());
+                      http.authorizeRequests((requests) -> requests.anyRequest().authenticated());
+                      http.formLogin();
+                      http.httpBasic();
+                      http.csrf().disable();
                       return http.build();
                   }
-
               }
               """
           )
