@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.security5;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -28,12 +29,17 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
+import static java.util.Collections.singletonList;
+
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
 
     private static final String HTTP_SECURITY = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
     private static final String ABSTRACT_REGISTRY = "org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry";
+
+    private static final String REQUEST_MATCHER = "org.springframework.security.web.util.matcher.RequestMatcher";
+    private static final String OR_REQUEST_MATCHER = "org.springframework.security.web.util.matcher.OrRequestMatcher";
 
     private static final MethodMatcher REQUEST_MATCHERS = new MethodMatcher(HTTP_SECURITY + " requestMatchers()");
     private static final MethodMatcher ANT_MATCHERS = new MethodMatcher(ABSTRACT_REGISTRY + " antMatchers(..)");
@@ -60,6 +66,15 @@ public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
                         mi.getSelect() instanceof J.MethodInvocation) {
                     J.MethodInvocation selectMi = (J.MethodInvocation) mi.getSelect();
                     if (REQUEST_MATCHERS.matches(selectMi) && selectMi.getSelect() != null) {
+                        boolean regex = REGEX_MATCHERS.matches(mi);
+                        if (regex) {
+                            J.MethodInvocation withRequestMatcher = regexToRequestMatcher(mi, ctx);
+                            if (withRequestMatcher == null) {
+                                return mi;
+                            }
+                            mi = withRequestMatcher;
+                        }
+
                         // Build method type for securityMatcher on HttpSecurity
                         JavaType.Method newMethodType = null;
                         if (mi.getMethodType() != null && selectMi.getMethodType() != null) {
@@ -70,6 +85,11 @@ public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
                                         .withName("securityMatcher")
                                         .withDeclaringType(httpSecurityType)
                                         .withReturnType(httpSecurityType);
+                                if (regex) {
+                                    newMethodType = newMethodType
+                                            .withParameterNames(singletonList("requestMatcher"))
+                                            .withParameterTypes(singletonList(JavaType.ShallowClass.build(REQUEST_MATCHER)));
+                                }
                             }
                         }
 
@@ -93,6 +113,21 @@ public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
                 }
 
                 return mi;
+            }
+
+            private J.@Nullable MethodInvocation regexToRequestMatcher(J.MethodInvocation regexMatchers, ExecutionContext ctx) {
+                RegexRequestMatchers matchers = RegexRequestMatchers.from(regexMatchers.getArguments());
+                if (matchers == null) {
+                    return null;
+                }
+                maybeAddImport(RegexRequestMatchers.REGEX_REQUEST_MATCHER);
+                if (matchers.getCount() > 1) {
+                    maybeAddImport(OR_REQUEST_MATCHER);
+                }
+                return matchers.template(matchers.getCount() == 1 ? "%s" : "new OrRequestMatcher(%s)", ctx)
+                        .imports(OR_REQUEST_MATCHER)
+                        .build()
+                        .apply(getCursor(), regexMatchers.getCoordinates().replaceArguments(), matchers.getParameters());
             }
         });
     }
