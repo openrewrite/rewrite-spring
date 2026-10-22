@@ -44,7 +44,7 @@ class MigrateDatabaseCredentialsTest implements RewriteTest {
             """
               spring.liquibase:
                 url: host
-                username: ${spring.datasource.username}
+                user: ${spring.datasource.username}
                 password: ${spring.datasource.password}
               """
           )
@@ -62,7 +62,37 @@ class MigrateDatabaseCredentialsTest implements RewriteTest {
             """
               spring.liquibase.password=${spring.datasource.password}
               spring.liquibase.url=host
-              spring.liquibase.username=${spring.datasource.username}
+              spring.liquibase.user=${spring.datasource.username}
+              """
+          )
+        );
+    }
+
+    @Test
+    void flywayPropertiesMigration() {
+        rewriteRun(
+          //language=properties
+          properties(
+            """
+              spring.flyway.url=host
+              """,
+            """
+              spring.flyway.password=${spring.datasource.password}
+              spring.flyway.url=host
+              spring.flyway.user=${spring.datasource.username}
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeWhenUserAlreadySet() {
+        rewriteRun(
+          //language=properties
+          properties(
+            """
+              spring.flyway.url=host
+              spring.flyway.user=admin
               """
           )
         );
