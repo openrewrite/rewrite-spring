@@ -47,7 +47,8 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
             @Override
             public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
-                if (method.getSelect() != null && method.getArguments().size() == 1 && MATCHER.matches(method)) {
+                if (method.getSelect() != null && method.getArguments().size() == 1 && MATCHER.matches(method) &&
+                        getCursor().getParentTreeCursor().getValue() instanceof J.Block) {
                     Expression arg0 = method.getArguments().get(0);
                     if (arg0 instanceof J.Literal && Objects.equals(((J.Literal) arg0).getValue(), Boolean.TRUE)) {
                         //noinspection DataFlowIssue
