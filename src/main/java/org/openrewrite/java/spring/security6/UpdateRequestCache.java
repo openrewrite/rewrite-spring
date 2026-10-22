@@ -30,8 +30,6 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
 
-import static java.util.Collections.singletonList;
-
 public class UpdateRequestCache extends Recipe {
 
     private static final MethodMatcher CONTINUE_PARAMETER_MATCHER = new MethodMatcher(
@@ -88,33 +86,6 @@ public class UpdateRequestCache extends Recipe {
                     }
                 }
                 return block;
-            }
-
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                                                            ExecutionContext ctx) {
-                if (REQUEST_CACHE_MATCHER.matches(method)) {
-                    Expression arg = method.getArguments().get(0);
-                    if (isNewHttpSessionRequestCacheExpression(arg)) {
-                        JavaTemplate template = JavaTemplate.builder("new NullRequestCache()")
-                                .contextSensitive()
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-security-web-6"))
-                                .imports(
-                                        "org.springframework.security.web.savedrequest.NullRequestCache")
-                                .build();
-                        maybeRemoveImport("org.springframework.security.web.savedrequest.HttpSessionRequestCache");
-                        maybeAddImport("org.springframework.security.web.savedrequest.NullRequestCache");
-                        arg = template.apply(
-                                new Cursor(getCursor(), arg),
-                                arg.getCoordinates().replace());
-                        return method.withArguments(singletonList(arg));
-                    }
-
-                    return method;
-                }
-
-                return super.visitMethodInvocation(method, ctx);
             }
         });
     }
