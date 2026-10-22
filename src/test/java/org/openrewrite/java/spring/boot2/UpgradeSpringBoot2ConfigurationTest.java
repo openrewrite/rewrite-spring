@@ -96,4 +96,19 @@ class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void jodaDateTimeFormat() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
+          mavenProject("test",
+            srcMainResources(
+              properties(
+                "spring.jackson.joda-date-time-format=yyyy-MM-dd HH:mm:ss",
+                "spring.jackson.date-format=yyyy-MM-dd HH:mm:ss"
+              )
+            )
+          )
+        );
+    }
 }
