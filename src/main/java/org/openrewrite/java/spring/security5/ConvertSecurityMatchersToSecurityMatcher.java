@@ -38,6 +38,7 @@ public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
     private static final String HTTP_SECURITY = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
     private static final String ABSTRACT_REGISTRY = "org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry";
 
+    private static final String HTTP_METHOD = "org.springframework.http.HttpMethod";
     private static final String REQUEST_MATCHER = "org.springframework.security.web.util.matcher.RequestMatcher";
     private static final String OR_REQUEST_MATCHER = "org.springframework.security.web.util.matcher.OrRequestMatcher";
 
@@ -73,6 +74,9 @@ public class ConvertSecurityMatchersToSecurityMatcher extends Recipe {
                                 return mi;
                             }
                             mi = withRequestMatcher;
+                        } else if (TypeUtils.isOfClassType(mi.getArguments().get(0).getType(), HTTP_METHOD)) {
+                            // `HttpSecurity` has no `securityMatcher(HttpMethod, String...)` overload
+                            return mi;
                         }
 
                         // Build method type for securityMatcher on HttpSecurity

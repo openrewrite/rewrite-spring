@@ -271,6 +271,27 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
     }
 
     @Test
+    void noChangeWhenAntMatchersHasHttpMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.requestMatchers().antMatchers(HttpMethod.GET, "/api/**");
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void noChangeWhenAntMatchersInsideAuthorizeRequests() {
         //language=java
         rewriteRun(
