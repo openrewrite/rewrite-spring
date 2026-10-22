@@ -90,7 +90,7 @@ class UpdateRequestCacheTest implements RewriteTest {
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-                      requestCache.setMatchingRequestParameterName("continue");
+                      requestCache.setMatchingRequestParameterName(null);
 
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()

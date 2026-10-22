@@ -32,7 +32,7 @@ import java.util.List;
 
 public class UpdateRequestCache extends Recipe {
 
-    private static final MethodMatcher CONTINUE_PARAMETER_MATCHER = new MethodMatcher(
+    private static final MethodMatcher SET_MATCHING_REQUEST_PARAMETER_NAME_MATCHER = new MethodMatcher(
             "org.springframework.security.web.savedrequest.HttpSessionRequestCache setMatchingRequestParameterName(java.lang.String)"
     );
 
@@ -41,15 +41,14 @@ public class UpdateRequestCache extends Recipe {
     );
 
     @Getter
-    final String displayName = "Keep the default RequestCache querying behavior in Spring Security 5";
+    final String displayName = "Keep the Spring Security 5 `RequestCache` querying behavior";
 
     @Getter
     final String description = "By default, Spring Security 5 queries the saved request on every request, which means that in a " +
-            "typical setup, the HttpSession is queried on every request to use the RequestCache. In Spring " +
-            "Security 6, the default behavior has changed, and RequestCache will only be queried for a cached " +
-            "request if the HTTP parameter \"continue\" is defined. To maintain the same default behavior as " +
-            "Spring Security 5, either explicitly add the HTTP parameter \"continue\" to every request or use " +
-            "NullRequestCache to override the default behavior.";
+            "typical setup, the `HttpSession` is queried on every request to use the `RequestCache`. In Spring " +
+            "Security 6, the default behavior has changed, and `RequestCache` will only be queried for a cached " +
+            "request if the HTTP parameter `continue` is defined. To maintain the Spring Security 5 behavior, " +
+            "`setMatchingRequestParameterName(null)` is called on `HttpSessionRequestCache` instances assigned to a local variable.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -60,15 +59,14 @@ public class UpdateRequestCache extends Recipe {
                 block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
 
-                boolean hasContinueParameterStatement = findContinueParameterStatement(statements);
-                if (hasContinueParameterStatement) {
+                if (statements.stream().anyMatch(UpdateRequestCache::isSetMatchingRequestParameterNameStatement)) {
                     return block;
                 }
 
                 for (int i = 0; i < statements.size(); i++) {
                     Statement statement = statements.get(i);
                     if (isNewHttpSessionRequestCacheStatement(statement)) {
-                        statement = JavaTemplate.builder("#{any()}.setMatchingRequestParameterName(\"continue\");")
+                        statement = JavaTemplate.builder("#{any()}.setMatchingRequestParameterName(null);")
                                 .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion()
                                         .classpathFromResources(ctx, "spring-security-web-6"))
@@ -107,21 +105,9 @@ public class UpdateRequestCache extends Recipe {
         return false;
     }
 
-    private static boolean isContinueParameterStatement(Statement statement) {
-        if (statement instanceof J.MethodInvocation) {
-            J.MethodInvocation m = (J.MethodInvocation) statement;
-
-            if (CONTINUE_PARAMETER_MATCHER.matches(m)) {
-                if (m.getArguments().get(0) instanceof J.Literal) {
-                    return "continue".equals(((J.Literal) m.getArguments().get(0)).getValue());
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean findContinueParameterStatement(List<Statement> statements) {
-        return statements.stream().anyMatch(UpdateRequestCache::isContinueParameterStatement);
+    private static boolean isSetMatchingRequestParameterNameStatement(Statement statement) {
+        return statement instanceof J.MethodInvocation &&
+                SET_MATCHING_REQUEST_PARAMETER_NAME_MATCHER.matches((J.MethodInvocation) statement);
     }
 
     private static boolean isNewHttpSessionRequestCacheExpression(Expression expression) {
