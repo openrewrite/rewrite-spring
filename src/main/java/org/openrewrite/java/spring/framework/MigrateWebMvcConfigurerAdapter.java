@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.framework;
 
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -24,8 +23,8 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.spring.internal.AdapterSuperCallsToInterface;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
@@ -69,7 +68,8 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                                     .classpathFromResources(ctx, "spring-webmvc-5"))
                             .build().apply(getCursor(), cd.getCoordinates().addImplementsClause());
                     updateCursor(cd);
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
+                    cd = (J.ClassDeclaration) new AdapterSuperCallsToInterface(WEB_MVC_CONFIGURER_ADAPTER, WEB_MVC_CONFIGURER)
+                            .visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport(WEB_MVC_CONFIGURER_ADAPTER);
                     maybeAddImport(WEB_MVC_CONFIGURER);
                 }
@@ -112,19 +112,6 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
                 return identifier
                         .withType(WEB_MVC_CONFIGURER_TYPE)
                         .withSimpleName(((JavaType.ShallowClass) WEB_MVC_CONFIGURER_TYPE).getClassName());
-            }
-
-            class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
-                final MethodMatcher wm = new MethodMatcher("org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter *(..)");
-
-                @Override
-                public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                    J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                    if (wm.matches(method.getMethodType())) {
-                        return null;
-                    }
-                    return mi;
-                }
             }
         });
     }
