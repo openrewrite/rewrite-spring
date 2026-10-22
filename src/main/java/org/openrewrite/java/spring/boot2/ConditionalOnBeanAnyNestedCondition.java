@@ -55,7 +55,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
 
-            if (CONDITIONAL_BEAN.matches(a) && a.getArguments() != null) {
+            if (CONDITIONAL_BEAN.matches(a) && a.getArguments() != null && a.getArguments().size() == 1) {
                 // First check for an array of Class arguments
                 List<String> conditionalOnBeanCandidates = new ArrayList<>();
                 for (Expression p : a.getArguments()) {

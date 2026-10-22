@@ -304,6 +304,32 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     }
 
     @Nested
+    class NoChange {
+
+        @Test
+        void otherAttributesWouldBeLost() {
+            //language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                  import org.springframework.boot.autoconfigure.condition.SearchStrategy;
+                  import org.springframework.context.annotation.Bean;
+
+                  class ConfigClass {
+                      @Bean
+                      @ConditionalOnBean(type = {"com.foo.Aa", "com.foo.Bb"}, search = SearchStrategy.CURRENT)
+                      public String thing() {
+                          return "";
+                      }
+                  }
+                  """
+              )
+            );
+        }
+    }
+
+    @Nested
     class Boot1Gated implements RewriteTest {
 
         private static final @Language("xml") String POM_BOOT_1 = """
