@@ -45,7 +45,7 @@ public class RemoveEnableBatchProcessing extends Recipe {
                 if (!FindAnnotations.find(classDecl, "@org.springframework.boot.autoconfigure.SpringBootApplication").isEmpty() &&
                         !FindAnnotations.find(classDecl, "@" + ENABLE_BATCH_PROCESSING).isEmpty()) {
                     return classDecl.withLeadingAnnotations(ListUtils.map(classDecl.getLeadingAnnotations(), a -> {
-                        if (TypeUtils.isOfClassType(a.getType(), ENABLE_BATCH_PROCESSING)) {
+                        if (TypeUtils.isOfClassType(a.getType(), ENABLE_BATCH_PROCESSING) && hasNoArguments(a)) {
                             maybeRemoveImport(ENABLE_BATCH_PROCESSING);
                             return null;
                         }
@@ -55,5 +55,9 @@ public class RemoveEnableBatchProcessing extends Recipe {
                 return super.visitClassDeclaration(classDecl, ctx);
             }
         });
+    }
+
+    private static boolean hasNoArguments(J.Annotation annotation) {
+        return annotation.getArguments() == null || annotation.getArguments().stream().allMatch(J.Empty.class::isInstance);
     }
 }
