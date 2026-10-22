@@ -327,6 +327,59 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
               )
             );
         }
+
+        @Test
+        void fullyQualifiedClassLiteral() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  package com.foo;
+                  public class Aa {}
+                  """
+              ),
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                  import org.springframework.context.annotation.Bean;
+
+                  class Bb {}
+
+                  class ConfigClass {
+                      @Bean
+                      @ConditionalOnBean({com.foo.Aa.class, Bb.class})
+                      public String thing() {
+                          return "";
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void typeNameFromConstant() {
+            //language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+                  import org.springframework.context.annotation.Bean;
+
+                  class ConfigClass {
+                      static final String AA = "com.foo.Aa";
+
+                      @Bean
+                      @ConditionalOnBean(type = {AA, "com.foo.Bb"})
+                      public String thing() {
+                          return "";
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 
     @Nested
