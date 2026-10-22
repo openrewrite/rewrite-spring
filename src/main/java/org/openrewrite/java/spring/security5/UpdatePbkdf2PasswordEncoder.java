@@ -29,12 +29,9 @@ import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-import static java.util.Collections.unmodifiableMap;
 import static org.openrewrite.Tree.randomId;
 import static org.openrewrite.java.spring.internal.LocalVariableUtils.resolveExpression;
 import static org.openrewrite.java.spring.security5.PasswordEncoderUtils.isInsideTargetClass;
@@ -54,20 +51,12 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
     private static final Integer DEFAULT_SALT_LENGTH = 8;
     private static final Integer DEFAULT_HASH_WIDTH = 256;
     private static final Integer DEFAULT_ITERATIONS = 185000;
-
-    private static final Map<Integer, String> HASH_WIDTH_TO_ALGORITHM_MAP;
-
-    static {
-        Map<Integer, String> map = new HashMap<>();
-        map.put(160, "PBKDF2WithHmacSHA1");
-        map.put(DEFAULT_HASH_WIDTH, "PBKDF2WithHmacSHA256");
-        map.put(512, "PBKDF2WithHmacSHA512");
-        HASH_WIDTH_TO_ALGORITHM_MAP = unmodifiableMap(map);
-    }
+    private static final Integer SHA1_HASH_WIDTH = 160;
 
     String displayName = "Use new `Pbkdf2PasswordEncoder` factory methods";
 
     String description = "In Spring Security 5.8 some `Pbkdf2PasswordEncoder` constructors have been deprecated in favor of factory methods. " +
+            "Replaces them with `Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5()` or an equivalent constructor, so existing password hashes keep verifying. " +
             "Refer to the [ Spring Security migration docs](https://docs.spring.io/spring-security/reference/5.8/migration/index.html#_update_pbkdf2passwordencoder) for more information.";
 
     @Override
@@ -91,9 +80,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                         if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET)) {
                             return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                         }
-                        String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
-                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
-                        return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), newIntLiteral(DEFAULT_ITERATIONS));
+                        return newHashWidthConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), newIntLiteral(DEFAULT_ITERATIONS), newIntLiteral(DEFAULT_HASH_WIDTH));
                     }
                     if (TWO_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         Expression secret = arguments.get(0);
@@ -103,27 +90,23 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                                 resolvedValueMatchesLiteral(saltLength, DEFAULT_SALT_LENGTH)) {
                             return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                         }
-                        String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(DEFAULT_HASH_WIDTH);
-                        maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
-                        return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, saltLength, newIntLiteral(DEFAULT_ITERATIONS));
+                        return newHashWidthConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, saltLength, newIntLiteral(DEFAULT_ITERATIONS), newIntLiteral(DEFAULT_HASH_WIDTH));
                     }
                     if (THREE_ARG_CONSTRUCTOR_MATCHER.matches(newClass)) {
                         Expression secret = arguments.get(0);
                         Expression iterations = arguments.get(1);
                         Expression hashWidth = arguments.get(2);
-                        Integer knownHashWidth = hashWidth instanceof J.Literal && hashWidth.getType() == JavaType.Primitive.Int ? (Integer) ((J.Literal) hashWidth).getValue() : null;
                         maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS);
                         if (resolvedValueMatchesLiteral(secret, DEFAULT_SECRET) &&
                                 resolvedValueMatchesLiteral(iterations, DEFAULT_ITERATIONS) &&
-                                DEFAULT_HASH_WIDTH.equals(knownHashWidth)) {
+                                resolvedValueMatchesLiteral(hashWidth, DEFAULT_HASH_WIDTH)) {
                             return newFactoryMethodTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace());
                         }
-                        String algorithm = HASH_WIDTH_TO_ALGORITHM_MAP.get(knownHashWidth);
-                        if (algorithm != null) {
-                            maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", algorithm);
-                            return newConstructorTemplate(ctx, algorithm).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations);
+                        if (resolvedValueMatchesLiteral(hashWidth, SHA1_HASH_WIDTH)) {
+                            maybeAddImport(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm", "PBKDF2WithHmacSHA1");
+                            return newSha1ConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations);
                         }
-                        return newDeprecatedConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations, hashWidth);
+                        return newHashWidthConstructorTemplate(ctx).apply(getCursor(), newClass.getCoordinates().replace(), secret, newIntLiteral(DEFAULT_SALT_LENGTH), iterations, hashWidth);
                     }
                 }
                 return j;
@@ -142,16 +125,16 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
                         .build();
             }
 
-            private JavaTemplate newConstructorTemplate(ExecutionContext ctx, String algorithm) {
-                return JavaTemplate.builder("new Pbkdf2PasswordEncoder(#{any(java.lang.CharSequence)}, #{any(int)}, #{any(int)}, " + algorithm + ")")
+            private JavaTemplate newSha1ConstructorTemplate(ExecutionContext ctx) {
+                return JavaTemplate.builder("new Pbkdf2PasswordEncoder(#{any(java.lang.CharSequence)}, #{any(int)}, #{any(int)}, PBKDF2WithHmacSHA1)")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
-                        .staticImports(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm." + algorithm)
+                        .staticImports(PBKDF2_PASSWORD_ENCODER_CLASS + ".SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA1")
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-security-crypto-5.8.+"))
                         .build();
             }
 
-            private JavaTemplate newDeprecatedConstructorTemplate(ExecutionContext ctx) {
+            private JavaTemplate newHashWidthConstructorTemplate(ExecutionContext ctx) {
                 return JavaTemplate.builder("new Pbkdf2PasswordEncoder(#{any(java.lang.CharSequence)}, #{any(int)}, #{any(int)}, #{any(int)})")
                         .imports(PBKDF2_PASSWORD_ENCODER_CLASS)
                         .javaParser(JavaParser.fromJavaVersion()
