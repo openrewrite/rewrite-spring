@@ -101,6 +101,30 @@ class ReplaceExtendWithAndContextConfigurationTest implements RewriteTest {
     }
 
     @Test
+    void extendWithContextConfigurationWithEmptyArgumentList() {
+        doExtendWithContextConfigurationTest(
+          """
+            @ContextConfiguration()
+            """,
+          """
+            @SpringJUnitConfig()
+            """
+        );
+    }
+
+    @Test
+    void extendWithContextConfigurationWithoutArgumentList() {
+        doExtendWithContextConfigurationTest(
+          """
+            @ContextConfiguration
+            """,
+          """
+            @SpringJUnitConfig
+            """
+        );
+    }
+
+    @Test
     void extendWithContextConfigurationUsesExplicitValueExplicitArray() {
         doExtendWithContextConfigurationTest(
           """

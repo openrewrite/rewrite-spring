@@ -26,7 +26,11 @@ tags:
   - boot
 preconditions:
   - org.openrewrite.Singleton
+  - org.openrewrite.java.spring.boot4.UsesSpringBoot
 recipeList:
+  # Upgrade transitive Boot management before older migrations add dependencies against the vendor BOM.
+  - org.openrewrite.java.spring.boot4.AddSpringBootBomForTransitiveDependencyManagement:
+      newVersion: 4.0.x
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
   - org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025_1
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
@@ -94,6 +98,7 @@ recipeList:
 
   # Modular starters must run after parent/BOM upgrades so that
   # AddDependency can see the new artifacts are managed and omit explicit versions
+  - org.openrewrite.java.spring.boot4.MigrateLiquibasePropertiesApi
   - org.openrewrite.java.spring.boot4.MigrateToModularStarters
 
   # Replace deprecated starters with their new names

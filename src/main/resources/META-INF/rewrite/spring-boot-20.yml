@@ -34,6 +34,11 @@ recipeList:
   # Migrate multi-condition @ConditionalOnBean before upgrading dependencies,
   # as the OR→AND semantics change only applies to Boot 1.x projects
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1
+  # Boot 1 metrics implementations were removed when Boot 2 adopted Micrometer.
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricFilterAutoConfiguration
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricRepositoryAutoConfiguration
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -76,6 +81,15 @@ recipeList:
       newVersion: ^0.35
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.thymeleaf.spring4
+      newPackageName: org.thymeleaf.spring5
+      recursive: true
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.thymeleaf
+      oldArtifactId: thymeleaf-spring4
+      newArtifactId: thymeleaf-spring5
+      newVersion: 3.0.x
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
@@ -136,8 +150,8 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
       newFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UnderTowEmbeddedServletContainerFactory
-      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UnderTowServletWebServerFactory
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName

@@ -67,18 +67,18 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
             if (overridesDefaultBatchConfigurerMethod(md) || callsDefaultBatchConfigurerSuperConstructor(md)) {
                 // Strip @Override
-                md = md.withLeadingAnnotations(ListUtils.map(md.getLeadingAnnotations(),
-                        a -> TypeUtils.isAssignableTo("java.lang.Override", a.getType()) ? null : a));
+                md = md.withLeadingAnnotations(ListUtils.filter(md.getLeadingAnnotations(),
+                        a -> !TypeUtils.isAssignableTo("java.lang.Override", a.getType())));
                 md = Markup.info(md, "TODO Used to override a DefaultBatchConfigurer method; reconsider if still needed");
 
                 // Strip calls to super()
-                md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
-                        s -> s instanceof J.MethodInvocation && "super".equals(((J.MethodInvocation) s).getSimpleName()) ? null : s)));
+                md = md.withBody(md.getBody().withStatements(ListUtils.filter(md.getBody().getStatements(),
+                        s -> !(s instanceof J.MethodInvocation && "super".equals(((J.MethodInvocation) s).getSimpleName())))));
 
                 // Strip calls to super.*()
-                md = md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(),
-                        s -> s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
-                                "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName()) ? null : s)));
+                md = md.withBody(md.getBody().withStatements(ListUtils.filter(md.getBody().getStatements(),
+                        s -> !(s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.Identifier &&
+                                "super".equals(((J.Identifier) ((J.MethodInvocation) s).getSelect()).getSimpleName())))));
 
                 // Strip (now) empty methods
                 if (md.getBody().getStatements().isEmpty()) {

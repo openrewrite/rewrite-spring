@@ -31,7 +31,8 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
         spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-webmvc-5",
             "spring-core-5",
-            "spring-web-5.3"))
+            "spring-web-5.3",
+            "spring-context-5"))
           .recipe(new MigrateWebMvcConfigurerAdapter());
     }
 
@@ -88,6 +89,37 @@ class MigrateWebMvcConfigurerAdapterTest implements RewriteTest {
                   WebMvcConfigurer forwardToIndex() {
                       return new WebMvcConfigurer() {
                       };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void superCallInExpressionCallsInterfaceDefaultMethod() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.validation.Validator;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+              class CustomMvcConfigurer extends WebMvcConfigurerAdapter {
+                  @Override
+                  public Validator getValidator() {
+                      return super.getValidator();
+                  }
+              }
+              """,
+            """
+              import org.springframework.validation.Validator;
+              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+              class CustomMvcConfigurer implements WebMvcConfigurer {
+                  @Override
+                  public Validator getValidator() {
+                      return WebMvcConfigurer.super.getValidator();
                   }
               }
               """

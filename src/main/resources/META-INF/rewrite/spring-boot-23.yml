@@ -107,11 +107,17 @@ name: org.openrewrite.java.spring.boot2.AddSpringBootStarterValidation
 displayName: Add `spring-boot-starter-validation` if needed
 description: >-
   Add `spring-boot-starter-validation` when validation constraints are used,
-  unless the project already declares an explicit validation API dependency.
+  unless the project already declares `jakarta.validation-api` or `hibernate-validator` directly.
 preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: jakarta.validation
       artifactIdPattern: jakarta.validation-api
+      onlyDirect: true
+      invertMarking: true
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.hibernate.validator
+      artifactIdPattern: hibernate-validator
+      onlyDirect: true
       invertMarking: true
   - org.openrewrite.Singleton
 recipeList:

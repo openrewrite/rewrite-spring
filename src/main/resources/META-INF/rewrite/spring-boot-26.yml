@@ -66,7 +66,7 @@ recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
-      newVersion: 2021.0.X
+      newVersion: 2021.0.x
       overrideManagedVersion: false
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_6
 

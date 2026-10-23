@@ -23,6 +23,7 @@ import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.service.AnnotationService;
+import org.openrewrite.java.spring.internal.NamedTypes;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
@@ -176,6 +177,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                             template.imports(fq.getFullyQualifiedName());
                             maybeAddImport(fq);
                         }
+                        // the type's arguments are printed too, and can name other types
+                        template.imports(NamedTypes.in(type));
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
 
                         Block applied = firstMethod
@@ -222,6 +225,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
                 md = JavaTemplate.builder(paramsStr)
                         .contextSensitive()
+                        // the existing parameters and the field's type are printed into the template
+                        .imports(NamedTypes.in(ListUtils.concat(params, type).toArray(new J[0])))
                         .build()
                         .apply(
                                 getCursor(),

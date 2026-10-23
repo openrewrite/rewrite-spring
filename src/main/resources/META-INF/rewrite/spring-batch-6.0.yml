@@ -169,7 +169,7 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.batch.core.launch.support.RunIdIncrementer
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.RunIdIncrementer
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.batch.core.job.launch.support.DataFieldMaxValueJobParametersIncrementer
+      oldFullyQualifiedTypeName: org.springframework.batch.core.launch.support.DataFieldMaxValueJobParametersIncrementer
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.DataFieldMaxValueJobParametersIncrementer
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.Step

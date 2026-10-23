@@ -21,6 +21,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -29,8 +30,6 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
-
-import static java.util.Collections.singletonList;
 
 public class MigrateHandlerInterceptor extends Recipe {
 
@@ -60,10 +59,10 @@ public class MigrateHandlerInterceptor extends Recipe {
                 maybeRemoveImport(HANDLER_INTERCEPTOR_ADAPTER);
                 maybeAddImport(HANDLER_INTERCEPTOR_INTERFACE);
 
-                TypeTree implments = TypeTree.build("HandlerInterceptor")
+                TypeTree handlerInterceptor = TypeTree.build("HandlerInterceptor")
                         .withType(JavaType.buildType(HANDLER_INTERCEPTOR_INTERFACE));
-                cd = cd.withExtends(null).withImplements(singletonList(implments));
-                return autoFormat(cd, implments, ctx, getCursor().getParentOrThrow());
+                cd = cd.withExtends(null).withImplements(ListUtils.concat(cd.getImplements(), handlerInterceptor));
+                return autoFormat(cd, handlerInterceptor, ctx, getCursor().getParentOrThrow());
             }
 
             @Override

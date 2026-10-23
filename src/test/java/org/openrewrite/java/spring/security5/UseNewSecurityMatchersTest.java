@@ -154,6 +154,38 @@ class UseNewSecurityMatchersTest implements RewriteTest {
     }
 
     @Test
+    void migrateRegexMatcher() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.regexMatcher("/api/.*").authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.securityMatcher(new RegexRequestMatcher("/api/.*", null)).authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void togetherWithRequestMatchers() {
         //language=java
         rewriteRun(

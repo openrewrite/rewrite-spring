@@ -90,7 +90,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Remove the argument
                 if (methodArgumentHasSingleType(requestMethodArg.get())) {
                     if (a.getArguments() != null) {
-                        a = a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg));
+                        a = a.withArguments(ListUtils.filter(a.getArguments(), arg -> !requestMethodArg.get().equals(arg)));
                     }
                 }
 

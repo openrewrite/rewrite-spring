@@ -94,13 +94,12 @@ public class AuthorizeHttpRequests extends Recipe {
                 JavaType.Method newMethodType = methodType.getDeclaringType().getMethods().stream()
                         .filter(nm -> AUTHORIZE_HTTP_REQUESTS.equals(nm.getName()))
                         .filter(nm -> nm.getParameterTypes().size() == methodType.getParameterTypes().size())
-                        .findFirst().orElse(null);
-                if (newMethodType != null) {
-                    m = m
-                            .withName(m.getName().withSimpleName(AUTHORIZE_HTTP_REQUESTS))
-                            .withMethodType(newMethodType);
-                }
-                return m;
+                        // Older classpaths predate authorizeHttpRequests. Preserve the original
+                        // signature in that case; the queued ChangeType visitors migrate its types.
+                        .findFirst().orElseGet(() -> methodType.withName(AUTHORIZE_HTTP_REQUESTS));
+                return m
+                        .withName(m.getName().withSimpleName(AUTHORIZE_HTTP_REQUESTS))
+                        .withMethodType(newMethodType);
             }
 
             private J processAccessDecisionManager(J.MethodInvocation m, ExecutionContext ctx) {

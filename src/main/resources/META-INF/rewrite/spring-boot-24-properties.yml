@@ -57,7 +57,7 @@ recipeList:
       newPropertyKey: spring.neo4j.uri
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.neo4j.username
-      newPropertyKey: spring.neo4j.authentication.password
+      newPropertyKey: spring.neo4j.authentication.username
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.mvc.locale
       newPropertyKey: spring.web.locale

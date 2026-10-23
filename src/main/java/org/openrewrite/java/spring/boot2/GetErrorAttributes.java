@@ -72,9 +72,9 @@ public class GetErrorAttributes extends Recipe {
                             .imports(parserImports)
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx,
-                                            "spring-boot-2.*",
-                                            "spring-boot-autoconfigure-2.*",
-                                            "spring-web-5.*"))
+                                            "spring-boot-2.7",
+                                            "spring-boot-autoconfigure-2.7",
+                                            "spring-web-5.3"))
                             .build().apply(
                                     getCursor(),
                                     mi.getCoordinates().replaceArguments(),
@@ -87,9 +87,9 @@ public class GetErrorAttributes extends Recipe {
                             .imports(parserImports)
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx,
-                                            "spring-boot-2.*",
-                                            "spring-boot-autoconfigure-2.*",
-                                            "spring-web-5.*"))
+                                            "spring-boot-2.7",
+                                            "spring-boot-autoconfigure-2.7",
+                                            "spring-web-5.3"))
                             .build()
                             .apply(
                                     getCursor(),
@@ -103,9 +103,9 @@ public class GetErrorAttributes extends Recipe {
                             .imports(parserImports)
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx,
-                                            "spring-boot-2.*",
-                                            "spring-boot-autoconfigure-2.*",
-                                            "spring-web-5.*"))
+                                            "spring-boot-2.7",
+                                            "spring-boot-autoconfigure-2.7",
+                                            "spring-web-5.3"))
                             .build()
                             .apply(
                                     getCursor(),

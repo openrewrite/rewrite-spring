@@ -48,7 +48,7 @@ import static java.util.regex.Pattern.quote;
  */
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class ChangeSpringPropertyKey extends Recipe {
+public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
     private static final AnnotationMatcher VALUE_MATCHER =
             new AnnotationMatcher("@org.springframework.beans.factory.annotation.Value");
@@ -79,24 +79,34 @@ public class ChangeSpringPropertyKey extends Recipe {
     List<String> except;
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
+        return new SpringConfigFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(SpringConfigFiles acc) {
+        return acc.getScanner();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
         ChangePropertyKey yamlChangePropertyKey =
                 new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "(.+)", newPropertyKey + "$1", true, true);
+                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "([.\\[].+)", newPropertyKey + "$1", true, true);
         UnfoldProperties unfoldNewPropertyKey =
                 new UnfoldProperties(null, singletonList("$." + newPropertyKey));
 
         String quotedOldKey = quote(oldPropertyKey);
         String exceptRegex = exceptRegex();
-        Pattern valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
-        Pattern prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex);
+        Pattern valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)((:(?:\\\\.|[^}])*)?\\})");
+        Pattern prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex + "(?![\\w-])");
         Pattern oldKeyPattern = Pattern.compile(quotedOldKey);
 
         return Preconditions.check(Preconditions.or(
-                new IsPossibleSpringConfigFile(),
+                new IsPossibleSpringConfigFile(acc),
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
                 new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
                 new UsesType<>("org.springframework.boot..*Test", false)

@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.data;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.SourceFile;
 import org.openrewrite.java.marker.JavaProject;
-import org.openrewrite.java.spring.SpringConfigFile;
 import org.openrewrite.marker.SourceSet;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
@@ -56,14 +55,8 @@ public final class SpringConfigFileSupport {
     }
 
     private static boolean isMainSpringConfigurationFile(SourceFile source) {
-        if (!isMainSource(source)) {
-            return false;
-        }
-        if (source.getMarkers().findFirst(SpringConfigFile.class).isPresent()) {
-            return true;
-        }
-        String filename = source.getSourcePath().getFileName().toString();
-        return isApplicationConfigurationFile(filename);
+        return isMainSource(source) &&
+                isApplicationConfigurationFile(source.getSourcePath().getFileName().toString());
     }
 
     private static boolean isApplicationConfigurationFile(String filename) {

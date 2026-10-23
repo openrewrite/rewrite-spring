@@ -29,7 +29,7 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-test-6.+"));
     }
 
     @DocumentExample
@@ -53,6 +53,70 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
               class A {
                   int status() {
                       return UNPROCESSABLE_CONTENT.value();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesPayloadTooLarge() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.HttpStatus;
+
+              class A {
+                  HttpStatus status() {
+                      return HttpStatus.PAYLOAD_TOO_LARGE;
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpStatus;
+
+              class A {
+                  HttpStatus status() {
+                      return HttpStatus.CONTENT_TOO_LARGE;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void renamesStatusResultMatchers() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.servlet.ResultMatcher;
+              import org.springframework.test.web.servlet.result.StatusResultMatchers;
+
+              class A {
+                  ResultMatcher tooLarge(StatusResultMatchers status) {
+                      return status.isPayloadTooLarge();
+                  }
+
+                  ResultMatcher unprocessable(StatusResultMatchers status) {
+                      return status.isUnprocessableEntity();
+                  }
+              }
+              """,
+            """
+              import org.springframework.test.web.servlet.ResultMatcher;
+              import org.springframework.test.web.servlet.result.StatusResultMatchers;
+
+              class A {
+                  ResultMatcher tooLarge(StatusResultMatchers status) {
+                      return status.isContentTooLarge();
+                  }
+
+                  ResultMatcher unprocessable(StatusResultMatchers status) {
+                      return status.isUnprocessableContent();
                   }
               }
               """

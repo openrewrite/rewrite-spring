@@ -167,13 +167,12 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                             b = template.apply(new Cursor(getCursor().getParentOrThrow(), b), declaration.getCoordinates().after(),
                                     variable.getName().withPrefix(Space.EMPTY), migration.getValue());
                         }
-                        return b.withStatements(ListUtils.map(b.getStatements(),
-                                statement -> removed.contains(statement.getId()) ? null : statement));
+                        return b.withStatements(ListUtils.filter(b.getStatements(),
+                                statement -> !removed.contains(statement.getId())));
                     }
 
                     private Set<String> reassignedNames(J.Block block) {
-                        Set<String> names = new HashSet<>();
-                        new JavaIsoVisitor<Set<String>>() {
+                        return new JavaIsoVisitor<Set<String>>() {
                             @Override
                             public J.Assignment visitAssignment(J.Assignment assignment, Set<String> reassigned) {
                                 if (assignment.getVariable() instanceof J.Identifier) {
@@ -181,8 +180,7 @@ public class MoveConnectTimeoutToConnectionConfig extends Recipe {
                                 }
                                 return super.visitAssignment(assignment, reassigned);
                             }
-                        }.reduce(block, names);
-                        return names;
+                        }.reduce(block, new HashSet<>());
                     }
 
                     /**

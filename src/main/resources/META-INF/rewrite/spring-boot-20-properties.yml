@@ -477,7 +477,7 @@ recipeList:
       newPropertyKey: management.server.address
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.context-path
-      newPropertyKey: management.server.servlet.context-path
+      newPropertyKey: management.endpoints.web.base-path
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: management.port
       newPropertyKey: management.server.port

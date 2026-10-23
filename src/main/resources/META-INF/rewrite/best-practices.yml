@@ -49,6 +49,7 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
+  - org.openrewrite.java.spring.boot3.SpringBoot3BestPracticesOnly
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.SpringBoot3BestPracticesOnly
@@ -97,7 +98,7 @@ displayName: Enable Virtual Threads on Java 21
 description: Set `spring.threads.virtual.enabled` to `true` in `application.properties` or `application.yml`.
 preconditions:
   - org.openrewrite.java.search.HasJavaVersion:
-      version: 21.X
+      version: "[21,)"
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.AddSpringProperty:

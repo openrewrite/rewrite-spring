@@ -23,18 +23,25 @@ import org.openrewrite.Recipe;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JRightPadded;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.marker.Markers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public class MigrateToChunkOrientedStepBuilder extends Recipe {
@@ -55,6 +62,14 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
     private static final MethodMatcher BUILD_MATCHER = new MethodMatcher(STEP_BUILDERS + " build()");
     private static final MethodMatcher LISTENER_MATCHER = new MethodMatcher(STEP_BUILDERS + " listener(..)");
     private static final MethodMatcher TASK_EXECUTOR_MATCHER = new MethodMatcher(STEP_BUILDERS + " taskExecutor(..)");
+    private static final MethodMatcher RETRY_MATCHER = new MethodMatcher(STEP_BUILDERS + " retry(..)");
+    private static final MethodMatcher RETRY_LIMIT_MATCHER = new MethodMatcher(STEP_BUILDERS + " retryLimit(int)");
+
+    private static final String RETRY_POLICY = "org.springframework.core.retry.RetryPolicy";
+    private static final String DURATION = "java.time.Duration";
+
+    private static final String MSG_REMOVE_CALL = "removeCall";
+    private static final String MSG_RETRY_EXCEPTIONS = "retryExceptions";
 
     // Methods absent here have no counterpart on `ChunkOrientedStepBuilder`, so chains using them are left alone
     private static final List<MethodMatcher> SUPPORTED_BUILDER_METHODS = Stream.of(
@@ -84,27 +99,36 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
 
     @Getter
     final String description = "Spring Batch 6.0 deprecates `StepBuilder.chunk(int, PlatformTransactionManager)` in " +
-            "favor of a new chunk-oriented model, where the transaction manager is configured through " +
-            "`ChunkOrientedStepBuilder.transactionManager(PlatformTransactionManager)`. Replaces " +
-            "`chunk(chunkSize, transactionManager)` with `chunk(chunkSize).transactionManager(transactionManager)`, " +
-            "but only where every other method in the builder chain has an equivalent on " +
-            "`ChunkOrientedStepBuilder`. The new model dropped the Spring Retry based chunk and retry APIs without a " +
-            "drop-in replacement, so chains calling `backOffPolicy`, `retryPolicy`, `retryContextCache`, " +
-            "`keyGenerator`, `noRetry`, `noRollback`, `noSkip`, `processorNonTransactional`, " +
-            "`readerIsTransactionalQueue`, `chunkOperations`, `stepOperations`, `exceptionHandler`, " +
-            "`listener(RetryListener)`, `chunk(CompletionPolicy, PlatformTransactionManager)` or " +
-            "`taskExecutor(TaskExecutor)` with a non-async executor are left untouched, and remain a manual migration " +
-            "step. See the [Spring Batch 6.0 migration guide](https://github.com/spring-projects/spring-batch/wiki/Spring-Batch-6.0-Migration-Guide#new-chunk-oriented-model-implementation).";
+            "favor of a new chunk-oriented model. Replaces `chunk(chunkSize, transactionManager)` with " +
+            "`chunk(chunkSize).transactionManager(transactionManager)` when every other call in the builder chain " +
+            "has a counterpart on `ChunkOrientedStepBuilder`. A `retryLimit(..)` and the `retry(..)` calls in its " +
+            "chain become one `retryPolicy(RetryPolicy)` that keeps the number of attempts and has no delay, because " +
+            "the new model counts `retryLimit` as retries rather than attempts and, by default, waits one second " +
+            "between them. A `retryLimit(..)` without any `retry(..)` is removed, as the new model would otherwise " +
+            "retry every exception. Unlike Spring Retry, the new policy also retries when a *cause* of the thrown " +
+            "exception matches. " +
+            "Chains with advanced Spring Retry configuration are left untouched and remain a manual migration step: " +
+            "`retryPolicy`, `backOffPolicy`, `retryContextCache`, `keyGenerator`, `noRetry` and " +
+            "`listener(RetryListener)`. The same applies to other APIs the new model dropped: `listener(Object)`, " +
+            "`noRollback`, `noSkip`, `processorNonTransactional`, `readerIsTransactionalQueue`, `chunkOperations`, " +
+            "`stepOperations`, `exceptionHandler`, `chunk(CompletionPolicy, PlatformTransactionManager)` and " +
+            "`taskExecutor(TaskExecutor)` with a non-async executor. See the [Spring Batch 6.0 migration guide](https://github.com/spring-projects/spring-batch/wiki/Spring-Batch-6.0-Migration-Guide#new-chunk-oriented-model-implementation).";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesMethod<>(CHUNK_WITH_TRANSACTION_MANAGER), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(CHUNK_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (!CHUNK_MATCHER.matches(mi) || !chainSupportsNewModel(getCursor())) {
+
+                if (!CHUNK_MATCHER.matches(mi)) {
+                    return foldIntoRetryPolicyOrRemove(mi, ctx);
+                }
+                List<Cursor> chain = chainUpToBuild(getCursor());
+                if (chain.isEmpty()) {
                     return mi;
                 }
+                markRetryMethods(chain);
 
                 Expression chunkSize = mi.getArguments().get(0);
                 Expression transactionManager = mi.getArguments().get(1);
@@ -138,27 +162,109 @@ public class MigrateToChunkOrientedStepBuilder extends Recipe {
                         .withTypeParameters(null)
                         .withArguments(singletonList(transactionManager.withPrefix(Space.EMPTY)));
             }
+
+            private J.MethodInvocation foldIntoRetryPolicyOrRemove(J.MethodInvocation mi, ExecutionContext ctx) {
+                if (getCursor().pollMessage(MSG_REMOVE_CALL) != null) {
+                    return ((J.MethodInvocation) mi.getSelect()).withPrefix(mi.getPrefix());
+                }
+                List<Expression> retryExceptions = getCursor().pollMessage(MSG_RETRY_EXCEPTIONS);
+                if (retryExceptions != null) {
+                    return foldIntoRetryPolicy(mi, retryExceptions, ctx);
+                }
+                return mi;
+            }
+
+            private J.MethodInvocation foldIntoRetryPolicy(J.MethodInvocation retryLimit, List<Expression> exceptions, ExecutionContext ctx) {
+                List<Object> parameters = new ArrayList<>();
+                parameters.add(retryLimit.getSelect());
+                parameters.addAll(exceptions);
+                Expression limit = retryLimit.getArguments().get(0);
+
+                String maxRetries;
+                if (limit instanceof J.Literal && ((J.Literal) limit).getValue() instanceof Integer) {
+                    maxRetries = String.valueOf(Math.max(0, (Integer) ((J.Literal) limit).getValue() - 1));
+                } else {
+                    maxRetries = "Math.max(0, #{any(int)} - 1)";
+                    parameters.add(parenthesizeUnlessAtomic(limit));
+                }
+
+                String includes = exceptions.stream().map(e -> "#{any(java.lang.Class)}").collect(joining(", "));
+
+                maybeAddImport(RETRY_POLICY);
+                maybeAddImport(DURATION);
+                J.MethodInvocation retryPolicy = JavaTemplate.builder("#{any(" + CHUNK_ORIENTED_STEP_BUILDER + ")}\n" +
+                                ".retryPolicy(RetryPolicy.builder()\n" +
+                                ".includes(" + includes + ")\n" +
+                                ".maxRetries(" + maxRetries + ")\n" +
+                                ".delay(Duration.ZERO)\n" +
+                                ".build())")
+                        .imports(RETRY_POLICY, DURATION)
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-7", "spring-batch-core-6"))
+                        .build()
+                        .apply(getCursor(), retryLimit.getCoordinates().replace(), parameters.toArray());
+                J.MethodInvocation withOriginalSelect = retryPolicy.getPadding().withSelect(retryLimit.getPadding().getSelect());
+                return withOriginalSelect.withArguments(singletonList(autoFormat(withOriginalSelect.getArguments().get(0), ctx,
+                        new Cursor(getCursor().getParentOrThrow(), withOriginalSelect))));
+            }
         });
     }
 
+    // Kotlin expressions such as `if` are not parenthesized by the template engine before the decrement is applied
+    private static Expression parenthesizeUnlessAtomic(Expression expression) {
+        if (expression instanceof J.Identifier || expression instanceof J.FieldAccess ||
+                expression instanceof J.MethodInvocation || expression instanceof J.Parentheses) {
+            return expression;
+        }
+        return new J.Parentheses<>(Tree.randomId(), expression.getPrefix(), Markers.EMPTY,
+                JRightPadded.build(expression.withPrefix(Space.EMPTY)));
+    }
+
+    private static void markRetryMethods(List<Cursor> chain) {
+        List<Cursor> retries = new ArrayList<>();
+        List<Cursor> retryLimits = new ArrayList<>();
+        List<Expression> exceptions = new ArrayList<>();
+
+        for (Cursor cursor : chain) {
+            J.MethodInvocation method = cursor.getValue();
+            if (RETRY_MATCHER.matches(method)) {
+                retries.add(cursor);
+                exceptions.addAll(method.getArguments());
+            } else if (RETRY_LIMIT_MATCHER.matches(method)) {
+                retryLimits.add(cursor);
+            }
+        }
+
+        if (retryLimits.isEmpty()) {
+            return;
+        }
+
+        if (!exceptions.isEmpty()) {
+            Cursor lastRetryLimit = retryLimits.remove(retryLimits.size() - 1);
+            lastRetryLimit.putMessage(MSG_RETRY_EXCEPTIONS, exceptions);
+        }
+
+        retries.forEach(retry -> retry.putMessage(MSG_REMOVE_CALL, true));
+        retryLimits.forEach(limit -> limit.putMessage(MSG_REMOVE_CALL, true));
+    }
+
     // The chain has to end in `build()` so that the widened return type of the new model stays contained
-    private static boolean chainSupportsNewModel(Cursor chunkCursor) {
+    private static List<Cursor> chainUpToBuild(Cursor chunkCursor) {
+        List<Cursor> chain = new ArrayList<>();
         Cursor cursor = chunkCursor;
-        J current = cursor.getValue();
         while (true) {
             Cursor parent = cursor.getParentTreeCursor();
             if (!(parent.getValue() instanceof J.MethodInvocation)) {
-                return false;
+                return emptyList();
             }
             J.MethodInvocation next = parent.getValue();
-            if (next.getSelect() != current || !isSupportedOnChunkOrientedStepBuilder(next)) {
-                return false;
+            if (next.getSelect() != cursor.getValue() || !isSupportedOnChunkOrientedStepBuilder(next)) {
+                return emptyList();
             }
+            chain.add(parent);
             if (BUILD_MATCHER.matches(next)) {
-                return !returnsTaskletStep(parent);
+                return returnsTaskletStep(parent) ? emptyList() : chain;
             }
             cursor = parent;
-            current = next;
         }
     }
 

@@ -216,6 +216,7 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
               @Configuration
               @EnableWebSecurity
@@ -223,9 +224,65 @@ class ConvertSecurityMatchersToSecurityMatcherTest implements RewriteTest {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                       http
-                              .securityMatcher("/api/.*")
+                              .securityMatcher(new RegexRequestMatcher("/api/.*", null))
                               .authorizeRequests()
                                   .anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void requestMatchersMultipleRegexMatchersToSecurityMatcher() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.requestMatchers().regexMatchers(HttpMethod.GET, "/api/.*", "/oidc/.*");
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.OrRequestMatcher;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.securityMatcher(new OrRequestMatcher(new RegexRequestMatcher("/api/.*", HttpMethod.GET.name()), new RegexRequestMatcher("/oidc/.*", HttpMethod.GET.name())));
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeWhenAntMatchersHasHttpMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.http.HttpMethod;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.requestMatchers().antMatchers(HttpMethod.GET, "/api/**");
                       return http.build();
                   }
               }

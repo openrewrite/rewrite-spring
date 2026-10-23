@@ -148,6 +148,42 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
             )));
     }
 
+    @Test
+    void keyThatOnlySharesPrefixIsNotChanged() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("spring.cloud.gateway.proxy", "spring.cloud.gateway.proxy-exchange.webmvc", null))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-autoconfigure-2.7")),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.cloud.gateway.proxy.auto-forward=foo
+                  spring.cloud.gateway.proxy-timeout=5s
+                  """,
+                """
+                  spring.cloud.gateway.proxy-exchange.webmvc.auto-forward=foo
+                  spring.cloud.gateway.proxy-timeout=5s
+                  """
+              )
+            ),
+            //language=java
+            java(
+              """
+                import org.springframework.beans.factory.annotation.Value;
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+                @ConditionalOnProperty(name = "spring.cloud.gateway.proxy-timeout")
+                class MyConfiguration {
+                    @Value("${spring.cloud.gateway.proxy-timeout}")
+                    private String timeout;
+                }
+                """
+            )
+          )
+        );
+    }
+
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/1107")
     @Test
     void nestYamlMappings() {

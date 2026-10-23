@@ -453,4 +453,32 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
         );
     }
 
+    @Test
+    void leaveMicronautApplicationUnchanged() {
+        rewriteRun(
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>micronaut-app</artifactId>
+                  <version>1.0</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>io.micronaut</groupId>
+                          <artifactId>micronaut-runtime</artifactId>
+                          <version>2.4.2</version>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.liquibase</groupId>
+                          <artifactId>liquibase-core</artifactId>
+                          <version>4.2.2</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
 }

@@ -67,4 +67,22 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void keepCallAsExpressionLambdaBody() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  Consumer<AuthenticationEntryPointFailureHandler> c = h -> h.setRethrowAuthenticationServiceException(true);
+              }
+              """
+          )
+        );
+    }
 }

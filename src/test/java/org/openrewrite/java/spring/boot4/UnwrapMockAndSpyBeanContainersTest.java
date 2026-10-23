@@ -112,6 +112,26 @@ class UnwrapMockAndSpyBeanContainersTest implements RewriteTest {
     }
 
     @Test
+    void keepsContainerWhenInnerAnnotationHasOtherAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+              import org.springframework.boot.test.mock.mockito.MockReset;
+
+              @MockBeans({@MockBean(name = "foo", classes = Foo.class), @MockBean(value = Bar.class, reset = MockReset.NONE)})
+              class SomeTest {
+              }
+              class Foo {}
+              class Bar {}
+              """
+          )
+        );
+    }
+
+    @Test
     void kotlinVariadicMockBeansWithClassLiteral() {
         rewriteRun(
           //language=kotlin

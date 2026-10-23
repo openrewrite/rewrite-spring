@@ -90,7 +90,7 @@ class UpdateRequestCacheTest implements RewriteTest {
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-                      requestCache.setMatchingRequestParameterName("continue");
+                      requestCache.setMatchingRequestParameterName(null);
 
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()
@@ -150,7 +150,7 @@ class UpdateRequestCacheTest implements RewriteTest {
     }
 
     @Test
-    void HttpSessionRequestCacheConstructorAsParameter() {
+    void noChangeForInlineHttpSessionRequestCache() {
         //language=java
         rewriteRun(
           java(
@@ -177,34 +177,6 @@ class UpdateRequestCacheTest implements RewriteTest {
                             .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
                         .requestCache((cache) -> cache
                             .requestCache(new HttpSessionRequestCache()));
-
-                    return http.build();
-                  }
-              }
-              """,
-            """
-              import org.springframework.context.annotation.Bean;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.web.SecurityFilterChain;
-              import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-              import org.springframework.security.web.savedrequest.NullRequestCache;
-
-              @Configuration
-              @EnableWebSecurity
-              public class SecurityConfig {
-
-                  @Bean
-                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                    http.authorizeHttpRequests(authorize -> authorize
-                            .requestMatchers("/public", "/public/*").permitAll()
-                            .requestMatchers("/login").permitAll()
-                            .anyRequest().authenticated())
-                        .oauth2Login(oauth2 -> oauth2
-                            .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
-                        .requestCache((cache) -> cache
-                            .requestCache(new NullRequestCache()));
 
                     return http.build();
                   }

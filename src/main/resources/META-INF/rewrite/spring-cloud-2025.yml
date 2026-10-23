@@ -104,11 +104,6 @@ tags:
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: org.springframework.cloud
-      artifactId: "*"
-      newVersion: 5.0.x
-      overrideManagedVersion: false
   # spring-cloud-starter-parent was removed in 2025.1; migrate to spring-boot-starter-parent + BOM
   - org.openrewrite.maven.ChangeParentPom:
       oldGroupId: org.springframework.cloud
@@ -117,6 +112,12 @@ recipeList:
       newArtifactId: spring-boot-starter-parent
       newVersion: 4.0.x
       allowVersionDowngrades: true
+  # After ChangeParentPom, so it also upgrades the managed versions that recipe retains from the old parent
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.cloud
+      artifactId: "*"
+      newVersion: 5.0.x
+      overrideManagedVersion: false
   - org.openrewrite.java.spring.cloud2025.AddSpringCloudDependenciesBom
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
@@ -256,7 +257,7 @@ preconditions:
 recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cloud.gateway.proxy
-      newPropertyKey: spring.cloud.gateway.proxy-exchange-webmvc
+      newPropertyKey: spring.cloud.gateway.proxy-exchange.webmvc
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
