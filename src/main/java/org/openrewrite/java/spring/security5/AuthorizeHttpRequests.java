@@ -24,10 +24,12 @@ import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
+import org.openrewrite.trait.Comments;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AuthorizeHttpRequests extends Recipe {
 
@@ -81,12 +83,22 @@ public class AuthorizeHttpRequests extends Recipe {
                             return processAccessDecisionManager(m, ctx);
                         }
                     }
-                    String commentToAdd = getCursor().pollMessage(MSG_ADD_COMMENT);
-                    if (commentToAdd != null) {
-                        return addTextCommentAfterSelect(m, commentToAdd);
-                    }
                 }
                 return visited;
+            }
+
+            @Override
+            public J postVisit(J tree, ExecutionContext ctx) {
+                Set<String> comments = getCursor().pollMessage(MSG_ADD_COMMENT);
+                if (comments == null) {
+                    return tree;
+                }
+                J commented = tree;
+                for (String comment : comments) {
+                    commented = Comments.of(new Cursor(getCursor().getParentOrThrow(), commented))
+                            .multilineComment(comment, Comments.Placement.BEFORE, "\n" + commented.getPrefix().getIndent());
+                }
+                return commented;
             }
 
             private J.MethodInvocation processAuthorizeRequests(J.MethodInvocation m) {
@@ -110,29 +122,23 @@ public class AuthorizeHttpRequests extends Recipe {
                 commentText.append(String.join(", ", m.getArguments().stream().map(a -> a.print(getCursor())).toArray(String[]::new)));
                 commentText.append(");' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.");
 
-                List<Comment> newComments = new ArrayList<>(m.getComments());
-                newComments.addAll(m.getSelect().getComments());
+                enclosingStatement(getCursor())
+                        .<Set<String>>computeMessageIfAbsent(MSG_ADD_COMMENT, k -> new LinkedHashSet<>())
+                        .add(commentText.toString());
 
-                Expression selectExpr = m.getSelect();
-                Cursor parentInvocationCursor = getCursor().getParent(2);
-                if (parentInvocationCursor == null || !(parentInvocationCursor.getValue() instanceof J.MethodInvocation)) {
-                    // top level method invocation
-                    newComments.add(new TextComment(true, commentText.toString(), newComments.isEmpty() ? "\n" + m.getPrefix().getIndent() : newComments.get(0).getSuffix(), Markers.EMPTY));
-                    selectExpr = selectExpr.withPrefix(m.getPrefix());
-                } else {
-                    // parent is method invocation
-                    parentInvocationCursor.putMessage(MSG_ADD_COMMENT, commentText.toString());
-                }
-                return selectExpr.withComments(newComments);
+                List<Comment> comments = new ArrayList<>(m.getComments());
+                comments.addAll(m.getSelect().getComments());
+                return m.getSelect().withPrefix(m.getPrefix()).withComments(comments);
             }
 
-            private J.MethodInvocation addTextCommentAfterSelect(J.MethodInvocation m, String s) {
-                J.MethodInvocation.Padding padding = m.getPadding();
-                Space afterSelect = padding.getSelect().getAfter();
-                List<Comment> newComments = new ArrayList<>(afterSelect.getComments());
-                newComments.add(new TextComment(true, s, newComments.isEmpty() ? "\n" + afterSelect.getIndent() : newComments.get(0).getSuffix(), Markers.EMPTY));
-                JRightPadded<Expression> paddedSelect = padding.getSelect().withAfter(afterSelect.withComments(newComments));
-                return new J.MethodInvocation(m.getId(), m.getPrefix(), m.getMarkers(), paddedSelect, padding.getTypeParameters(), m.getName(), padding.getArguments(), m.getMethodType());
+            private Cursor enclosingStatement(Cursor cursor) {
+                for (Cursor c = cursor; c.getValue() instanceof J; c = c.getParentTreeCursor()) {
+                    Object parent = c.getParentTreeCursor().getValue();
+                    if (parent instanceof J.Block || parent instanceof JavaSourceFile) {
+                        return c;
+                    }
+                }
+                return cursor;
             }
         };
     }

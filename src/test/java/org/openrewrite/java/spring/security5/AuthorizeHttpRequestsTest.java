@@ -371,9 +371,9 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
 
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
+                      /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
                       http
                           .authorizeHttpRequests()
-                              /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
                               .antMatchers("/blog/**").permitAll()
                               .anyRequest().authenticated();
                   }
