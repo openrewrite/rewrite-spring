@@ -51,7 +51,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                   """,
                 //language=properties
                 """
-                  management.endpoints.access.default=unrestricted
+                  management.endpoints.access.default=read-only
                   """,
                 sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               ),
@@ -67,7 +67,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                   management:
                     endpoints:
                       access:
-                        default: unrestricted
+                        default: read-only
                   """,
                 sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )
@@ -123,8 +123,8 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                       """,
                     //language=properties
                     """
-                      management.endpoint.auditevents.access=unrestricted
-                      management.endpoint.threaddump.access=unrestricted
+                      management.endpoint.auditevents.access=read-only
+                      management.endpoint.threaddump.access=read-only
                       """,
                     sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
                   )
@@ -171,9 +171,9 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                       management:
                         endpoint:
                           auditevents:
-                            access: unrestricted
+                            access: read-only
                           threaddump:
-                            access: unrestricted
+                            access: read-only
                       """,
                     sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
                   )
