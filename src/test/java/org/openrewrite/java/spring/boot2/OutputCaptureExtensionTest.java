@@ -21,7 +21,6 @@ import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -86,7 +85,6 @@ class OutputCaptureExtensionTest implements RewriteTest {
     void outputCaptureMatcherConversion() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.hamcrest.CoreMatchers;
@@ -112,15 +110,61 @@ class OutputCaptureExtensionTest implements RewriteTest {
               import org.springframework.boot.test.system.CapturedOutput;
               import org.springframework.boot.test.system.OutputCaptureExtension;
 
+              import static org.hamcrest.MatcherAssert.assertThat;
+
               @ExtendWith(OutputCaptureExtension.class)
               class MyTest {
 
                   void test(CapturedOutput capture) {
                       System.out.println("I am here");
-                      CoreMatchers.containsString("here").matches(capture.getAll());
+                      assertThat(capture.getAll(), CoreMatchers.containsString("here"));
                   }
 
                   void doesntUse() {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void expectationsRegisteredBeforeOutputAreAssertedAtEnd() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.Rule;
+              import org.springframework.boot.test.rule.OutputCapture;
+
+              import static org.hamcrest.Matchers.containsString;
+
+              class MyTest {
+                  @Rule
+                  OutputCapture capture = new OutputCapture();
+
+                  void test() {
+                      capture.expect(containsString("first"));
+                      capture.expect(containsString("second"));
+                      System.out.println("first second");
+                  }
+              }
+              """,
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.system.CapturedOutput;
+              import org.springframework.boot.test.system.OutputCaptureExtension;
+
+              import static org.hamcrest.MatcherAssert.assertThat;
+              import static org.hamcrest.Matchers.containsString;
+
+              @ExtendWith(OutputCaptureExtension.class)
+              class MyTest {
+
+                  void test(CapturedOutput capture) {
+                      System.out.println("first second");
+                      assertThat(capture.getAll(), containsString("first"));
+                      assertThat(capture.getAll(), containsString("second"));
                   }
               }
               """

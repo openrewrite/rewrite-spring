@@ -42,8 +42,9 @@ class MigrateStepExecutionTimestampTypesTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              import java.util.Date;
               import org.springframework.batch.core.StepExecution;
+
+              import java.util.Date;
 
               class MyListener {
                   void afterStep(StepExecution stepExecution) {
@@ -53,8 +54,9 @@ class MigrateStepExecutionTimestampTypesTest implements RewriteTest {
               }
               """,
             """
-              import java.time.LocalDateTime;
               import org.springframework.batch.core.StepExecution;
+
+              import java.time.LocalDateTime;
 
               class MyListener {
                   void afterStep(StepExecution stepExecution) {
@@ -73,8 +75,9 @@ class MigrateStepExecutionTimestampTypesTest implements RewriteTest {
         rewriteRun(
           java(
             """
-              import java.util.Date;
               import org.springframework.batch.core.JobExecution;
+
+              import java.util.Date;
 
               class MyListener {
                   void afterJob(JobExecution jobExecution) {
@@ -86,8 +89,9 @@ class MigrateStepExecutionTimestampTypesTest implements RewriteTest {
               }
               """,
             """
-              import java.time.LocalDateTime;
               import org.springframework.batch.core.JobExecution;
+
+              import java.time.LocalDateTime;
 
               class MyListener {
                   void afterJob(JobExecution jobExecution) {
@@ -127,6 +131,38 @@ class MigrateStepExecutionTimestampTypesTest implements RewriteTest {
                   void afterStep(StepExecution stepExecution) {
                       LocalDateTime startTime = stepExecution.getStartTime();
                       Date today = new Date();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dateUsedOutsideVariableDeclarationsRetainsImport() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Date;
+              import org.springframework.batch.core.StepExecution;
+
+              class MyListener {
+                  Date afterStep(StepExecution stepExecution) {
+                      Date startTime = stepExecution.getStartTime();
+                      return Date.from(java.time.Instant.now());
+                  }
+              }
+              """,
+            """
+              import java.time.LocalDateTime;
+              import java.util.Date;
+              import org.springframework.batch.core.StepExecution;
+
+              class MyListener {
+                  Date afterStep(StepExecution stepExecution) {
+                      LocalDateTime startTime = stepExecution.getStartTime();
+                      return Date.from(java.time.Instant.now());
                   }
               }
               """

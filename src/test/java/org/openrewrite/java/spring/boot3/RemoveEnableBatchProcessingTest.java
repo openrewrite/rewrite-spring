@@ -57,4 +57,22 @@ class RemoveEnableBatchProcessingTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void keepAnnotationWithAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication
+              @EnableBatchProcessing(modular = true)
+              public class Application {
+              }
+              """
+          )
+        );
+    }
 }

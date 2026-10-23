@@ -155,7 +155,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) {
-                      http.authorizeHttpRequests(authz -> authz.regexMatchers("/static/**").permitAll());
+                      http.authorizeHttpRequests(authz -> authz.regexMatchers("/static/.*", "/public/.*").permitAll());
                       return http.build();
                   }
               }
@@ -169,13 +169,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) {
-                      http.authorizeHttpRequests(authz -> authz.requestMatchers("/static/**").permitAll());
+                      http.authorizeHttpRequests(authz -> authz.requestMatchers(new RegexRequestMatcher("/static/.*", null), new RegexRequestMatcher("/public/.*", null)).permitAll());
                       return http.build();
                   }
               }
@@ -204,7 +205,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) {
-                      http.authorizeHttpRequests(authz -> authz.regexMatchers(HttpMethod.GET, "/static/**").permitAll());
+                      http.authorizeHttpRequests(authz -> authz.regexMatchers(HttpMethod.GET, "/static/.*").permitAll());
                       return http.build();
                   }
               }
@@ -219,13 +220,34 @@ class UseNewRequestMatchersTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) {
-                      http.authorizeHttpRequests(authz -> authz.requestMatchers(HttpMethod.GET, "/static/**").permitAll());
+                      http.authorizeHttpRequests(authz -> authz.requestMatchers(new RegexRequestMatcher("/static/.*", HttpMethod.GET.name())).permitAll());
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepsRegexMatchersWithPatternArray() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http, String[] patterns) throws Exception {
+                      http.authorizeHttpRequests(authz -> authz.regexMatchers(patterns).permitAll());
                       return http.build();
                   }
               }
@@ -402,7 +424,7 @@ class UseNewRequestMatchersTest implements RewriteTest {
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) {
-                      http.authorizeHttpRequests(authz -> authz.regexMatchers("/api/admin/**").hasRole("ADMIN")
+                      http.authorizeHttpRequests(authz -> authz.regexMatchers("/api/admin/.*").hasRole("ADMIN")
                                       .antMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
                                       .mvcMatchers(HttpMethod.PATCH).denyAll()
                                       .anyRequest().authenticated()).csrf().ignoringAntMatchers("/admin/**");
@@ -420,13 +442,14 @@ class UseNewRequestMatchersTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
               @Configuration
               @EnableWebSecurity
               class SecurityConfig {
                   @Bean
                   SecurityFilterChain securityFilterChain(HttpSecurity http) {
-                      http.authorizeHttpRequests(authz -> authz.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                      http.authorizeHttpRequests(authz -> authz.requestMatchers(new RegexRequestMatcher("/api/admin/.*", null)).hasRole("ADMIN")
                                       .requestMatchers(HttpMethod.GET, "/api/user/**").hasRole("USER")
                                       .requestMatchers(HttpMethod.PATCH).denyAll()
                                       .anyRequest().authenticated()).csrf().ignoringRequestMatchers("/admin/**");

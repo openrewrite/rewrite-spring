@@ -169,4 +169,23 @@ class UseSha256InRememberMeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void keepMatchingAlgorithmAsExpressionLambdaBody() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  Consumer<TokenBasedRememberMeServices> c = s -> s.setMatchingAlgorithm(RememberMeTokenAlgorithm.SHA256);
+              }
+              """
+          )
+        );
+    }
 }

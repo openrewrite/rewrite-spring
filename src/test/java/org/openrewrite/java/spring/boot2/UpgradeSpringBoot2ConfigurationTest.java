@@ -76,4 +76,39 @@ class UpgradeSpringBoot2ConfigurationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void neo4jCredentials() {
+        rewriteRun(
+          mavenProject("test",
+            srcMainResources(
+              properties(
+                """
+                  spring.data.neo4j.username=neo4j
+                  spring.data.neo4j.password=secret
+                  """,
+                """
+                  spring.neo4j.authentication.username=neo4j
+                  spring.neo4j.authentication.password=secret
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void jodaDateTimeFormat() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_2"),
+          mavenProject("test",
+            srcMainResources(
+              properties(
+                "spring.jackson.joda-date-time-format=yyyy-MM-dd HH:mm:ss",
+                "spring.jackson.date-format=yyyy-MM-dd HH:mm:ss"
+              )
+            )
+          )
+        );
+    }
 }

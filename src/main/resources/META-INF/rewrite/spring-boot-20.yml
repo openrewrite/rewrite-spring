@@ -150,8 +150,8 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
       newFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UnderTowEmbeddedServletContainerFactory
-      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UnderTowServletWebServerFactory
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName

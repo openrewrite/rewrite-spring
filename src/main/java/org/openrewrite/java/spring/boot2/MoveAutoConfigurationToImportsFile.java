@@ -24,6 +24,7 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.marker.JavaSourceSet;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Marker;
@@ -35,6 +36,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 
@@ -82,8 +84,12 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
                         extractAutoConfigsFromSpringFactory(source, configs);
                         if (!configs.isEmpty()) {
                             acc.getExistingSpringFactories().add(sourcePath);
+                            // A source set is kept without its classpath, which would stay in memory all cycle
                             acc.getTargetImports().put(sourcePath.getParent().resolve("spring/" + AUTOCONFIGURATION_FILE),
-                                    new TargetImports(configs, source.getMarkers().getMarkers()));
+                                    new TargetImports(configs, ListUtils.map(source.getMarkers().getMarkers(), m ->
+                                            m instanceof JavaSourceSet ?
+                                                    new JavaSourceSet(m.getId(), ((JavaSourceSet) m).getName(), emptyList(), emptyMap()) :
+                                                    m)));
                             acc.getAllFoundConfigs().addAll(configs);
                         }
                     } else if (sourcePath.endsWith(AUTOCONFIGURATION_FILE)) {
