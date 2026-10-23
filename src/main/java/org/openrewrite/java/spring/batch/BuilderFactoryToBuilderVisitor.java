@@ -22,6 +22,7 @@ import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.FindMethods;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
@@ -45,7 +46,7 @@ import static java.util.Collections.singletonList;
 class BuilderFactoryToBuilderVisitor extends JavaVisitor<ExecutionContext> {
 
     private static final String JOB_REPOSITORY = "org.springframework.batch.core.repository.JobRepository";
-    private static final AnnotationMatcher BEAN = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
+    private static final String BEAN = "org.springframework.context.annotation.Bean";
 
     private final String factoryFqn;
     private final String builderFqn;
@@ -295,8 +296,8 @@ class BuilderFactoryToBuilderVisitor extends JavaVisitor<ExecutionContext> {
         }.reduce(body, new AtomicBoolean()).get();
     }
 
-    private static boolean isBean(J.MethodDeclaration md) {
-        return md.getLeadingAnnotations().stream().anyMatch(BEAN::matches);
+    private boolean isBean(J.MethodDeclaration md) {
+        return service(AnnotationService.class).isAnnotatedWith(md, BEAN);
     }
 
     private static boolean isOfType(Statement statement, String fqn) {
