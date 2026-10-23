@@ -67,7 +67,7 @@ public class AuthorizeHttpRequests extends Recipe {
     final String displayName = "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
 
     @Getter
-    final String description = "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses.";
+    final String description = "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses. Literal `access(String)` and `hasIpAddress(String)` expressions are wrapped in a `WebExpressionAuthorizationManager`. Files using expression-based authorization that can't be converted faithfully, such as `not()`, `expressionHandler(..)` or a custom `accessDecisionManager(..)`, are left unchanged, as `authorizeRequests` is still available in Spring Security 6.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
