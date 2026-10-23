@@ -19,9 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class MigrateStepBuilderFactoryTest implements RewriteTest {
@@ -391,6 +394,410 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
 
                   private ItemReader<String> reader() {
                       return null;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepConstructorBodyWhenStepBuilderFactoryWasTheOnlyParameter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private final StepBuilderFactory stepBuilderFactory;
+
+                  MyJobConfig(StepBuilderFactory stepBuilderFactory) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                      init();
+                  }
+
+                  private void init() {
+                  }
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  MyJobConfig() {
+                      init();
+                  }
+
+                  private void init() {
+                  }
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void reuseExistingJobRepositoryParameter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Step myStep(StepBuilderFactory steps, JobRepository repository, Tasklet myTasklet) {
+                      return steps.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Step myStep(JobRepository repository, Tasklet myTasklet) {
+                      return new StepBuilder("myStep", repository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                J.MethodDeclaration myStep = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                assertThat(myStep.getMethodType().getParameterNames()).containsExactly("repository", "myTasklet");
+                assertThat(myStep.getMethodType().getParameterTypes())
+                  .extracting(t -> ((JavaType.FullyQualified) t).getFullyQualifiedName())
+                  .containsExactly("org.springframework.batch.core.repository.JobRepository", "org.springframework.batch.core.step.tasklet.Tasklet");
+            })
+          )
+        );
+    }
+
+    @Test
+    void leaveHelperMethodsWithoutJobRepositoryUnchanged() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private final StepBuilderFactory stepBuilderFactory;
+
+                  MyJobConfig(StepBuilderFactory stepBuilderFactory) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                  }
+
+                  @Bean
+                  Step firstStep(Tasklet myTasklet) {
+                      return step("first", myTasklet);
+                  }
+
+                  @Bean
+                  Step secondStep(Tasklet myTasklet) {
+                      return step("second", myTasklet);
+                  }
+
+                  private Step step(String name, Tasklet tasklet) {
+                      return stepBuilderFactory.get(name)
+                              .tasklet(tasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void helperMethodUsesJobRepositoryField() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  private final StepBuilderFactory stepBuilderFactory;
+                  private final JobRepository repository;
+
+                  MyJobConfig(StepBuilderFactory stepBuilderFactory, JobRepository repository) {
+                      this.stepBuilderFactory = stepBuilderFactory;
+                      this.repository = repository;
+                  }
+
+                  @Bean
+                  Step firstStep(Tasklet myTasklet) {
+                      return step("first", myTasklet);
+                  }
+
+                  private Step step(String name, Tasklet tasklet) {
+                      return stepBuilderFactory.get(name)
+                              .tasklet(tasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+                  private final JobRepository repository;
+
+                  MyJobConfig(JobRepository repository) {
+                      this.repository = repository;
+                  }
+
+                  @Bean
+                  Step firstStep(Tasklet myTasklet) {
+                      return step("first", myTasklet);
+                  }
+
+                  private Step step(String name, Tasklet tasklet) {
+                      return new StepBuilder(name, repository)
+                              .tasklet(tasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateStepAndJobBuilderFactoriesInSameMethod() {
+        // language=java
+        rewriteRun(
+          spec -> spec.recipes(new MigrateJobBuilderFactory(), new MigrateStepBuilderFactory()),
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Job myJob(JobBuilderFactory jobs, StepBuilderFactory steps, Tasklet myTasklet) {
+                      return jobs.get("myJob")
+                              .start(steps.get("myStep").tasklet(myTasklet).build())
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Job myJob(Tasklet myTasklet, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                              .start(new StepBuilder("myStep", jobRepository).tasklet(myTasklet).build())
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void preserveFieldReferencedFromFieldInitializer() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.function.Supplier;
+
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  private final Supplier<StepBuilderFactory> factorySupplier = () -> stepBuilderFactory;
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet) {
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import java.util.function.Supplier;
+
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  private final Supplier<StepBuilderFactory> factorySupplier = () -> stepBuilderFactory;
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository) {
+                      return new StepBuilder("myStep", jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateStepBuiltInConstructorWithJobRepositoryParameter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+
+              class MyJobConfig {
+
+                  private final Step step;
+
+                  MyJobConfig(StepBuilderFactory steps, JobRepository repository, Tasklet myTasklet) {
+                      this.step = steps.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+
+              class MyJobConfig {
+
+                  private final Step step;
+
+                  MyJobConfig(JobRepository repository, Tasklet myTasklet) {
+                      this.step = new StepBuilder("myStep", repository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void avoidJobRepositoryNameClash() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Step myStep(StepBuilderFactory stepBuilderFactory, Tasklet myTasklet) {
+                      String jobRepository = "unrelated";
+                      return stepBuilderFactory.get(jobRepository)
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Step myStep(Tasklet myTasklet, JobRepository jobRepository1) {
+                      String jobRepository = "unrelated";
+                      return new StepBuilder(jobRepository, jobRepository1)
+                              .tasklet(myTasklet)
+                              .build();
                   }
               }
               """
