@@ -68,6 +68,7 @@ recipeList:
   - org.openrewrite.java.spring.boot3.PreciseBeanType
   - org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants
   - org.openrewrite.java.spring.NoRepoAnnotationOnRepoInterface
+  - org.openrewrite.java.spring.NoHttpExchangeAnnotation
   - org.openrewrite.java.spring.security.SpringSecurityBestPractices
 ---
 type: specs.openrewrite.org/v1beta/recipe
