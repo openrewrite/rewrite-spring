@@ -44,13 +44,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.openrewrite.java.spring.data.MongoValueRepresentationAccumulator.hasKind;
 
 /**
@@ -209,7 +210,7 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
      */
     private static List<MongoValueRepresentationKind> propertiesToAddTo(Path sourcePath, MongoValueRepresentationAccumulator acc,
                                                                           JavaProject project) {
-        return sourcePath.equals(acc.preferredConfigurationSource(project)) ? propertiesToAdd(acc, project) : Collections.emptyList();
+        return sourcePath.equals(acc.preferredConfigurationSource(project)) ? propertiesToAdd(acc, project) : emptyList();
     }
 
     private static List<MongoValueRepresentationKind> propertiesToAdd(MongoValueRepresentationAccumulator acc, JavaProject project) {
@@ -302,7 +303,7 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
     private static SourceFile addSpringData4DefaultProperty(SourceFile source, MongoValueRepresentationKind kind, ExecutionContext ctx) {
         String path = source.getSourcePath().toString().replace('\\', '/');
         return (SourceFile) new AddSpringProperty(
-                kind.configurationProperty, kind.springData4DefaultValue, null, Collections.singletonList(path))
+                kind.configurationProperty, kind.springData4DefaultValue, null, singletonList(path))
                 .getVisitor().visitNonNull(source, ctx);
     }
 

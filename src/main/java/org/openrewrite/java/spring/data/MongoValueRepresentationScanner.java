@@ -322,7 +322,7 @@ public final class MongoValueRepresentationScanner {
             return false;
         }
         Expression argument = method.getArguments().get(0);
-        return !(argument instanceof J.Literal && ((J.Literal) argument).getValue() == null) &&
+        return !J.Literal.isLiteralValue(argument, null) &&
                 !isUnspecified(argument);
     }
 

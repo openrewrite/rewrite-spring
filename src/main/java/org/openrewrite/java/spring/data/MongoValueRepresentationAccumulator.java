@@ -21,14 +21,11 @@ import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.spring.data.search.FindMissingMongoValueRepresentation;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Scan state shared between {@link FindMissingMongoValueRepresentation} and
@@ -96,8 +93,8 @@ public class MongoValueRepresentationAccumulator {
     }
 
     public List<Occurrence> projectOccurrences(JavaProject project) {
-        ConcurrentLinkedQueue<Occurrence> found = occurrences.get(project);
-        return found == null ? Collections.emptyList() : new ArrayList<>(found);
+        Queue<Occurrence> found = occurrences.get(project);
+        return found == null ? emptyList() : new ArrayList<>(found);
     }
 
     public List<Occurrence> unresolvedOccurrences(JavaProject project) {
@@ -117,7 +114,7 @@ public class MongoValueRepresentationAccumulator {
     public List<ConfigurationIssue> configurationIssuesIn(Path sourcePath, JavaProject project,
                                                             List<Occurrence> occurrences) {
         List<ConfigurationIssue> issues = new ArrayList<>();
-        ConcurrentLinkedQueue<ConfigurationIssue> found = configurationIssues.get(project);
+        Queue<ConfigurationIssue> found = configurationIssues.get(project);
         if (found != null) {
             for (ConfigurationIssue issue : found) {
                 if (issue.getSourcePath().equals(sourcePath) && hasKind(occurrences, issue.getKind())) {
