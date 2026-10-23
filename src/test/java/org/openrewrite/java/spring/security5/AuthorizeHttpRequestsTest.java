@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -376,6 +378,62 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
                               /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
                               .antMatchers("/blog/**").permitAll()
                               .anyRequest().authenticated();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+      ".antMatchers(\"/admin/**\").access(\"@webSecurity.isAdmin(authentication)\")",
+      ".antMatchers(\"/admin/**\").access(ADMIN)",
+      ".antMatchers(\"/admin/**\").access(\"hasPermission(null, 'admin')\")",
+      ".antMatchers(\"/admin/**\").hasIpAddress(ADMIN)",
+      ".antMatchers(\"/admin/**\").not().hasRole(\"GUEST\")",
+      ".expressionHandler(new DefaultWebSecurityExpressionHandler())",
+      ".filterSecurityInterceptorOncePerRequest(false)",
+      ".withObjectPostProcessor(null)"
+    })
+    void keepExpressionBasedAuthorizationThatCannotBeConverted(String call) {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+
+              class SecurityConfig {
+                  static final String ADMIN = "hasRole('ADMIN')";
+
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests()
+                          %s
+                          .anyRequest().authenticated();
+                  }
+              }
+              """.formatted(call)
+          )
+        );
+    }
+
+    @Test
+    void keepHelperMethodsConsistentWithUnconvertedChain() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      rules(http.authorizeRequests());
+                  }
+
+                  void rules(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
+                      registry.anyRequest().not().anonymous();
                   }
               }
               """

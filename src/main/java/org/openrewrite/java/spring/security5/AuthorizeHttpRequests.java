@@ -18,16 +18,21 @@ package org.openrewrite.java.spring.security5;
 import lombok.Getter;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AuthorizeHttpRequests extends Recipe {
 
@@ -38,8 +43,22 @@ public class AuthorizeHttpRequests extends Recipe {
     private static final MethodMatcher MATCH_AUTHORIZE_REQUESTS = new MethodMatcher(
             "org.springframework.security.config.annotation.web.builders.HttpSecurity authorizeRequests(..)");
 
+    private static final String ABSTRACT_INTERCEPT_URL_REGISTRY = "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry";
+    private static final String EXPRESSION_INTERCEPT_URL_REGISTRY = "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer$ExpressionInterceptUrlRegistry";
+    private static final String AUTHORIZED_URL = "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer$AuthorizedUrl";
+
     private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher(
-            "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry accessDecisionManager(..)");
+            ABSTRACT_INTERCEPT_URL_REGISTRY + " accessDecisionManager(..)");
+
+    // Not offered by `AuthorizeHttpRequestsConfigurer`, or, for `withObjectPostProcessor`, applied to a
+    // `FilterSecurityInterceptor` that no longer exists, so a post-processor would silently stop being applied.
+    private static final List<MethodMatcher> EXPRESSION_ONLY_API = Arrays.asList(
+            new MethodMatcher(AUTHORIZED_URL + " access(..)", true),
+            new MethodMatcher(AUTHORIZED_URL + " hasIpAddress(..)", true),
+            new MethodMatcher(AUTHORIZED_URL + " not()", true),
+            new MethodMatcher(EXPRESSION_INTERCEPT_URL_REGISTRY + " expressionHandler(..)"),
+            new MethodMatcher(EXPRESSION_INTERCEPT_URL_REGISTRY + " withObjectPostProcessor(..)"),
+            new MethodMatcher(ABSTRACT_INTERCEPT_URL_REGISTRY + " filterSecurityInterceptorOncePerRequest(..)", true));
 
     @Getter
     final String displayName = "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
@@ -49,7 +68,19 @@ public class AuthorizeHttpRequests extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new UsesMethod<>(MATCH_AUTHORIZE_REQUESTS),
+                new UsesMethod<>(MATCH_ACCESS_DECISION_MANAGER)), new JavaVisitor<ExecutionContext>() {
+            @Override
+            public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                // `authorizeRequests` is still available in Spring Security 6, so leave the whole file as is rather
+                // than migrate only part of it, as the types it uses are changed throughout.
+                if (usesExpressionOnlyApi(cu)) {
+                    return cu;
+                }
+                return super.visitCompilationUnit(cu, ctx);
+            }
+
             private void changeTypesAfterVisit() {
                 doAfterVisit(new ChangeType(
                         "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry",
@@ -134,6 +165,19 @@ public class AuthorizeHttpRequests extends Recipe {
                 JRightPadded<Expression> paddedSelect = padding.getSelect().withAfter(afterSelect.withComments(newComments));
                 return new J.MethodInvocation(m.getId(), m.getPrefix(), m.getMarkers(), paddedSelect, padding.getTypeParameters(), m.getName(), padding.getArguments(), m.getMethodType());
             }
-        };
+        });
+    }
+
+    private static boolean usesExpressionOnlyApi(J.CompilationUnit cu) {
+        return new JavaIsoVisitor<AtomicBoolean>() {
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean found) {
+                if (EXPRESSION_ONLY_API.stream().anyMatch(matcher -> matcher.matches(method))) {
+                    found.set(true);
+                    return method;
+                }
+                return super.visitMethodInvocation(method, found);
+            }
+        }.reduce(cu, new AtomicBoolean()).get();
     }
 }
