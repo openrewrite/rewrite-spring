@@ -295,97 +295,6 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
     }
 
     @Test
-    void accessDecisionManagerTopInvocation() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated()
-                              // hello
-                              .accessDecisionManager(null);
-                  }
-              }
-              """,
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
-                      http
-                          .authorizeHttpRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void accessDecisionManager() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeRequests()
-                              .accessDecisionManager(null)
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated();
-                  }
-              }
-              """,
-            """
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests()
-                              /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
     void accessExpressionToWebExpressionAuthorizationManager() {
         //language=java
         rewriteRun(
@@ -458,6 +367,7 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
       ".antMatchers(\"/admin/**\").access(\"hasPermission(null, 'admin')\")",
       ".antMatchers(\"/admin/**\").hasIpAddress(ADMIN)",
       ".antMatchers(\"/admin/**\").not().hasRole(\"GUEST\")",
+      ".accessDecisionManager(null)",
       ".expressionHandler(new DefaultWebSecurityExpressionHandler())",
       ".filterSecurityInterceptorOncePerRequest(false)",
       ".withObjectPostProcessor(null)"
