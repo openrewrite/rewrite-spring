@@ -332,6 +332,7 @@ class FindIntegrationSchedulerPoolTest implements RewriteTest {
                   package demo;
                   import org.springframework.boot.SpringApplication;
                   import org.springframework.boot.autoconfigure.SpringBootApplication;
+
                   // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
                   @SpringBootApplication
                   public class ExampleApplication {
@@ -424,7 +425,7 @@ class FindIntegrationSchedulerPoolTest implements RewriteTest {
                           scheduling:
                             foo: bar
                             pool:
-                      # TODO: Consider Scheduler thread pool size for Spring Integration
+                              # TODO: Consider Scheduler thread pool size for Spring Integration
                               size: 6
                             bar: foo
                         application:
