@@ -519,4 +519,56 @@ class UseNewRequestMatchersTest implements RewriteTest {
           )
         );
     }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void migratesCsrfIgnoringAntMatchersWithoutOtherMatchers() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.csrf().ignoringAntMatchers("/admin/**");
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.csrf().ignoringRequestMatchers("/admin/**");
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeWhenCsrfAlreadyUsesIgnoringRequestMatchers() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.csrf().ignoringRequestMatchers("/admin/**");
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
 }

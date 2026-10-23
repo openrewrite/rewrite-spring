@@ -52,7 +52,8 @@ public class UseNewRequestMatchers extends Recipe {
         return Preconditions.check(Preconditions.or(
                         new UsesMethod<>(ANT_MATCHERS),
                         new UsesMethod<>(MVC_MATCHERS),
-                        new UsesMethod<>(REGEX_MATCHERS)),
+                        new UsesMethod<>(REGEX_MATCHERS),
+                        new UsesMethod<>(CSRF_MATCHERS)),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
