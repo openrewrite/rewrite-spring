@@ -80,9 +80,6 @@ public class SpringConfigFiles {
     private final Set<Path> springBootBuilds = new HashSet<>();
     private final List<Location> locations = new ArrayList<>();
     private final Map<Path, Boolean> discovered = new HashMap<>();
-    private final TreeVisitor<?, ExecutionContext> usesPropertySource = Preconditions.or(
-            new UsesType<>("org.springframework.context.annotation.PropertySource", false),
-            new UsesType<>("org.springframework.test.context.TestPropertySource", false));
     private @Nullable List<Glob> globs;
 
     /**
@@ -146,7 +143,7 @@ public class SpringConfigFiles {
             // Like the arguments of the Spring Boot plugin's run goal or task
             addAssignments(path, source.printAll());
         } else if (source instanceof JavaSourceFile) {
-            if (usesPropertySource.visit(source, ctx) != source) {
+            if (usesPropertySource().visit(source, ctx) != source) {
                 scanJava((JavaSourceFile) source, ctx);
             }
         } else if (DOCKERFILE.matcher(fileName(path)).find()) {
@@ -449,6 +446,12 @@ public class SpringConfigFiles {
             }
             return PathUtils.matchesGlob(sourcePath, pattern);
         }
+    }
+
+    private static TreeVisitor<?, ExecutionContext> usesPropertySource() {
+        return Preconditions.or(
+                new UsesType<>("org.springframework.context.annotation.PropertySource", false),
+                new UsesType<>("org.springframework.test.context.TestPropertySource", false));
     }
 
     private static boolean usesSpringBoot(SourceFile build) {
