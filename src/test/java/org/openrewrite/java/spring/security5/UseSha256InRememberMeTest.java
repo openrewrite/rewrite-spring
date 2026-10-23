@@ -128,7 +128,6 @@ class UseSha256InRememberMeTest implements RewriteTest {
             """
               import org.springframework.security.core.userdetails.UserDetailsService;
               import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
 
               class T {
                   void qualifiedFieldAccess(UserDetailsService userDetailsService) {
@@ -160,7 +159,6 @@ class UseSha256InRememberMeTest implements RewriteTest {
             """
               import org.springframework.security.core.userdetails.UserDetailsService;
               import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
 
               class T {
                   void qualifiedFieldAccess(UserDetailsService userDetailsService) {
