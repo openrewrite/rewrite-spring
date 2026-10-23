@@ -31,11 +31,11 @@ import static org.openrewrite.yaml.Assertions.yaml;
  * @author Alex Boyko
  */
 @SuppressWarnings("UnusedProperty")
-class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
+class FindIntegrationSchedulerPoolTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new IntegrationSchedulerPoolRecipe())
+        spec.recipe(new FindIntegrationSchedulerPool())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.4", "spring-boot-autoconfigure-2.3"));
     }
 

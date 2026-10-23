@@ -53,7 +53,7 @@ import static java.util.stream.Collectors.toSet;
 /**
  * @author Alex Boyko
  */
-public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSchedulerPoolRecipe.JavaProjects> {
+public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegrationSchedulerPool.JavaProjects> {
 
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
     private static final Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
