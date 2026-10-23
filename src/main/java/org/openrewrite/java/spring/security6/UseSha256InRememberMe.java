@@ -54,6 +54,7 @@ public class UseSha256InRememberMe extends Recipe {
                 newClass = super.visitNewClass(newClass, ctx);
                 if (newClass.getArguments().size() == 3 && REMEMBER_ME_SERVICES_CONSTRUCTOR_MATCHER.matches(newClass)) {
                     if (isSha256Algorithm(newClass.getArguments().get(2), getCursor())) {
+                        maybeRemoveImport(REMEMBER_ME_TOKEN_ALGORITHM_TYPE);
                         return newClass.withArguments(new ArrayList<>(newClass.getArguments().subList(0, 2)));
                     }
                 }
@@ -68,6 +69,7 @@ public class UseSha256InRememberMe extends Recipe {
                         REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method) &&
                         getCursor().getParentTreeCursor().getValue() instanceof J.Block) {
                     if (isSha256Algorithm(method.getArguments().get(0), getCursor())) {
+                        maybeRemoveImport(REMEMBER_ME_TOKEN_ALGORITHM_TYPE);
                         return null;
                     }
                 }
