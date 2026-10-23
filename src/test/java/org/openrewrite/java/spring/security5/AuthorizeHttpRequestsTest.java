@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -293,44 +295,32 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
     }
 
     @Test
-    void accessDecisionManagerTopInvocation() {
+    void accessExpressionToWebExpressionAuthorizationManager() {
         //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated()
-                              // hello
-                              .accessDecisionManager(null);
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests()
+                          .antMatchers("/admin/**").access("hasRole('ADMIN') and hasIpAddress('10.0.0.0/8')")
+                          .antMatchers("/internal/**").hasIpAddress("192.168.1.0/24")
+                          .anyRequest().authenticated();
                   }
               }
               """,
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
-                      http
-                          .authorizeHttpRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated();
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests()
+                          .antMatchers("/admin/**").access(new WebExpressionAuthorizationManager("hasRole('ADMIN') and hasIpAddress('10.0.0.0/8')"))
+                          .antMatchers("/internal/**").access(new WebExpressionAuthorizationManager("hasIpAddress('192.168.1.0/24')"))
+                          .anyRequest().authenticated();
                   }
               }
               """
@@ -339,43 +329,87 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
     }
 
     @Test
-    void accessDecisionManager() {
+    void accessExpressionInLambda() {
         //language=java
         rewriteRun(
           java(
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeRequests()
-                              .accessDecisionManager(null)
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated();
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests(requests -> requests
+                          .antMatchers("/admin/**").access("hasRole('ADMIN')")
+                          .anyRequest().authenticated());
                   }
               }
               """,
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
-              @EnableWebSecurity
-              public class SecurityConfig extends WebSecurityConfigurerAdapter {
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests(requests -> requests
+                          .antMatchers("/admin/**").access(new WebExpressionAuthorizationManager("hasRole('ADMIN')"))
+                          .anyRequest().authenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
 
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      /*TODO: replace removed '.accessDecisionManager(null);' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.*/
-                      http
-                          .authorizeHttpRequests()
-                              .antMatchers("/blog/**").permitAll()
-                              .anyRequest().authenticated();
+    @ParameterizedTest
+    @ValueSource(strings = {
+      ".antMatchers(\"/admin/**\").access(\"@webSecurity.isAdmin(authentication)\")",
+      ".antMatchers(\"/admin/**\").access(ADMIN)",
+      ".antMatchers(\"/admin/**\").access(\"hasPermission(null, 'admin')\")",
+      ".antMatchers(\"/admin/**\").hasIpAddress(ADMIN)",
+      ".antMatchers(\"/admin/**\").not().hasRole(\"GUEST\")",
+      ".accessDecisionManager(null)",
+      ".expressionHandler(new DefaultWebSecurityExpressionHandler())",
+      ".filterSecurityInterceptorOncePerRequest(false)",
+      ".withObjectPostProcessor(null)"
+    })
+    void keepExpressionBasedAuthorizationThatCannotBeConverted(String call) {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+
+              class SecurityConfig {
+                  static final String ADMIN = "hasRole('ADMIN')";
+
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests()
+                          %s
+                          .anyRequest().authenticated();
+                  }
+              }
+              """.formatted(call)
+          )
+        );
+    }
+
+    @Test
+    void keepHelperMethodsConsistentWithUnconvertedChain() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      rules(http.authorizeRequests());
+                  }
+
+                  void rules(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
+                      registry.anyRequest().not().anonymous();
                   }
               }
               """
