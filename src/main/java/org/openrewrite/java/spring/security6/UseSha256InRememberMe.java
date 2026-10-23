@@ -65,7 +65,8 @@ public class UseSha256InRememberMe extends Recipe {
             public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
                 if (method.getSelect() != null && method.getArguments().size() == 1 &&
-                        REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method)) {
+                        REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method) &&
+                        getCursor().getParentTreeCursor().getValue() instanceof J.Block) {
                     if (isSha256Algorithm(method.getArguments().get(0), getCursor())) {
                         return null;
                     }

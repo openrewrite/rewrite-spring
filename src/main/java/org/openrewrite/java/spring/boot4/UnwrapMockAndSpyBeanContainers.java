@@ -73,7 +73,8 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
                             }
 
                             List<J.Annotation> innerAnnotations = extractInnerAnnotations(annotation);
-                            if (innerAnnotations.isEmpty()) {
+                            if (innerAnnotations.isEmpty() ||
+                                    !innerAnnotations.stream().allMatch(UnwrapMockAndSpyBeanContainers::onlyDeclaresTypes)) {
                                 return annotation;
                             }
 
@@ -141,6 +142,26 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
         }
     }
 
+    private static boolean onlyDeclaresTypes(J.Annotation annotation) {
+        if (annotation.getArguments() == null) {
+            return true;
+        }
+        for (Expression arg : annotation.getArguments()) {
+            if (arg instanceof J.Assignment && !isTypesAttribute((J.Assignment) arg)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isTypesAttribute(J.Assignment assignment) {
+        if (!(assignment.getVariable() instanceof J.Identifier)) {
+            return false;
+        }
+        String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
+        return "value".equals(name) || "classes".equals(name) || "types".equals(name);
+    }
+
     private static List<Expression> extractTypeExpressions(J.Annotation annotation) {
         List<Expression> types = new ArrayList<>();
         if (annotation.getArguments() == null || annotation.getArguments().isEmpty()) {
@@ -156,11 +177,8 @@ public class UnwrapMockAndSpyBeanContainers extends Recipe {
     private static void collectTypeExpression(Expression arg, List<Expression> types) {
         if (arg instanceof J.Assignment) {
             J.Assignment assignment = (J.Assignment) arg;
-            if (assignment.getVariable() instanceof J.Identifier) {
-                String name = ((J.Identifier) assignment.getVariable()).getSimpleName();
-                if ("value".equals(name) || "classes".equals(name) || "types".equals(name)) {
-                    collectTypeExpression(assignment.getAssignment(), types);
-                }
+            if (isTypesAttribute(assignment)) {
+                collectTypeExpression(assignment.getAssignment(), types);
             }
         } else if (arg instanceof J.NewArray && ((J.NewArray) arg).getInitializer() != null) {
             // Java: {A.class, B.class}

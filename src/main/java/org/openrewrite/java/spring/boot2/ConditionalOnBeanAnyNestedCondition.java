@@ -55,7 +55,7 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
         public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
             J.Annotation a = super.visitAnnotation(annotation, ctx);
 
-            if (CONDITIONAL_BEAN.matches(a) && a.getArguments() != null) {
+            if (CONDITIONAL_BEAN.matches(a) && a.getArguments() != null && a.getArguments().size() == 1) {
                 // First check for an array of Class arguments
                 List<String> conditionalOnBeanCandidates = new ArrayList<>();
                 for (Expression p : a.getArguments()) {
@@ -63,13 +63,11 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                         J.NewArray na = (J.NewArray) p;
                         if (na.getInitializer() != null && na.getInitializer().size() > 1) {
                             for (Expression expression : na.getInitializer()) {
-                                J.FieldAccess fieldAccess = (J.FieldAccess) expression;
-                                Expression target = fieldAccess.getTarget();
-                                if (target instanceof J.Identifier) {
-                                    J.Identifier identifier = (J.Identifier) target;
-                                    String simpleName = identifier.getSimpleName();
-                                    conditionalOnBeanCandidates.add(simpleName);
+                                if (!(expression instanceof J.FieldAccess) ||
+                                        !(((J.FieldAccess) expression).getTarget() instanceof J.Identifier)) {
+                                    return a;
                                 }
+                                conditionalOnBeanCandidates.add(((J.Identifier) ((J.FieldAccess) expression).getTarget()).getSimpleName());
                             }
                         }
                     }
@@ -86,10 +84,10 @@ public class ConditionalOnBeanAnyNestedCondition extends Recipe {
                             J.NewArray na = (J.NewArray) ((J.Assignment) arg).getAssignment();
                             if (na.getInitializer() != null) {
                                 for (Expression l : na.getInitializer()) {
-                                    J.Literal lit = (J.Literal) l;
-                                    if (lit.getValue() != null) {
-                                        conditionalOnBeanCandidates.add(lit.getValue().toString());
+                                    if (!(l instanceof J.Literal) || ((J.Literal) l).getValue() == null) {
+                                        return a;
                                     }
+                                    conditionalOnBeanCandidates.add(((J.Literal) l).getValue().toString());
                                 }
                             }
                         }

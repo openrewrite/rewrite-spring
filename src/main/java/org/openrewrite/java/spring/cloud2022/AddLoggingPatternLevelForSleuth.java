@@ -63,8 +63,7 @@ public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolea
     public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean acc) {
         AddSpringProperty addSpringProperty = new AddSpringProperty(
                 "logging.pattern.level",
-                // The ${spring.application.name:} could not be escaped in yaml so far
-                "\"%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]\"",
+                "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]",
                 "Logging pattern containing traceId and spanId; no longer provided through Sleuth by default",
                 null);
         return Preconditions.check(acc.get(), addSpringProperty.getVisitor());
