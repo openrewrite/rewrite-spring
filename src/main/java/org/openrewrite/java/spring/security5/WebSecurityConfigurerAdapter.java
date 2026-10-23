@@ -407,6 +407,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .build();
                 b = b.withStatements(ListUtils.mapLast(b.getStatements(), last -> null));
                 b = template.apply(updateCursor(b), b.getCoordinates().lastStatement(), users.getParameters());
+                Cursor blockCursor = updateCursor(b);
+                b = b.withStatements(ListUtils.mapLast(b.getStatements(), returnStatement -> autoFormat(returnStatement, ctx, blockCursor)));
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 return b;
@@ -540,7 +542,11 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             if (userBuilder != null) {
                 users.add(userBuilder.append(".build()").toString());
             }
-            return users.isEmpty() ? null : new InMemoryUsers(String.join(", ", users), parameters.toArray());
+            if (users.isEmpty()) {
+                return null;
+            }
+            String template = users.size() == 1 ? users.get(0) : "\n" + String.join(",\n", users);
+            return new InMemoryUsers(template, parameters.toArray());
         }
 
         private static boolean isReferenced(J.Identifier identifier, List<Statement> statements) {

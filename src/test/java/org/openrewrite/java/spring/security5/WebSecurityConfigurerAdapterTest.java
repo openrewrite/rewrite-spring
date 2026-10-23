@@ -925,7 +925,9 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               class SecurityConfiguration {
                   @Bean
                   InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
-                      return new InMemoryUserDetailsManager(User.withUsername("user").password("{noop}user").roles("USER").build(), User.withUsername("admin").password("{noop}admin").roles("USER", "ADMIN").build());
+                      return new InMemoryUserDetailsManager(
+                              User.withUsername("user").password("{noop}user").roles("USER").build(),
+                              User.withUsername("admin").password("{noop}admin").roles("USER", "ADMIN").build());
                   }
               }
               """
