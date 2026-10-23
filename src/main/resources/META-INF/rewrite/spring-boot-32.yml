@@ -58,7 +58,7 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: commons-codec
       artifactId: commons-codec
-      version: 1.7.x
+      version: 1.17.x
       onlyIfUsing: org.apache.commons.codec..*
       acceptTransitive: true
   - org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_2

@@ -95,14 +95,14 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
         org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
                 new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
         org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "(.+)", newPropertyKey + "$1", true, true);
+                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "([.\\[].+)", newPropertyKey + "$1", true, true);
         UnfoldProperties unfoldNewPropertyKey =
                 new UnfoldProperties(null, singletonList("$." + newPropertyKey));
 
         String quotedOldKey = quote(oldPropertyKey);
         String exceptRegex = exceptRegex();
-        Pattern valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)(((?:\\\\.|[^}])*)\\})");
-        Pattern prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex);
+        Pattern valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)((:(?:\\\\.|[^}])*)?\\})");
+        Pattern prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex + "(?![\\w-])");
         Pattern oldKeyPattern = Pattern.compile(quotedOldKey);
 
         return Preconditions.check(Preconditions.or(

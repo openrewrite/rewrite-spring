@@ -52,7 +52,7 @@ public class MigrateDatabaseCredentialsForToolProperties extends Recipe {
         return Preconditions.check(new PropertiesVisitor<ExecutionContext>() {
             @Override
             public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                if (FindProperties.find(file, "spring." + tool + ".username", true).isEmpty() &&
+                if (FindProperties.find(file, "spring." + tool + ".user", true).isEmpty() &&
                         FindProperties.find(file, "spring." + tool + ".password", true).isEmpty()) {
                     doAfterVisit(new FindProperties("spring." + tool + ".url", true).getVisitor());
                 }
@@ -61,7 +61,7 @@ public class MigrateDatabaseCredentialsForToolProperties extends Recipe {
         }, new PropertiesVisitor<ExecutionContext>() {
             @Override
             public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                doAfterVisit(new AddProperty("spring." + tool + ".username", "${spring.datasource.username}", null, null, null, null, null).getVisitor());
+                doAfterVisit(new AddProperty("spring." + tool + ".user", "${spring.datasource.username}", null, null, null, null, null).getVisitor());
                 doAfterVisit(new AddProperty("spring." + tool + ".password", "${spring.datasource.password}", null, null, null, null, null).getVisitor());
                 return file;
             }
