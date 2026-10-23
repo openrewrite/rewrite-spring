@@ -368,7 +368,7 @@ class FindMissingMongoValueRepresentationBoundariesTest extends MongoValueRepres
     }
 
     @Test
-    void testResourceConfigurationDoesNotSuppressMainReporting() {
+    void resourceConfigurationDoesNotSuppressMainReporting() {
         rewriteRun(
           spec -> spec.dataTable(MongoValueRepresentationFields.Row.class, rows -> assertThat(rows).hasSize(2)),
           mavenProject("app",

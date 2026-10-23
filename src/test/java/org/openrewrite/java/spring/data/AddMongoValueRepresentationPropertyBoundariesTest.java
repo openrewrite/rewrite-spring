@@ -289,7 +289,7 @@ class AddMongoValueRepresentationPropertyBoundariesTest extends MongoValueRepres
     }
 
     @Test
-    void testResourceConfigurationDoesNotSuppressBaselineGeneration() {
+    void resourceConfigurationDoesNotSuppressBaselineGeneration() {
         rewriteRun(
           mavenProject("app",
             pomXml(MINIMAL_POM),
