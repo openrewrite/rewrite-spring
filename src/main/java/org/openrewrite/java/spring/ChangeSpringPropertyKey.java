@@ -34,12 +34,16 @@ import org.openrewrite.yaml.UnfoldProperties;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
 
 /**
@@ -114,7 +118,9 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
-                    Tree newTree = yamlChangePropertyKey.getVisitor().visit(tree, ctx);
+                    ChangePropertyKey changeKey = except == null || except.isEmpty() ? yamlChangePropertyKey :
+                            new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, exceptedYamlSubKeys((Yaml.Documents) tree), null);
+                    Tree newTree = changeKey.getVisitor().visit(tree, ctx);
                     if (newTree != tree && isWrittenAsNestedMappings((Yaml.Documents) tree)) {
                         newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
                     }
@@ -162,6 +168,34 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
                 return path.toString();
             }
         }.reduce(documents, new AtomicBoolean()).get();
+    }
+
+    /**
+     * `except` is a list of regexes, but the YAML recipe compares its exclusions literally, so resolve the regexes
+     * against the child keys of `oldPropertyKey` actually present in the file.
+     */
+    private List<String> exceptedYamlSubKeys(Yaml.Documents documents) {
+        Pattern exceptPattern = Pattern.compile("(?:" + String.join("|", requireNonNull(except)) + ")\\b");
+        int subKeyIndex = oldPropertyKey.split("\\.").length;
+        Set<String> subKeys = new LinkedHashSet<>();
+        new YamlIsoVisitor<Set<String>>() {
+            @Override
+            public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, Set<String> acc) {
+                String path = getCursor().getPathAsStream()
+                        .filter(Yaml.Mapping.Entry.class::isInstance)
+                        .map(e -> ((Yaml.Mapping.Entry) e).getKey().getValue())
+                        .reduce((child, parent) -> parent + '.' + child)
+                        .orElse("");
+                String[] segments = path.split("\\.");
+                if (segments.length > subKeyIndex &&
+                        NameCaseConvention.matchesGlobRelaxedBinding(path, oldPropertyKey + ".*") &&
+                        exceptPattern.matcher(segments[subKeyIndex]).lookingAt()) {
+                    acc.add(segments[subKeyIndex]);
+                }
+                return super.visitMappingEntry(entry, acc);
+            }
+        }.visit(documents, subKeys);
+        return new ArrayList<>(subKeys);
     }
 
     private String exceptRegex() {
