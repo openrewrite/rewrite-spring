@@ -385,6 +385,72 @@ class AuthorizeHttpRequestsTest implements RewriteTest {
         );
     }
 
+    @Test
+    void accessExpressionToWebExpressionAuthorizationManager() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests()
+                          .antMatchers("/admin/**").access("hasRole('ADMIN') and hasIpAddress('10.0.0.0/8')")
+                          .antMatchers("/internal/**").hasIpAddress("192.168.1.0/24")
+                          .anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests()
+                          .antMatchers("/admin/**").access(new WebExpressionAuthorizationManager("hasRole('ADMIN') and hasIpAddress('10.0.0.0/8')"))
+                          .antMatchers("/internal/**").access(new WebExpressionAuthorizationManager("hasIpAddress('192.168.1.0/24')"))
+                          .anyRequest().authenticated();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void accessExpressionInLambda() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests(requests -> requests
+                          .antMatchers("/admin/**").access("hasRole('ADMIN')")
+                          .anyRequest().authenticated());
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests(requests -> requests
+                          .antMatchers("/admin/**").access(new WebExpressionAuthorizationManager("hasRole('ADMIN')"))
+                          .anyRequest().authenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {
       ".antMatchers(\"/admin/**\").access(\"@webSecurity.isAdmin(authentication)\")",

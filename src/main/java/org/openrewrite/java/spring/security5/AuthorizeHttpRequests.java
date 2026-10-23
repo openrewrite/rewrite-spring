@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security5;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -23,6 +24,8 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
@@ -33,6 +36,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
+
+import static java.util.Collections.singletonList;
 
 public class AuthorizeHttpRequests extends Recipe {
 
@@ -50,11 +56,16 @@ public class AuthorizeHttpRequests extends Recipe {
     private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher(
             ABSTRACT_INTERCEPT_URL_REGISTRY + " accessDecisionManager(..)");
 
+    private static final MethodMatcher MATCH_ACCESS = new MethodMatcher(AUTHORIZED_URL + " access(java.lang.String)", true);
+    private static final MethodMatcher MATCH_HAS_IP_ADDRESS = new MethodMatcher(AUTHORIZED_URL + " hasIpAddress(java.lang.String)", true);
+    private static final Pattern IP_ADDRESS = Pattern.compile("[0-9A-Fa-f:./]+");
+
+    private static final String WEB_EXPRESSION_AUTHORIZATION_MANAGER = "org.springframework.security.web.access.expression.WebExpressionAuthorizationManager";
+    private static final String AUTHORIZATION_MANAGER = "org.springframework.security.authorization.AuthorizationManager";
+
     // Not offered by `AuthorizeHttpRequestsConfigurer`, or, for `withObjectPostProcessor`, applied to a
     // `FilterSecurityInterceptor` that no longer exists, so a post-processor would silently stop being applied.
     private static final List<MethodMatcher> EXPRESSION_ONLY_API = Arrays.asList(
-            new MethodMatcher(AUTHORIZED_URL + " access(..)", true),
-            new MethodMatcher(AUTHORIZED_URL + " hasIpAddress(..)", true),
             new MethodMatcher(AUTHORIZED_URL + " not()", true),
             new MethodMatcher(EXPRESSION_INTERCEPT_URL_REGISTRY + " expressionHandler(..)"),
             new MethodMatcher(EXPRESSION_INTERCEPT_URL_REGISTRY + " withObjectPostProcessor(..)"),
@@ -111,6 +122,9 @@ public class AuthorizeHttpRequests extends Recipe {
                             changeTypesAfterVisit();
                             return processAccessDecisionManager(m, ctx);
                         }
+                        if (MATCH_ACCESS.matches(methodType) || MATCH_HAS_IP_ADDRESS.matches(methodType)) {
+                            return accessWithWebExpression(m, ctx);
+                        }
                     }
                     String commentToAdd = getCursor().pollMessage(MSG_ADD_COMMENT);
                     if (commentToAdd != null) {
@@ -130,6 +144,25 @@ public class AuthorizeHttpRequests extends Recipe {
                         .findFirst().orElseGet(() -> methodType.withName(AUTHORIZE_HTTP_REQUESTS));
                 return m
                         .withName(m.getName().withSimpleName(AUTHORIZE_HTTP_REQUESTS))
+                        .withMethodType(newMethodType);
+            }
+
+            private J.MethodInvocation accessWithWebExpression(J.MethodInvocation m, ExecutionContext ctx) {
+                boolean access = MATCH_ACCESS.matches(m);
+                String expression = access ? "#{any(java.lang.String)}" : "\"" + webExpression(m) + "\"";
+                maybeAddImport(WEB_EXPRESSION_AUTHORIZATION_MANAGER);
+                J.MethodInvocation applied = JavaTemplate.builder("access(new WebExpressionAuthorizationManager(" + expression + "))")
+                        .imports(WEB_EXPRESSION_AUTHORIZATION_MANAGER)
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-web-5.8"))
+                        .build()
+                        .apply(getCursor(), m.getCoordinates().replaceMethod(), access ? m.getArguments().toArray() : new Object[0]);
+                JavaType.Method newMethodType = m.getMethodType()
+                        .withName("access")
+                        .withParameterNames(singletonList("manager"))
+                        .withParameterTypes(singletonList(JavaType.ShallowClass.build(AUTHORIZATION_MANAGER)));
+                return applied
+                        .withSelect(m.getSelect())
+                        .withName(m.getName().withSimpleName("access").withType(newMethodType))
                         .withMethodType(newMethodType);
             }
 
@@ -172,12 +205,27 @@ public class AuthorizeHttpRequests extends Recipe {
         return new JavaIsoVisitor<AtomicBoolean>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean found) {
-                if (EXPRESSION_ONLY_API.stream().anyMatch(matcher -> matcher.matches(method))) {
+                if (EXPRESSION_ONLY_API.stream().anyMatch(matcher -> matcher.matches(method)) ||
+                    (MATCH_ACCESS.matches(method) || MATCH_HAS_IP_ADDRESS.matches(method)) && webExpression(method) == null) {
                     found.set(true);
                     return method;
                 }
                 return super.visitMethodInvocation(method, found);
             }
         }.reduce(cu, new AtomicBoolean()).get();
+    }
+
+    private static @Nullable String webExpression(J.MethodInvocation accessOrHasIpAddress) {
+        Expression argument = accessOrHasIpAddress.getArguments().get(0);
+        if (!(argument instanceof J.Literal) || !(((J.Literal) argument).getValue() instanceof String)) {
+            return null;
+        }
+        String value = (String) ((J.Literal) argument).getValue();
+        if (MATCH_ACCESS.matches(accessOrHasIpAddress)) {
+            // `WebExpressionAuthorizationManager` evaluates without the application context, so it can't
+            // resolve bean references or the `PermissionEvaluator` that `hasPermission` relies on.
+            return value.contains("@") || value.contains("hasPermission") ? null : value;
+        }
+        return IP_ADDRESS.matcher(value).matches() ? "hasIpAddress('" + value + "')" : null;
     }
 }
