@@ -24,7 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class ReplaceSupportClassWithItsInterfaceTest implements RewriteTest {
+class ListenerSupportClassToInterfaceTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
