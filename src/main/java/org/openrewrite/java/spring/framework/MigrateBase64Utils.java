@@ -58,7 +58,7 @@ public class MigrateBase64Utils extends Recipe {
     }
 
     @Getter
-    final String displayName = "Migrate `org.springframework.util.Base64Utils` to `java.io.Base64`";
+    final String displayName = "Migrate `org.springframework.util.Base64Utils` to `java.util.Base64`";
 
     @Getter
     final String description = "Replaces usages of deprecated `org.springframework.util.Base64Utils` with `java.util.Base64`.";

@@ -32,10 +32,10 @@ public class JobParameterToString extends Recipe {
     private static final MethodMatcher JOB_PARAMETER_TO_STRING_MATCHER = new MethodMatcher("org.springframework.batch.core.JobParameter toString()");
 
     @Getter
-    final String displayName = "Migration invocation of JobParameter.toString to JobParameter.getValue.toString";
+    final String displayName = "Migrate `JobParameter.toString()` to `JobParameter.getValue().toString()`";
 
     @Getter
-    final String description = "JobParameter.toString() logic is quite different in spring batch 5, need take JobParameter.getValue.toString replace the JobParameter.toString.";
+    final String description = "The `JobParameter.toString()` output changed in Spring Batch 5, so replace it with `JobParameter.getValue().toString()`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

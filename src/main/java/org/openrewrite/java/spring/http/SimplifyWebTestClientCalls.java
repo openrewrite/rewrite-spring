@@ -38,10 +38,10 @@ public class SimplifyWebTestClientCalls extends Recipe {
     private static final MethodMatcher IS_EQUAL_TO_MATCHER = new MethodMatcher("org.springframework.test.web.reactive.server.StatusAssertions isEqualTo(..)");
 
     @Getter
-    final String displayName = "Simplify WebTestClient expressions";
+    final String displayName = "Simplify `WebTestClient` expressions";
 
     @Getter
-    final String description = "Simplifies various types of WebTestClient expressions to improve code readability.";
+    final String description = "Simplifies various types of `WebTestClient` expressions to improve code readability.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

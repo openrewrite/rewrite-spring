@@ -34,7 +34,7 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
     final String displayName = "Use `DiskSpaceHealthIndicator(File, DataSize)`";
 
     @Getter
-    final String description = "`DiskSpaceHealthIndicator(File, long)` was deprecated in Spring Data 2.1 for removal in 2.2.";
+    final String description = "`DiskSpaceHealthIndicator(File, long)` was deprecated in Spring Boot 2.1 for removal in 2.2.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

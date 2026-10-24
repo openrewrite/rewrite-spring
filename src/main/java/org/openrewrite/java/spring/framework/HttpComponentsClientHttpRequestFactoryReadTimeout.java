@@ -40,7 +40,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     private static final MethodMatcher SET_DEFAULT_SOCKET_CONFIG = new MethodMatcher(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)");
 
     @Getter
-    final String displayName = "Migrate `setReadTimeout(java.lang.int)` to SocketConfig `setSoTimeout(..)`";
+    final String displayName = "Migrate `setReadTimeout(int)` to SocketConfig `setSoTimeout(..)`";
 
     @Getter
     final String description = "`setReadTimeout(..)` was removed in Spring Framework 6.1.";

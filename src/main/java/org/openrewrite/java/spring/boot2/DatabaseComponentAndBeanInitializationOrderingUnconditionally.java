@@ -37,7 +37,7 @@ import java.util.List;
 public class DatabaseComponentAndBeanInitializationOrderingUnconditionally extends Recipe {
 
     private static final String JAVAX_SQL_DATA_SOURCE = "javax.sql.DataSource";
-    private static final List<String> WELL_KNOW_DATA_SOURCE_TYPES = Arrays.asList(
+    private static final List<String> WELL_KNOWN_DATA_SOURCE_TYPES = Arrays.asList(
             "com.zaxxer.hikari.HikariDataSource",
             "javax.persistence.EntityManagerFactory",
             "liquibase.integration.spring.SpringLiquibase",
@@ -49,7 +49,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
     );
 
     @Getter
-    final String displayName = "Unconditionally adds `@DependsOnDatabaseInitialization` to Spring Beans and Components depending on `javax.sql.DataSource`";
+    final String displayName = "Unconditionally add `@DependsOnDatabaseInitialization` to Spring beans and components depending on `javax.sql.DataSource`";
 
     @Getter
     final String description = "Beans of certain well-known types, such as `JdbcTemplate`, will be ordered so that they are initialized " +
@@ -179,8 +179,8 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
 
             private boolean isWellKnownDataSourceInitializationType(@Nullable JavaType type) {
                 if (type != null) {
-                    for (String wellKnowDataSourceType : WELL_KNOW_DATA_SOURCE_TYPES) {
-                        if (TypeUtils.isAssignableTo(wellKnowDataSourceType, type)) {
+                    for (String wellKnownDataSourceType : WELL_KNOWN_DATA_SOURCE_TYPES) {
+                        if (TypeUtils.isAssignableTo(wellKnownDataSourceType, type)) {
                             return true;
                         }
                     }

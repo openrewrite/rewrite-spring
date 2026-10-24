@@ -22,7 +22,7 @@ description: >-
   Migrate applications to the latest Spring Boot 3.0 release. This recipe will modify an
   application's build files, make changes to deprecated/preferred APIs, and migrate configuration settings that have
   changes between versions. This recipe will also chain additional framework migrations (Spring Framework, Spring Data,
-  etc) that are required as part of the migration to Spring Boot 2.7.
+  etc) that are required as part of the migration to Spring Boot 3.0.
 tags:
   - spring
   - boot
@@ -135,7 +135,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateThymeleafDependencies
-displayName: Migrate thymeleaf dependencies to Spring Boot 3.x
+displayName: Migrate Thymeleaf dependencies to Spring Boot 3.x
 description: Migrate thymeleaf dependencies to the new artifactId, since these are changed with Spring Boot 3.
 tags:
   - spring
@@ -162,7 +162,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies
-displayName: Migrate dropWizard dependencies to Spring Boot 3.x
+displayName: Migrate Dropwizard dependencies to Spring Boot 3.x
 description: Migrate dropWizard dependencies to the new artifactId, since these are changed with Spring Boot 3.
 tags:
   - spring
@@ -191,7 +191,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.MigrateSapCfJavaLoggingSupport
-displayName: Migrate SAP cloud foundry logging support to Spring Boot 3.x
+displayName: Migrate SAP Cloud Foundry logging support to Spring Boot 3.x
 description: Migrate SAP cloud foundry logging support from `cf-java-logging-support-servlet` to `cf-java-logging-support-servlet-jakarta`, to use Jakarta with Spring Boot 3.
 tags:
   - spring
