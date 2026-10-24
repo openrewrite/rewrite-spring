@@ -152,10 +152,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     }
 
     private static SourceFile mergeBootstrapInto(Yaml.Documents application, Yaml.Documents bootstrap, ExecutionContext ctx) {
-        Yaml.Documents a = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(application, ctx);
-        Yaml.Documents b = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(bootstrap, ctx);
-        assert a != null;
-        assert b != null;
+        Yaml.Documents a = (Yaml.Documents) new ExpandProperties(null).getVisitor().visitNonNull(application, ctx);
+        Yaml.Documents b = (Yaml.Documents) new ExpandProperties(null).getVisitor().visitNonNull(bootstrap, ctx);
 
         List<Yaml.Document> bootstrapBaseDocuments = new ArrayList<>();
         List<Yaml.Document> bootstrapProfileDocuments = new ArrayList<>();
