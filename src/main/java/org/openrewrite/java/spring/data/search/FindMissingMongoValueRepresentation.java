@@ -16,7 +16,10 @@
 package org.openrewrite.java.spring.data.search;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Tree;
 import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.TreeVisitor;
@@ -28,6 +31,8 @@ import org.openrewrite.java.spring.data.MongoValueRepresentationScanner;
 import org.openrewrite.java.spring.data.SpringConfigFileSupport;
 import org.openrewrite.java.spring.table.MongoValueRepresentationFields;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.kotlin.KotlinIsoVisitor;
+import org.openrewrite.kotlin.tree.K;
 import org.openrewrite.marker.SearchResult;
 
 import java.util.List;
@@ -63,9 +68,27 @@ public class FindMissingMongoValueRepresentation extends ScanningRecipe<MongoVal
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(MongoValueRepresentationAccumulator acc) {
-        return Preconditions.check(MongoValueRepresentationScanner.javaPrecondition(), new JavaIsoVisitor<ExecutionContext>() {
+        TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(
+                MongoValueRepresentationScanner.javaPrecondition(), new JavaIsoVisitor<ExecutionContext>() {
+                    @Override
+                    public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                        JavaProject project = SpringConfigFileSupport.javaProject(cu);
+                        if (project == null) {
+                            return cu;
+                        }
+                        insertRowsOnce(project, acc, ctx);
+                        getCursor().putMessage("unresolved", acc.unresolvedOccurrences(project));
+                        return super.visitCompilationUnit(cu, ctx);
+                    }
+
+                    @Override
+                    public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations declarations, ExecutionContext ctx) {
+                        return markUnresolved(super.visitVariableDeclarations(declarations, ctx), getCursor());
+                    }
+                });
+        TreeVisitor<?, ExecutionContext> kotlinVisitor = new KotlinIsoVisitor<ExecutionContext>() {
             @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+            public K.CompilationUnit visitCompilationUnit(K.CompilationUnit cu, ExecutionContext ctx) {
                 JavaProject project = SpringConfigFileSupport.javaProject(cu);
                 if (project == null) {
                     return cu;
@@ -76,22 +99,35 @@ public class FindMissingMongoValueRepresentation extends ScanningRecipe<MongoVal
             }
 
             @Override
-            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations declarations,
-                                                                     ExecutionContext ctx) {
-                J.VariableDeclarations visitedDeclarations = super.visitVariableDeclarations(declarations, ctx);
-                J.ClassDeclaration owner = getCursor().firstEnclosing(J.ClassDeclaration.class);
-                List<Occurrence> unresolved = getCursor().getNearestMessage("unresolved");
-                if (owner == null || unresolved == null) {
-                    return visitedDeclarations;
-                }
-                for (J.VariableDeclarations.NamedVariable variable : visitedDeclarations.getVariables()) {
-                    if (isUnresolvedOccurrence(unresolved, owner.getId(), variable.getSimpleName())) {
-                        return SearchResult.found(visitedDeclarations, "missing MongoDB value representation configuration");
-                    }
-                }
-                return visitedDeclarations;
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations declarations, ExecutionContext ctx) {
+                return markUnresolved(super.visitVariableDeclarations(declarations, ctx), getCursor());
             }
-        });
+        };
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof J.CompilationUnit) {
+                    return javaVisitor.visit(tree, ctx);
+                }
+                if (tree instanceof K.CompilationUnit) {
+                    return kotlinVisitor.visit(tree, ctx);
+                }
+                return tree;
+            }
+        };
+    }
+
+    private static J.VariableDeclarations markUnresolved(J.VariableDeclarations declarations, Cursor cursor) {
+        J.ClassDeclaration owner = cursor.firstEnclosing(J.ClassDeclaration.class);
+        List<Occurrence> unresolved = cursor.getNearestMessage("unresolved");
+        if (owner != null && unresolved != null) {
+            for (J.VariableDeclarations.NamedVariable variable : declarations.getVariables()) {
+                if (isUnresolvedOccurrence(unresolved, owner.getId(), variable.getSimpleName())) {
+                    return SearchResult.found(declarations, "missing MongoDB value representation configuration");
+                }
+            }
+        }
+        return declarations;
     }
 
     private static boolean isUnresolvedOccurrence(List<Occurrence> unresolved, UUID owningClassId, String field) {
