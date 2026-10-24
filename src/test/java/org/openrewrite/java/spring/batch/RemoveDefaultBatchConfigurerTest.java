@@ -152,6 +152,26 @@ class RemoveDefaultBatchConfigurerTest implements RewriteTest {
     }
 
     @Test
+    void abstractMethod() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+              abstract class Foo extends DefaultBatchConfigurer {
+                  abstract void customize();
+              }
+              """,
+            """
+              abstract class Foo {
+                  abstract void customize();
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void removeBeanUsage() {
         // language=java
         rewriteRun(

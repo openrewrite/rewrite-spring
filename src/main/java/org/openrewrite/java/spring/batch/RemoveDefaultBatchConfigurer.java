@@ -65,6 +65,9 @@ public class RemoveDefaultBatchConfigurer extends Recipe {
         @Override
         public J.@Nullable MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+            if (md.getBody() == null) {
+                return md;
+            }
             if (overridesDefaultBatchConfigurerMethod(md) || callsDefaultBatchConfigurerSuperConstructor(md)) {
                 // Strip @Override
                 md = md.withLeadingAnnotations(ListUtils.filter(md.getLeadingAnnotations(),
