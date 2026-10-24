@@ -135,7 +135,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 classDecl = template.apply(getCursor(), classDecl.getBody().getCoordinates().lastStatement());
 
                 String importPathMatchConfigurer = isWebMVC ? WEB_MVC_PATH_MATCH_CONFIGURER : WEB_FLUX_PATH_MATCH_CONFIGURER;
-                maybeAddImport(importPathMatchConfigurer, false);
+                maybeAddImport(importPathMatchConfigurer);
                 return classDecl;
             }
 
