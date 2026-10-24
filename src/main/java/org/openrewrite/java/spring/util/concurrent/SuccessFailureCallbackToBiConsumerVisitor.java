@@ -113,7 +113,7 @@ class SuccessFailureCallbackToBiConsumerVisitor extends JavaIsoVisitor<Execution
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             if (GET_FAILED_PRODUCER_RECORD.matches(method) && Objects.equals(method.getSelect().printTrimmed(), name.printTrimmed())) {
-                maybeAddImport(FQN_KAFKA_PRODUCER_EXCEPTION, null, false);
+                maybeAddImport(FQN_KAFKA_PRODUCER_EXCEPTION);
 
                 return JavaTemplate.builder("((KafkaProducerException)#{any()}).getFailedProducerRecord()")
                         .imports(FQN_KAFKA_PRODUCER_EXCEPTION)
