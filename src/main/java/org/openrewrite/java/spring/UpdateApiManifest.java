@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -155,8 +156,7 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                                         getPath(mapping);
                         path = path.replace("//", "/");
 
-                        JavaType.FullyQualified type = TypeUtils.asFullyQualified(mapping.getType());
-                        assert type != null;
+                        JavaType.FullyQualified type = requireNonNull(TypeUtils.asFullyQualified(mapping.getType()));
                         String httpMethod = type.getClassName().startsWith("Request") ?
                                 getArg(mapping, "GET", "method") :
                                 type.getClassName().replace("Mapping", "").toUpperCase();

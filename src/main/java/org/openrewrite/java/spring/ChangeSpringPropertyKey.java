@@ -46,10 +46,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
 
-/**
- * This composite recipe will change a spring application property key across YAML and properties files.
- * It also changes property keys in @Value annotations.
- */
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {

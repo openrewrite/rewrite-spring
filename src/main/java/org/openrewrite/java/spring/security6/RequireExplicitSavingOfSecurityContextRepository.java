@@ -55,14 +55,25 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true), new JavaIsoVisitor<ExecutionContext>() {
             private int depth;
+            private boolean changed;
 
             @Override
             public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (depth == 0) {
+                    changed = false;
+                }
                 depth++;
                 try {
                     J j = super.visit(tree, ctx);
+                    if (depth > 1 || j == null) {
+                        return j;
+                    }
+                    // Marking alone rebuilds the tree, so return the original when nothing was actually removed
+                    if (!changed) {
+                        return (J) tree;
+                    }
                     // Elements whose parent doesn't remove them, like a lambda passed to a method not on `HttpSecurity`, still carry the marker
-                    return depth == 1 && j != null ? ToBeRemoved.removeAll(j) : j;
+                    return ToBeRemoved.removeAll(j);
                 } finally {
                     depth--;
                 }
@@ -77,6 +88,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     return ToBeRemoved.withMarker(method);
                 }
                 if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
+                    changed = true;
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
                 }
                 if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
@@ -84,6 +96,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);
                     }
+                    changed = true;
                     return method.withArguments(method.getArguments().stream().filter(a -> !ToBeRemoved.hasMarker(a)).collect(toList()));
                 }
                 return method;
@@ -99,12 +112,15 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     if (select instanceof J.Identifier && !parameters.isEmpty() && parameters.get(0) instanceof J.VariableDeclarations) {
                         J.VariableDeclarations declarations = (J.VariableDeclarations) parameters.get(0);
                         if (((J.Identifier) select).getSimpleName().equals(declarations.getVariables().get(0).getSimpleName())) {
+                            changed = true;
                             return ToBeRemoved.withMarker(lambda.withBody(J.Block.createEmptyBlock().withPrefix(body.getPrefix())));
                         }
                     } else if (select instanceof J.MethodInvocation) {
+                        changed = true;
                         return lambda.withBody(select.withPrefix(body.getPrefix()));
                     }
                 } else if (body instanceof J.Block && ToBeRemoved.hasMarker(body)) {
+                    changed = true;
                     return ToBeRemoved.withMarker(lambda.withBody(J.Block.createEmptyBlock().withPrefix(body.getPrefix())));
                 }
                 return lambda;
@@ -115,9 +131,11 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
                 if (!statements.isEmpty() && statements.stream().allMatch(ToBeRemoved::hasMarker)) {
+                    changed = true;
                     return ToBeRemoved.withMarker(block.withStatements(emptyList()));
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
+                    changed = true;
                     //noinspection DataFlowIssue
                     return block.withStatements(statements.stream()
                             .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)

@@ -26,9 +26,6 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
 
-/**
- * @author Alex Boyko
- */
 class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
 
     @Override

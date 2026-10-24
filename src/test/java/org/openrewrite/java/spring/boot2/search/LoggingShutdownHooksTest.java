@@ -27,9 +27,6 @@ import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.srcMainJava;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-/**
- * @author Alex Boyko
- */
 class LoggingShutdownHooksTest implements RewriteTest {
 
     @Language("java")
