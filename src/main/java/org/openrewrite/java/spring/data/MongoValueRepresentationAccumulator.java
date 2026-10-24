@@ -39,6 +39,10 @@ public class MongoValueRepresentationAccumulator {
     private final Map<JavaProject, ConcurrentLinkedQueue<Occurrence>> occurrences = new ConcurrentHashMap<>();
     private final Map<JavaProject, ConcurrentLinkedQueue<ConfigurationIssue>> configurationIssues = new ConcurrentHashMap<>();
     private final Map<JavaProject, Path> preferredConfigurationSource = new ConcurrentHashMap<>();
+    private final Set<JavaProject> bootProjects = ConcurrentHashMap.newKeySet();
+    private final Set<Path> bootBuildRoots = ConcurrentHashMap.newKeySet();
+    private volatile boolean buildFilePresent;
+    private final Map<JavaProject, Path> projectSourcePaths = new ConcurrentHashMap<>();
     private final Set<JavaProject> rowsInserted = ConcurrentHashMap.newKeySet();
 
     @Value
@@ -55,6 +59,54 @@ public class MongoValueRepresentationAccumulator {
         Path sourcePath;
         UUID treeId;
         MongoValueRepresentationKind kind;
+    }
+
+    public void markBootProject(JavaProject project) {
+        bootProjects.add(project);
+    }
+
+    public void recordBuildFile() {
+        buildFilePresent = true;
+    }
+
+    public void recordBootBuild(Path buildPath) {
+        Path root = buildPath.getParent();
+        bootBuildRoots.add(root == null ? buildPath.getFileSystem().getPath("") : root);
+    }
+
+    public boolean isBootProject(JavaProject project) {
+        if (!buildFilePresent || bootProjects.contains(project)) {
+            return true;
+        }
+        Path source = mainSourcePath(project);
+        return source != null && bootBuildRoots.stream().anyMatch(root -> root.toString().isEmpty() || source.startsWith(root));
+    }
+
+    public Set<JavaProject> bootProjects() {
+        Set<JavaProject> projects = new HashSet<>(projectSourcePaths.keySet());
+        projects.removeIf(project -> !isBootProject(project));
+        return projects;
+    }
+
+    public void recordMainSource(JavaProject project, Path path) {
+        projectSourcePaths.putIfAbsent(project, path);
+    }
+
+    public @Nullable Path mainSourcePath(JavaProject project) {
+        return projectSourcePaths.get(project);
+    }
+
+    public List<ConfigurationIssue> configurationIssuesIn(Path sourcePath, JavaProject project) {
+        List<ConfigurationIssue> issues = new ArrayList<>();
+        Queue<ConfigurationIssue> found = configurationIssues.get(project);
+        if (found != null) {
+            for (ConfigurationIssue issue : found) {
+                if (issue.getSourcePath().equals(sourcePath)) {
+                    issues.add(issue);
+                }
+            }
+        }
+        return issues;
     }
 
     public void markConfigured(MongoValueRepresentationKind kind, JavaProject project) {

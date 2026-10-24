@@ -21,7 +21,12 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.SourceFile;
 import org.openrewrite.java.AnnotationMatcher;
+import org.openrewrite.java.dependencies.DependencyInsight;
+import org.openrewrite.gradle.search.FindPlugins;
+import org.openrewrite.maven.tree.MavenResolutionResult;
+import org.openrewrite.maven.tree.Pom;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.marker.JavaProject;
@@ -34,6 +39,8 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.kotlin.KotlinIsoVisitor;
+import org.openrewrite.kotlin.tree.K;
 import org.openrewrite.properties.PropertiesIsoVisitor;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
@@ -72,6 +79,10 @@ public final class MongoValueRepresentationScanner {
             new AnnotationMatcher("@org.springframework.data.annotation.Transient");
     private static final AnnotationMatcher ID =
             new AnnotationMatcher("@org.springframework.data.annotation.Id");
+    private static final AnnotationMatcher SPRING_BOOT_APPLICATION =
+            new AnnotationMatcher("@org.springframework.boot.autoconfigure.SpringBootApplication");
+    private static final AnnotationMatcher ENABLE_AUTO_CONFIGURATION =
+            new AnnotationMatcher("@org.springframework.boot.autoconfigure.EnableAutoConfiguration");
     private static final AnnotationMatcher PROFILE =
             new AnnotationMatcher("@org.springframework.context.annotation.Profile");
 
@@ -111,14 +122,44 @@ public final class MongoValueRepresentationScanner {
      * each delegate below is a single, self-contained visitor rather than several chained together.
      */
     public static TreeVisitor<?, ExecutionContext> scanner(MongoValueRepresentationAccumulator acc) {
-        TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(javaPrecondition(), javaScanner(acc));
+        return scanner(acc, true);
+    }
+
+    public static TreeVisitor<?, ExecutionContext> scanner(MongoValueRepresentationAccumulator acc, boolean scanFields) {
+        TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(Preconditions.or(javaPrecondition(),
+                new UsesType<>("org.springframework.boot.autoconfigure.SpringBootApplication", false),
+                new UsesType<>("org.springframework.boot.autoconfigure.EnableAutoConfiguration", false)), javaScanner(acc, scanFields));
+        TreeVisitor<?, ExecutionContext> kotlinVisitor = kotlinScanner(acc, scanFields);
+        TreeVisitor<?, ExecutionContext> bootDependency = new DependencyInsight("org.springframework.boot", "*", null, null).getVisitor();
+        TreeVisitor<?, ExecutionContext> bootPlugin = new FindPlugins("org.springframework.boot", null).getVisitor();
         PropertiesIsoVisitor<ExecutionContext> propertiesVisitor = propertiesScanner(acc);
         YamlIsoVisitor<ExecutionContext> yamlVisitor = yamlScanner(acc);
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof SourceFile) {
+                    SourceFile source = (SourceFile) tree;
+                    String filename = source.getSourcePath().getFileName().toString();
+                    if ("pom.xml".equals(filename) || "build.gradle".equals(filename) ||
+                            "build.gradle.kts".equals(filename)) {
+                        acc.recordBuildFile();
+                        if (bootDependency.visit(tree, ctx) != tree ||
+                                !"pom.xml".equals(filename) && bootPlugin.visit(tree, ctx) != tree ||
+                                hasBootParentOrBom(source)) {
+                            acc.recordBootBuild(source.getSourcePath());
+                        }
+                    }
+                    JavaProject project = SpringConfigFileSupport.javaProject(source);
+                    if (project != null && source instanceof JavaSourceFile &&
+                            SpringConfigFileSupport.isMainSource(source)) {
+                        acc.recordMainSource(project, source.getSourcePath());
+                    }
+                }
                 if (tree instanceof J.CompilationUnit) {
                     return javaVisitor.visit(tree, ctx);
+                }
+                if (tree instanceof K.CompilationUnit) {
+                    return kotlinVisitor.visit(tree, ctx);
                 }
                 if (tree instanceof Properties.File) {
                     return propertiesVisitor.visit(tree, ctx);
@@ -131,13 +172,38 @@ public final class MongoValueRepresentationScanner {
         };
     }
 
-    private static JavaIsoVisitor<ExecutionContext> javaScanner(MongoValueRepresentationAccumulator acc) {
+    private static boolean hasBootParentOrBom(SourceFile source) {
+        MavenResolutionResult resolution = source.getMarkers().findFirst(MavenResolutionResult.class).orElse(null);
+        if (resolution == null) {
+            return false;
+        }
+        Pom pom = resolution.getPom().getRequested();
+        return pom.getParent() != null && "org.springframework.boot".equals(pom.getParent().getGroupId()) ||
+                pom.getDependencyManagement().stream().anyMatch(dependency ->
+                        "org.springframework.boot".equals(dependency.getGroupId()) &&
+                        "spring-boot-dependencies".equals(dependency.getArtifactId()));
+    }
+
+    private static JavaIsoVisitor<ExecutionContext> javaScanner(MongoValueRepresentationAccumulator acc, boolean scanFields) {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 JavaProject project = SpringConfigFileSupport.javaProject(cu);
                 return project == null || !SpringConfigFileSupport.isMainSource(cu) ?
                         cu : super.visitCompilationUnit(cu, ctx);
+            }
+
+            @Override
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration visited = super.visitClassDeclaration(classDecl, ctx);
+                if (visited.getLeadingAnnotations().stream().anyMatch(annotation ->
+                        SPRING_BOOT_APPLICATION.matches(annotation) || ENABLE_AUTO_CONFIGURATION.matches(annotation))) {
+                    JavaProject project = SpringConfigFileSupport.javaProject(getCursor().firstEnclosingOrThrow(JavaSourceFile.class));
+                    if (project != null) {
+                        acc.markBootProject(project);
+                    }
+                }
+                return visited;
             }
 
             @Override
@@ -162,32 +228,92 @@ public final class MongoValueRepresentationScanner {
             public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations declarations,
                                                                      ExecutionContext ctx) {
                 J.VariableDeclarations visitedDeclarations = super.visitVariableDeclarations(declarations, ctx);
-                JavaSourceFile source = getCursor().firstEnclosingOrThrow(JavaSourceFile.class);
-                JavaProject project = SpringConfigFileSupport.javaProject(source);
-                J.ClassDeclaration owner = getCursor().firstEnclosing(J.ClassDeclaration.class);
-                if (project == null || owner == null || getCursor().firstEnclosing(J.MethodDeclaration.class) != null ||
-                        !isExplicitlyMongoMapped(owner, visitedDeclarations) || isIgnoredField(visitedDeclarations)) {
-                    return visitedDeclarations;
-                }
-                String owningType = owner.getType() == null ? owner.getSimpleName() :
-                        owner.getType().getFullyQualifiedName();
-                boolean uuid = containsPersistedType(visitedDeclarations.getType(), UUID_TYPE);
-                boolean bigNumber = (containsPersistedType(visitedDeclarations.getType(), BIG_DECIMAL_TYPE) ||
-                        containsPersistedType(visitedDeclarations.getType(), BIG_INTEGER_TYPE)) &&
-                        !hasExplicitFieldTargetType(visitedDeclarations);
-                for (J.VariableDeclarations.NamedVariable variable : visitedDeclarations.getVariables()) {
-                    if (uuid) {
-                        acc.addOccurrence(project, new Occurrence(source.getSourcePath(), owner.getId(), owningType,
-                                variable.getSimpleName(), MongoValueRepresentationKind.UUID));
-                    }
-                    if (bigNumber && !isExcludedBigIntegerId(visitedDeclarations, variable)) {
-                        acc.addOccurrence(project, new Occurrence(source.getSourcePath(), owner.getId(), owningType,
-                                variable.getSimpleName(), MongoValueRepresentationKind.BIG_NUMBER));
-                    }
+                if (scanFields) {
+                    recordMappedFields(getCursor(), visitedDeclarations, acc);
                 }
                 return visitedDeclarations;
             }
         };
+    }
+
+
+    private static KotlinIsoVisitor<ExecutionContext> kotlinScanner(MongoValueRepresentationAccumulator acc, boolean scanFields) {
+        return new KotlinIsoVisitor<ExecutionContext>() {
+            @Override
+            public K.CompilationUnit visitCompilationUnit(K.CompilationUnit cu, ExecutionContext ctx) {
+                JavaProject project = SpringConfigFileSupport.javaProject(cu);
+                return project == null || !SpringConfigFileSupport.isMainSource(cu) ?
+                        cu : super.visitCompilationUnit(cu, ctx);
+            }
+
+            @Override
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                J.ClassDeclaration visited = super.visitClassDeclaration(classDecl, ctx);
+                if (visited.getLeadingAnnotations().stream().anyMatch(annotation ->
+                        SPRING_BOOT_APPLICATION.matches(annotation) || ENABLE_AUTO_CONFIGURATION.matches(annotation))) {
+                    JavaProject project = SpringConfigFileSupport.javaProject(getCursor().firstEnclosingOrThrow(JavaSourceFile.class));
+                    if (project != null) {
+                        acc.markBootProject(project);
+                    }
+                }
+                return visited;
+            }
+
+            @Override
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations declarations, ExecutionContext ctx) {
+                J.VariableDeclarations visited = super.visitVariableDeclarations(declarations, ctx);
+                if (scanFields) {
+                    recordMappedFields(getCursor(), visited, acc);
+                }
+                return visited;
+            }
+
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation visited = super.visitMethodInvocation(method, ctx);
+                JavaSourceFile source = getCursor().firstEnclosingOrThrow(JavaSourceFile.class);
+                JavaProject project = SpringConfigFileSupport.javaProject(source);
+                if (project != null) {
+                    boolean gated = isProfileGated(getCursor());
+                    if (UUID_REPRESENTATION.matches(visited)) {
+                        recordJavaConfigurationAttempt(MongoValueRepresentationKind.UUID, visited, source, project, acc, gated);
+                    }
+                    if (BIG_NUMBER_REPRESENTATION.matches(visited)) {
+                        recordJavaConfigurationAttempt(MongoValueRepresentationKind.BIG_NUMBER, visited, source, project, acc, gated);
+                    }
+                }
+                return visited;
+            }
+        };
+    }
+
+    private static void recordMappedFields(Cursor cursor, J.VariableDeclarations declarations,
+                                           MongoValueRepresentationAccumulator acc) {
+        JavaSourceFile source = cursor.firstEnclosingOrThrow(JavaSourceFile.class);
+        JavaProject project = SpringConfigFileSupport.javaProject(source);
+        J.ClassDeclaration owner = cursor.firstEnclosing(J.ClassDeclaration.class);
+        if (project == null || owner == null ||
+                cursor.firstEnclosing(J.MethodDeclaration.class) != null &&
+                cursor.firstEnclosing(K.Constructor.class) == null ||
+                !isExplicitlyMongoMapped(owner, declarations) || isIgnoredField(declarations)) {
+            return;
+        }
+        String owningType = owner.getType() == null ? owner.getSimpleName() :
+                owner.getType().getFullyQualifiedName();
+        boolean uuid = containsPersistedType(declarations.getType(), UUID_TYPE);
+        boolean bigNumber = (containsPersistedType(declarations.getType(), BIG_DECIMAL_TYPE) ||
+                containsPersistedType(declarations.getType(), BIG_INTEGER_TYPE)) &&
+                !hasExplicitFieldTargetType(declarations);
+        for (J.VariableDeclarations.NamedVariable variable : declarations.getVariables()) {
+            if (uuid) {
+                acc.addOccurrence(project, new Occurrence(source.getSourcePath(), owner.getId(), owningType,
+                        variable.getSimpleName(), MongoValueRepresentationKind.UUID));
+            }
+            if (bigNumber && !isExcludedBigIntegerId(declarations, variable)) {
+                acc.addOccurrence(project, new Occurrence(source.getSourcePath(), owner.getId(), owningType,
+                        variable.getSimpleName(), MongoValueRepresentationKind.BIG_NUMBER));
+            }
+        }
     }
 
     private static PropertiesIsoVisitor<ExecutionContext> propertiesScanner(MongoValueRepresentationAccumulator acc) {
@@ -228,7 +354,11 @@ public final class MongoValueRepresentationScanner {
                         scanYamlProperty(documents, project, acc, kind, kind.legacyConfigurationProperty, baseFile);
                     }
                 }
-                if (baseFile) {
+                if (baseFile && documents.getDocuments().stream().anyMatch(document -> {
+                    Yaml.Documents isolated = documents.withDocuments(java.util.Collections.singletonList(document));
+                    return FindProperty.find(isolated, "spring.config.activate.on-profile", true).isEmpty() &&
+                            FindProperty.find(isolated, "spring.profiles", true).isEmpty();
+                })) {
                     acc.mergePreferredConfigurationSource(project, documents.getSourcePath());
                 }
                 return documents;
@@ -280,15 +410,13 @@ public final class MongoValueRepresentationScanner {
     private static void scanPropertiesProperty(Properties.File file, JavaProject project, MongoValueRepresentationAccumulator acc,
                                                 MongoValueRepresentationKind kind, String propertyKey, boolean baseFile) {
         Set<Properties.Entry> entries = FindProperties.find(file, propertyKey, true);
-        if (entries.isEmpty()) {
-            return;
-        }
-        if (baseFile) {
-            acc.markPropertyAttempted(kind, project);
-        }
         for (Properties.Entry entry : entries) {
+            boolean unconditional = baseFile && !isProfileSpecificPropertiesEntry(file, entry);
+            if (unconditional) {
+                acc.markPropertyAttempted(kind, project);
+            }
             if (kind.isConfiguredValue(entry.getValue().getText())) {
-                if (baseFile) {
+                if (unconditional) {
                     acc.markConfigured(kind, project);
                 }
             } else {
@@ -297,22 +425,51 @@ public final class MongoValueRepresentationScanner {
         }
     }
 
+    private static boolean isProfileSpecificPropertiesEntry(Properties.File file, Properties.Entry target) {
+        java.util.List<Properties.Content> section = new java.util.ArrayList<>();
+        for (Properties.Content content : file.getContent()) {
+            if (content instanceof Properties.Comment && "---".equals(((Properties.Comment) content).getMessage().trim())) {
+                if (section.contains(target)) {
+                    return hasProfileActivation(section);
+                }
+                section.clear();
+            } else {
+                section.add(content);
+            }
+        }
+        return section.contains(target) && hasProfileActivation(section);
+    }
+
+    private static boolean hasProfileActivation(java.util.List<Properties.Content> section) {
+        for (Properties.Content content : section) {
+            if (content instanceof Properties.Entry) {
+                String key = ((Properties.Entry) content).getKey();
+                if ("spring.config.activate.on-profile".equals(key) || "spring.profiles".equals(key)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private static void scanYamlProperty(Yaml.Documents documents, JavaProject project, MongoValueRepresentationAccumulator acc,
                                           MongoValueRepresentationKind kind, String propertyKey, boolean baseFile) {
-        Set<Yaml.Block> values = FindProperty.find(documents, propertyKey, true);
-        if (values.isEmpty()) {
-            return;
-        }
-        if (baseFile) {
-            acc.markPropertyAttempted(kind, project);
-        }
-        for (Yaml.Block value : values) {
-            if (value instanceof Yaml.Scalar && kind.isConfiguredValue(((Yaml.Scalar) value).getValue())) {
-                if (baseFile) {
-                    acc.markConfigured(kind, project);
+        for (Yaml.Document document : documents.getDocuments()) {
+            Yaml.Documents isolated = documents.withDocuments(java.util.Collections.singletonList(document));
+            boolean unconditional = baseFile &&
+                    FindProperty.find(isolated, "spring.config.activate.on-profile", true).isEmpty() &&
+                    FindProperty.find(isolated, "spring.profiles", true).isEmpty();
+            for (Yaml.Block value : FindProperty.find(isolated, propertyKey, true)) {
+                if (unconditional) {
+                    acc.markPropertyAttempted(kind, project);
                 }
-            } else {
-                acc.addConfigurationIssue(project, new ConfigurationIssue(documents.getSourcePath(), value.getId(), kind));
+                if (value instanceof Yaml.Scalar && kind.isConfiguredValue(((Yaml.Scalar) value).getValue())) {
+                    if (unconditional) {
+                        acc.markConfigured(kind, project);
+                    }
+                } else {
+                    acc.addConfigurationIssue(project, new ConfigurationIssue(documents.getSourcePath(), value.getId(), kind));
+                }
             }
         }
     }

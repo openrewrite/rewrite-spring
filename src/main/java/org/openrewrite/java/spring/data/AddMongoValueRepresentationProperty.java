@@ -29,8 +29,6 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.data.MongoValueRepresentationAccumulator.ConfigurationIssue;
-import org.openrewrite.java.spring.data.MongoValueRepresentationAccumulator.Occurrence;
-import org.openrewrite.java.spring.data.search.FindMissingMongoValueRepresentation;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.properties.PropertiesIsoVisitor;
@@ -52,12 +50,11 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.openrewrite.java.spring.data.MongoValueRepresentationAccumulator.hasKind;
 
 /**
  * Adds explicit value-representation properties that preserve the Spring Data MongoDB 4 defaults
- * for MongoDB-mapped UUID/BigDecimal/BigInteger fields found by
- * {@link FindMissingMongoValueRepresentation}. Existing invalid configuration is flagged in place
+ * for Spring Boot applications using MongoDB, even when mapped fields are not statically visible.
+ * Existing invalid configuration is flagged in place
  * rather than overwritten.
  */
 public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoValueRepresentationAccumulator> {
@@ -66,9 +63,8 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
     final String displayName = "Add MongoDB value representation property";
 
     @Getter
-    final String description = "Add a value-representation property for MongoDB-mapped UUID, BigInteger, and BigDecimal fields " +
-            "that require one when migrating to Spring Data MongoDB 5, preserving the Spring Data MongoDB 4 defaults for " +
-            "previously unconfigured applications and flagging existing invalid configuration.";
+    final String description = "Preserve Spring Data MongoDB 4 UUID and big-number defaults in Spring Boot MongoDB applications " +
+            "migrating to Spring Data MongoDB 5, and flag invalid existing representation configuration.";
 
     @Override
     public MongoValueRepresentationAccumulator getInitialValue(ExecutionContext ctx) {
@@ -77,7 +73,7 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(MongoValueRepresentationAccumulator acc) {
-        return MongoValueRepresentationScanner.scanner(acc);
+        return MongoValueRepresentationScanner.scanner(acc, false);
     }
 
     @Override
@@ -132,10 +128,10 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
 
     private static @Nullable MongoValueRepresentationKind configurationIssueKind(
             MongoValueRepresentationAccumulator acc, @Nullable JavaProject project, Path sourcePath, UUID treeId) {
-        if (project == null) {
+        if (project == null || !acc.isBootProject(project)) {
             return null;
         }
-        for (ConfigurationIssue issue : acc.configurationIssuesIn(sourcePath, project, acc.projectOccurrences(project))) {
+        for (ConfigurationIssue issue : acc.configurationIssuesIn(sourcePath, project)) {
             if (issue.getTreeId().equals(treeId)) {
                 return issue.getKind();
             }
@@ -194,11 +190,10 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
         if (project == null) {
             return null;
         }
-        List<Occurrence> occurrences = acc.projectOccurrences(project);
-        if (occurrences.isEmpty()) {
+        if (!acc.isBootProject(project)) {
             return null;
         }
-        List<ConfigurationIssue> issues = acc.configurationIssuesIn(source.getSourcePath(), project, occurrences);
+        List<ConfigurationIssue> issues = acc.configurationIssuesIn(source.getSourcePath(), project);
         List<MongoValueRepresentationKind> propertiesToAdd = propertiesToAddTo(source.getSourcePath(), acc, project);
         return issues.isEmpty() && propertiesToAdd.isEmpty() ? null : new Diagnosis(issues, propertiesToAdd);
     }
@@ -214,10 +209,9 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
     }
 
     private static List<MongoValueRepresentationKind> propertiesToAdd(MongoValueRepresentationAccumulator acc, JavaProject project) {
-        List<Occurrence> unresolved = acc.unresolvedOccurrences(project);
         List<MongoValueRepresentationKind> properties = new ArrayList<>();
         for (MongoValueRepresentationKind kind : MongoValueRepresentationKind.values()) {
-            if (hasKind(unresolved, kind) && acc.isPropertyUnattempted(kind, project) &&
+            if (acc.isPropertyUnattempted(kind, project) &&
                     acc.isJavaUnattempted(kind, project)) {
                 properties.add(kind);
             }
@@ -226,14 +220,14 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
     }
 
     /**
-     * Generates a baseline {@code application.properties} for a project with affected fields but no
+     * Generates a baseline {@code application.properties} for a Spring Boot project with no
      * base Spring configuration file — only a profile-specific one, or none at all — fully populated
      * up front with the Spring Data MongoDB 4 defaults so no further cycle is needed to finish it off.
      */
     @Override
     public Collection<? extends SourceFile> generate(MongoValueRepresentationAccumulator acc, ExecutionContext ctx) {
         List<SourceFile> generated = new ArrayList<>();
-        for (JavaProject project : acc.projectsWithOccurrences()) {
+        for (JavaProject project : acc.bootProjects()) {
             SourceFile baseline = generateBaselineConfiguration(project, acc, ctx);
             if (baseline != null) {
                 generated.add(baseline);
@@ -269,17 +263,12 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
     }
 
     private static @Nullable Path baselineConfigurationPath(JavaProject project, MongoValueRepresentationAccumulator acc) {
-        for (Occurrence occurrence : acc.projectOccurrences(project)) {
-            Path resourcesRoot = resourcesRootFor(occurrence.getSourcePath());
-            if (resourcesRoot != null) {
-                return resourcesRoot.resolve("application.properties");
-            }
-        }
-        return null;
+        Path source = acc.mainSourcePath(project);
+        return source == null ? null : resourcesRootFor(source);
     }
 
-    private static @Nullable Path resourcesRootFor(Path javaSourcePath) {
-        Path parent = javaSourcePath.getParent();
+    private static @Nullable Path resourcesRootFor(Path sourcePath) {
+        Path parent = sourcePath.getParent();
         if (parent == null) {
             return null;
         }
@@ -287,8 +276,9 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
         for (int i = 0; i + 2 < count; i++) {
             if ("src".equals(parent.getName(i).toString()) &&
                     "main".equals(parent.getName(i + 1).toString()) &&
-                    "java".equals(parent.getName(i + 2).toString())) {
-                Path resources = Paths.get("src", "main", "resources");
+                    ("java".equals(parent.getName(i + 2).toString()) ||
+                     "kotlin".equals(parent.getName(i + 2).toString()))) {
+                Path resources = Paths.get("src", "main", "resources", "application.properties");
                 return i == 0 ? resources : parent.subpath(0, i).resolve(resources);
             }
         }
@@ -301,6 +291,38 @@ public class AddMongoValueRepresentationProperty extends ScanningRecipe<MongoVal
      * previous default.
      */
     private static SourceFile addSpringData4DefaultProperty(SourceFile source, MongoValueRepresentationKind kind, ExecutionContext ctx) {
+        if (source instanceof Properties.File) {
+            Properties.File file = (Properties.File) source;
+            List<Properties.Content> content = file.getContent();
+            for (int i = 0; i < content.size(); i++) {
+                Properties.Content item = content.get(i);
+                if (item instanceof Properties.Comment &&
+                        "---".equals(((Properties.Comment) item).getMessage().trim())) {
+                    Properties.File base = file.withContent(new ArrayList<>(content.subList(0, i)));
+                    Properties.File updatedBase = (Properties.File) addSpringData4DefaultProperty(base, kind, ctx);
+                    List<Properties.Content> joined = new ArrayList<>(updatedBase.getContent());
+                    joined.addAll(content.subList(i, content.size()));
+                    return file.withContent(joined);
+                }
+            }
+        }
+        if (source instanceof Yaml.Documents) {
+            Yaml.Documents documents = (Yaml.Documents) source;
+            List<Yaml.Document> all = documents.getDocuments();
+            if (all.size() > 1) {
+                for (int i = 0; i < all.size(); i++) {
+                    Yaml.Documents candidate = documents.withDocuments(singletonList(all.get(i)));
+                    if (org.openrewrite.yaml.search.FindProperty.find(candidate, "spring.config.activate.on-profile", true).isEmpty() &&
+                            org.openrewrite.yaml.search.FindProperty.find(candidate, "spring.profiles", true).isEmpty()) {
+                        Yaml.Documents changed = (Yaml.Documents) addSpringData4DefaultProperty(candidate, kind, ctx);
+                        List<Yaml.Document> joined = new ArrayList<>(all);
+                        joined.set(i, changed.getDocuments().get(0));
+                        return documents.withDocuments(joined);
+                    }
+                }
+            }
+        }
+
         String path = source.getSourcePath().toString().replace('\\', '/');
         return (SourceFile) new AddSpringProperty(
                 kind.configurationProperty, kind.springData4DefaultValue, null, singletonList(path))
