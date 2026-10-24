@@ -49,7 +49,6 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 4.3.x
-      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
@@ -58,7 +57,6 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2025.0.x
-      overrideManagedVersion: false
 
   # circuitbreaker, kubernetes & task follow a different versioning scheme
   # https://docs.spring.io/spring-cloud-release/reference/2025.0/
@@ -66,32 +64,26 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-circuitbreaker-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-circuitbreaker-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-kubernetes-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-kubernetes-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-task-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-task-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -117,13 +109,11 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 5.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.cloud2025.AddSpringCloudDependenciesBom
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2025.1.x
-      overrideManagedVersion: false
   # Circuitbreaker, kubernetes, task and others once again use aligned 5.0.x; no need to bump those separately anymore
 
 ---
