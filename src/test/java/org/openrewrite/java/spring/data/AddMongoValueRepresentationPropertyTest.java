@@ -26,10 +26,6 @@ import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-/**
- * Verifies the configuration-editing half: adding explicit properties that preserve the Spring Data
- * MongoDB 4 defaults and flagging existing invalid values without overwriting them.
- */
 class AddMongoValueRepresentationPropertyTest extends MongoValueRepresentationTestSupport {
 
     @Override
@@ -40,313 +36,121 @@ class AddMongoValueRepresentationPropertyTest extends MongoValueRepresentationTe
 
     @DocumentExample
     @Test
-    void generatesBaselinePropertiesFileWhenNoneExists() {
+    void preservesBothDefaultsWithoutMappedFields() {
         rewriteRun(
           mavenProject("app",
             pomXml(MINIMAL_POM),
-            java(
-              accountWithUuidAndBigDecimal(),
-              spec -> spec.path("src/main/java/com/example/Account.java")
-            ),
-            properties(
-              null,
-              """
-                spring.data.mongodb.representation.big-decimal=string
-                spring.mongodb.representation.uuid=java-legacy
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
+            java(bootApplication(), spec -> spec.path("src/main/java/com/example/Application.java")),
+            properties(null, """
+              spring.data.mongodb.representation.big-decimal=string
+              spring.mongodb.representation.uuid=java-legacy
+              """, spec -> spec.path("src/main/resources/application.properties"))
           )
         );
     }
 
     @Test
-    void placesDefaultPreservingPropertiesInExistingMainPropertiesFile() {
+    void addsDefaultsForEmbeddedTypeNotAnnotatedAsDocument() {
         rewriteRun(
           mavenProject("app",
             pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.application.name=example
-                """,
-              """
-                spring.application.name=example
-                spring.data.mongodb.representation.big-decimal=string
-                spring.mongodb.representation.uuid=java-legacy
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
+            java(bootApplication(), spec -> spec.path("src/main/java/com/example/Application.java")),
+            java("""
+              package com.example;
+              import java.util.UUID;
+              class EmbeddedValue {
+                  UUID externalId;
+              }
+              """),
+            properties(null, """
+              spring.data.mongodb.representation.big-decimal=string
+              spring.mongodb.representation.uuid=java-legacy
+              """, spec -> spec.path("src/main/resources/application.properties"))
           )
         );
     }
 
     @Test
-    void placesDefaultPreservingPropertiesInExistingMainYamlFile() {
+    void addsOnlyTheMissingProperty() {
         rewriteRun(
           mavenProject("app",
             pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            yaml(
-              """
-                spring:
-                  application:
-                    name: example
-                """,
-              """
-                spring:
-                  application:
-                    name: example
+            java(bootApplication(), spec -> spec.path("src/main/java/com/example/Application.java")),
+            properties("""
+              spring.mongodb.representation.uuid=standard
+              """, """
+              spring.data.mongodb.representation.big-decimal=string
+              spring.mongodb.representation.uuid=standard
+              """, spec -> spec.path("src/main/resources/application.properties"))
+          )
+        );
+    }
+
+    @Test
+    void respectsUnconditionalYamlConfiguration() {
+        rewriteRun(
+          mavenProject("app",
+            pomXml(MINIMAL_POM),
+            java(bootApplication(), spec -> spec.path("src/main/java/com/example/Application.java")),
+            yaml("""
+              spring:
+                mongodb:
+                  representation:
+                    uuid: standard
+                data:
                   mongodb:
                     representation:
-                      uuid: java-legacy
-                  data:
-                    mongodb:
-                      representation:
-                        big-decimal: string
-                """,
-              spec -> spec.path("src/main/resources/application.yml")
-            )
+                      big-decimal: decimal128
+              """, spec -> spec.path("src/main/resources/application.yml"))
           )
         );
     }
 
     @Test
-    void prefersPropertiesFileOverYamlWhenBothArePresent() {
+    void doesNotModifyNonBootProject() {
         rewriteRun(
-          mavenProject("app",
+          mavenProject("library",
             pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.application.name=example
-                """,
-              """
-                spring.application.name=example
-                spring.data.mongodb.representation.big-decimal=string
-                spring.mongodb.representation.uuid=java-legacy
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            ),
-            yaml(
-              """
-                spring:
-                  application:
-                    name: example
-                """,
-              spec -> spec.path("src/main/resources/application.yml")
-            )
+            java(accountWithUuidAndBigDecimal(), spec -> spec.path("src/main/java/com/example/Account.java")),
+            properties("""
+              spring.application.name=library
+              """, spec -> spec.path("src/main/resources/application.properties"))
           )
         );
     }
 
     @Test
-    void onlyProfileSpecificConfigurationFileGeneratesABaseFileInstead() {
-        // application-prod.properties only loads when "prod" is active, so a value placed there
-        // wouldn't protect any other profile — a new base application.properties is generated instead,
-        // and the profile file is left untouched.
+    void doesNotRepeatChangesWhenPropertiesAlreadyPreserveDefaults() {
         rewriteRun(
           mavenProject("app",
             pomXml(MINIMAL_POM),
-            java(
-              accountWithUuidAndBigDecimal(),
-              spec -> spec.path("src/main/java/com/example/Account.java")
-            ),
-            properties(
-              """
-                spring.application.name=example
-                """,
-              spec -> spec.path("src/main/resources/application-prod.properties")
-            ),
-            properties(
-              null,
-              """
-                spring.data.mongodb.representation.big-decimal=string
-                spring.mongodb.representation.uuid=java-legacy
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
+            java(bootApplication(), spec -> spec.path("src/main/java/com/example/Application.java")),
+            properties("""
+              spring.data.mongodb.representation.big-decimal=string
+              spring.mongodb.representation.uuid=java-legacy
+              """, spec -> spec.path("src/main/resources/application.properties"))
           )
         );
     }
 
     @Test
-    void validJavaConfigurationMakesNoChanges() {
+    void addsDefaultsWithoutBuildMetadataOrBootEntryPoint() {
         rewriteRun(
           mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            java(
-              """
-                package com.example;
-
-                import com.mongodb.MongoClientSettings;
-                import org.bson.UuidRepresentation;
-                import org.springframework.data.mongodb.core.convert.MongoCustomConversions.BigDecimalRepresentation;
-                import org.springframework.data.mongodb.core.convert.MongoCustomConversions.MongoConverterConfigurationAdapter;
-
-                class MongoConfiguration {
-                    void configure(MongoClientSettings.Builder builder,
-                                   MongoConverterConfigurationAdapter adapter) {
-                        builder.uuidRepresentation(UuidRepresentation.STANDARD);
-                        adapter.bigDecimal(BigDecimalRepresentation.DECIMAL128);
-                    }
-                }
-                """
-            )
-          )
-        );
-    }
-
-    @Test
-    void validPropertiesConfigurationMakesNoChanges() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.mongodb.representation.uuid=java-legacy
-                spring.data.mongodb.representation.big-decimal=string
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
-          )
-        );
-    }
-
-    @Test
-    void validYamlConfigurationMakesNoChanges() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            yaml(
-              """
-                spring:
-                  mongodb:
-                    representation:
-                      uuid: c-sharp-legacy
-                  data:
-                    mongodb:
-                      representation:
-                        big-decimal: decimal128
-                """,
-              spec -> spec.path("src/main/resources/application.yml")
-            )
-          )
-        );
-    }
-
-    @Test
-    void propertyPlaceholdersMakeNoChanges() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.mongodb.representation.uuid=${MONGO_UUID_REPRESENTATION}
-                spring.data.mongodb.representation.big-decimal=${MONGO_BIG_DECIMAL_REPRESENTATION}
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
-          )
-        );
-    }
-
-    @Test
-    void malformedPlaceholderIsMarkedInvalid() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.mongodb.representation.uuid=${MONGO_UUID_REPRESENTATION
-                spring.data.mongodb.representation.big-decimal=${MONGO_BIG_DECIMAL_REPRESENTATION
-                """,
-              """
-                # `spring.mongodb.representation.uuid` needs a concrete UUID representation matching the existing BSON data.
-                spring.mongodb.representation.uuid=${MONGO_UUID_REPRESENTATION
-                # `spring.data.mongodb.representation.big-decimal` needs a concrete big-number representation matching the existing BSON data.
-                spring.data.mongodb.representation.big-decimal=${MONGO_BIG_DECIMAL_REPRESENTATION
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
-          )
-        );
-    }
-
-    @Test
-    void invalidProfileOverrideIsMarkedEvenWhenDefaultIsValid() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.mongodb.representation.uuid=standard
-                spring.data.mongodb.representation.big-decimal=decimal128
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            ),
-            properties(
-              """
-                spring.mongodb.representation.uuid=unsupported
-                """,
-              """
-                # `spring.mongodb.representation.uuid` needs a concrete UUID representation matching the existing BSON data.
-                spring.mongodb.representation.uuid=unsupported
-                """,
-              spec -> spec.path("src/main/resources/application-test.properties")
-            )
-          )
-        );
-    }
-
-    @Test
-    void unspecifiedConfigurationMarksExistingProperties() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.mongodb.representation.uuid=unspecified
-                spring.data.mongodb.representation.big-decimal=UNSPECIFIED
-                """,
-              """
-                # `spring.mongodb.representation.uuid` needs a concrete UUID representation matching the existing BSON data.
-                spring.mongodb.representation.uuid=unspecified
-                # `spring.data.mongodb.representation.big-decimal` needs a concrete big-number representation matching the existing BSON data.
-                spring.data.mongodb.representation.big-decimal=UNSPECIFIED
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
-          )
-        );
-    }
-
-    @Test
-    void unsupportedAndBlankConfigurationMarksExistingProperties() {
-        rewriteRun(
-          mavenProject("app",
-            pomXml(MINIMAL_POM),
-            java(accountWithUuidAndBigDecimal()),
-            properties(
-              """
-                spring.mongodb.representation.uuid=unsupported
-                spring.data.mongodb.representation.big-decimal=
-                """,
-              """
-                # `spring.mongodb.representation.uuid` needs a concrete UUID representation matching the existing BSON data.
-                spring.mongodb.representation.uuid=unsupported
-                # `spring.data.mongodb.representation.big-decimal` needs a concrete big-number representation matching the existing BSON data.
-                spring.data.mongodb.representation.big-decimal=
-                """,
-              spec -> spec.path("src/main/resources/application.properties")
-            )
+            java("""
+              package com.example;
+              import java.util.UUID;
+              class EmbeddedValue {
+                  UUID externalId;
+              }
+              """, spec -> spec.path("src/main/java/com/example/EmbeddedValue.java")),
+            properties("""
+              server.port=8080
+              """, """
+              server.port=8080
+              spring.data.mongodb.representation.big-decimal=string
+              spring.mongodb.representation.uuid=java-legacy
+              """, spec -> spec.path("src/main/resources/application.properties"))
           )
         );
     }

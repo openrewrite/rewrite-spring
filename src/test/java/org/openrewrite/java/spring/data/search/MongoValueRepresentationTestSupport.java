@@ -43,6 +43,10 @@ public abstract class MongoValueRepresentationTestSupport implements RewriteTest
             public @interface Document {}
             """,
           """
+            package org.springframework.boot.autoconfigure;
+            public @interface SpringBootApplication {}
+            """,
+          """
             package org.springframework.data.annotation;
             public @interface Persistent {}
             """,
@@ -110,6 +114,15 @@ public abstract class MongoValueRepresentationTestSupport implements RewriteTest
             }
             """
         ));
+    }
+
+    public static String bootApplication() {
+        return """
+          package com.example;
+          import org.springframework.boot.autoconfigure.SpringBootApplication;
+          @SpringBootApplication
+          class Application {}
+          """;
     }
 
     public static String accountWithUuidAndBigDecimal() {
