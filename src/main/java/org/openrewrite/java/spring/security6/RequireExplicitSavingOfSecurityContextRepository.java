@@ -49,7 +49,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     @Getter
     final String description = "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. " +
-            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
+            "See the corresponding [Spring Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

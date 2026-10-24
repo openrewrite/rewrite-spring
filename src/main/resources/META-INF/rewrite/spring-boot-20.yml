@@ -44,7 +44,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-dependencies
@@ -70,7 +69,6 @@ recipeList:
       groupId: org.mockito
       artifactId: "*"
       newVersion: 3.x
-      overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
   - org.openrewrite.java.dependencies.ChangeDependency:

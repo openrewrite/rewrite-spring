@@ -34,4 +34,3 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 5.2.x
-      overrideManagedVersion: false

@@ -55,9 +55,9 @@ public class OutputCaptureExtension extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
-                c = c.withBody(c.getBody().withStatements(ListUtils.map(c.getBody().getStatements(), s -> {
+                c = c.withBody(c.getBody().withStatements(ListUtils.filter(c.getBody().getStatements(), s -> {
                     if (!(s instanceof J.VariableDeclarations)) {
-                        return s;
+                        return true;
                     }
 
                     J.VariableDeclarations field = (J.VariableDeclarations) s;
@@ -79,15 +79,13 @@ public class OutputCaptureExtension extends Recipe {
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.system.OutputCaptureRule *(..)",
                                 fieldName, "org.springframework.boot.test.system.CapturedOutput", false).getVisitor());
 
-                        getCursor().putMessageOnFirstEnclosing(J.ClassDeclaration.class, "addOutputCaptureExtension", true);
-
                         maybeRemoveImport("org.springframework.boot.test.system.OutputCaptureRule");
                         maybeRemoveImport("org.springframework.boot.test.rule.OutputCapture");
                         maybeRemoveImport("org.junit.Rule");
 
-                        return null;
+                        return false;
                     }
-                    return s;
+                    return true;
                 })));
                 updateCursor(c);
 

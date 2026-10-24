@@ -33,7 +33,6 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 5.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.framework.UseObjectUtilsIsEmpty
   - org.openrewrite.java.spring.framework.MigrateHandlerInterceptor
   - org.openrewrite.java.spring.framework.MigrateInstantiationAwareBeanPostProcessorAdapter
@@ -42,7 +41,6 @@ recipeList:
       groupId: org.hibernate
       artifactId: hibernate-search-orm
       newVersion: 5.11.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.RemoveDependency:
       groupId: org.aspectj
       artifactId: aspectjrt

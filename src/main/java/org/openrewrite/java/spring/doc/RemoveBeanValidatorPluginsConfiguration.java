@@ -30,10 +30,6 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
 
     private static final String ANNOTATION_IMPORT = "org.springframework.context.annotation.Import";
@@ -42,11 +38,11 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
     private static final TypeMatcher BEAN_VALIDATOR_TYPEMATCHER = new TypeMatcher("springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration");
 
     @Getter
-    final String displayName = "Removes @Import(BeanValidatorPluginsConfiguration.class)";
+    final String displayName = "Remove `@Import(BeanValidatorPluginsConfiguration.class)`";
 
     @Getter
-    final String description = "As Springdoc OpenAPI supports Bean Validation out of the box, the BeanValidatorPluginsConfiguration is no longer supported nor needed. " +
-            "Thus remove @Import(BeanValidatorPluginsConfiguration.class).";
+    final String description = "As Springdoc OpenAPI supports Bean Validation out of the box, the `BeanValidatorPluginsConfiguration` is no longer supported nor needed. " +
+            "Thus remove `@Import(BeanValidatorPluginsConfiguration.class)`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -57,40 +53,30 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
-
-
-                AtomicBoolean changed = new AtomicBoolean(false);
-                List<J.Annotation> leadingAnnotations = new ArrayList<>();
                 for (J.Annotation a : c.getLeadingAnnotations()) {
-                    if (a.getArguments() != null && IMPORT_MATCHER.matches(a)) {
-                        if (a.getArguments().size() == 1 && isBeanValidator(a.getArguments().get(0))) {
-                            maybeRemoveImport(ANNOTATION_IMPORT);
-                            maybeRemoveImport(BEAN_VALIDATOR_PLUGINS_CONFIGURATION);
-                            return (J.ClassDeclaration) new RemoveAnnotationVisitor(IMPORT_MATCHER).visitNonNull(c, ctx, getCursor().getParentOrThrow());
-                        }
-                        leadingAnnotations.add(a.withArguments(ListUtils.map(a.getArguments(), e -> {
-                            if (e instanceof J.NewArray && ((J.NewArray) e).getInitializer() != null) {
-                                List<Expression> initializer = ((J.NewArray) e).getInitializer();
-                                for (Expression ex : initializer) {
-                                    if (isBeanValidator(ex)) {
-                                        changed.set(true);
-                                        return ((J.NewArray) e).withInitializer(ListUtils.filter(initializer, it -> it != ex));
-                                    }
-                                }
-                            }
-                            return e;
-                        })));
-                    } else {
-                        leadingAnnotations.add(a);
+                    if (IMPORT_MATCHER.matches(a) && a.getArguments() != null &&
+                            a.getArguments().size() == 1 && isBeanValidator(a.getArguments().get(0))) {
+                        maybeRemoveImport(ANNOTATION_IMPORT);
+                        maybeRemoveImport(BEAN_VALIDATOR_PLUGINS_CONFIGURATION);
+                        return (J.ClassDeclaration) new RemoveAnnotationVisitor(IMPORT_MATCHER).visitNonNull(c, ctx, getCursor().getParentOrThrow());
                     }
                 }
 
-                if (changed.get()) {
+                J.ClassDeclaration updated = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), a ->
+                        IMPORT_MATCHER.matches(a) ? a.withArguments(ListUtils.map(a.getArguments(), this::removeBeanValidator)) : a));
+                if (updated != c) {
                     maybeRemoveImport(ANNOTATION_IMPORT);
                     maybeRemoveImport(BEAN_VALIDATOR_PLUGINS_CONFIGURATION);
-                    return c.withLeadingAnnotations(leadingAnnotations);
                 }
-                return c;
+                return updated;
+            }
+
+            private Expression removeBeanValidator(Expression e) {
+                if (e instanceof J.NewArray && ((J.NewArray) e).getInitializer() != null) {
+                    J.NewArray newArray = (J.NewArray) e;
+                    return newArray.withInitializer(ListUtils.filter(newArray.getInitializer(), it -> !isBeanValidator(it)));
+                }
+                return e;
             }
 
             private boolean isBeanValidator(Expression e) {

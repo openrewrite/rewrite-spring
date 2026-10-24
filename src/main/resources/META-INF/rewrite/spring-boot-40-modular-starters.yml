@@ -565,7 +565,6 @@ recipeList:
       methodPattern: org.springframework.boot.health.contributor.HealthIndicator getHealth(..)
       newMethodName: health
       matchOverrides: true
-      ignoreDefinition: false
   # spring-boot-jackson
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration

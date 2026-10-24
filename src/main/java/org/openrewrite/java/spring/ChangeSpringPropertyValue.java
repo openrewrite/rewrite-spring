@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 @Value
 public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles> {
 
-    String displayName = "Change the value of a spring application property";
+    String displayName = "Change the value of a Spring application property";
 
     String description = "Change Spring application property values existing in either Properties or YAML files, " +
             "and in `@Value`, `@ConditionalOnProperty`, `@SpringBootTest`, or `@TestPropertySource` annotations.";

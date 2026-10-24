@@ -25,7 +25,9 @@ import org.openrewrite.java.tree.J;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ApiInfoBuilderToInfo extends Recipe {
     private static final MethodMatcher BUILD_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder build()");
@@ -89,20 +91,18 @@ public class ApiInfoBuilderToInfo extends Recipe {
                 return Preconditions.check(preconditions, new JavaVisitor<ExecutionContext>() {
                     @Override
                     public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                        // Extract and store values or cursor
-                        Cursor mdCursor = getCursor();
-                        new JavaIsoVisitor<ExecutionContext>() {
+                        new JavaIsoVisitor<Map<String, Expression>>() {
                             @Override
-                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, Map<String, Expression> licenseArguments) {
+                                J.MethodInvocation mi = super.visitMethodInvocation(method, licenseArguments);
                                 if (LICENSE_MATCHER.matches(mi)) {
-                                    mdCursor.putMessage("LICENSE", mi.getArguments().get(0));
+                                    licenseArguments.put("LICENSE", mi.getArguments().get(0));
                                 } else if (LICENSEURL_MATCHER.matches(mi)) {
-                                    mdCursor.putMessage("LICENSE_URL", mi.getArguments().get(0));
+                                    licenseArguments.put("LICENSE_URL", mi.getArguments().get(0));
                                 }
                                 return mi;
                             }
-                        }.visit(method, ctx, getCursor().getParentOrThrow());
+                        }.reduce(method, new HashMap<>(), getCursor().getParentOrThrow()).forEach(getCursor()::putMessage);
 
                         // Now replace any downstream method invocations
                         return super.visitMethodDeclaration(method, ctx);

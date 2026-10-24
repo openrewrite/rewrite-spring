@@ -32,7 +32,7 @@ public class DeleteSpringProperty extends ScanningRecipe<SpringConfigFiles> {
             example = "management.endpoint.configprops.*")
     String propertyKey;
 
-    String displayName = "Delete a spring configuration property";
+    String displayName = "Delete a Spring configuration property";
 
     String description = "Delete a spring configuration property from any configuration file that contains a matching key.";
 

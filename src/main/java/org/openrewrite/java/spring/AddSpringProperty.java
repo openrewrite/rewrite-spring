@@ -59,7 +59,7 @@ public class AddSpringProperty extends Recipe {
     @Nullable
     List<String> pathExpressions;
 
-    String displayName = "Add a spring configuration property";
+    String displayName = "Add a Spring configuration property";
 
     String description = "Add a spring configuration property to a configuration file if it does not already exist in that file.";
 
