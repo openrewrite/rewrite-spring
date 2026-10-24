@@ -32,7 +32,6 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 7.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.springframework.security.authorization.AuthorizationManager check(..)"

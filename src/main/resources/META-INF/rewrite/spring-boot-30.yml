@@ -39,7 +39,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 3.0.x
-      overrideManagedVersion: false
       retainVersions:
         - org.thymeleaf:thymeleaf-spring5
         - org.thymeleaf.extras:thymeleaf-extras-springsecurity5

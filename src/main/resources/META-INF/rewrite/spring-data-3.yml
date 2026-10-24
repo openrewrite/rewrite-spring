@@ -31,7 +31,6 @@ recipeList:
       groupId: org.springframework.data
       artifactId: "*"
       newVersion: 3.0.x
-      overrideManagedVersion: false
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
