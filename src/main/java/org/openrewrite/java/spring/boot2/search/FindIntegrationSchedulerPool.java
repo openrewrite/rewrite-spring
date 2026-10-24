@@ -19,7 +19,6 @@ import lombok.Data;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.marker.JavaProject;
@@ -28,14 +27,13 @@ import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TextComment;
-import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
-import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.semver.DependencyMatcher;
+import org.openrewrite.trait.Comments;
 import org.openrewrite.xml.tree.Xml;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
@@ -47,13 +45,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Alex Boyko
  */
-public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSchedulerPoolRecipe.JavaProjects> {
+public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegrationSchedulerPool.JavaProjects> {
 
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
     private static final Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
@@ -61,7 +58,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
     private static final String PROPERTY_KEY = "spring.task.scheduling.pool.size";
 
     private static final String PROPS_MIGRATION_MESSAGE = " TODO: Consider Scheduler thread pool size for Spring Integration";
-    private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server\n";
+    private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server";
     private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
 
     @Getter
@@ -224,17 +221,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                     if (!foundEntries.isEmpty()) {
                         // There should only be one exact match!
                         Properties.Entry entry = foundEntries.iterator().next();
-                        source = (SourceFile) new PropertiesVisitor<ExecutionContext>() {
-                            @Override
-                            public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                                int idx = file.getContent().indexOf(entry);
-                                if (idx >= 0) {
-                                    Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, Properties.Comment.Delimiter.HASH_TAG, PROPS_MIGRATION_MESSAGE);
-                                    return file.withContent(ListUtils.insertAll(file.getContent(), idx, singletonList(comment)));
-                                }
-                                throw new RuntimeException("Entry must be present in the properties file!");
-                            }
-                        }.visitNonNull(source, ctx);
+                        source = Comments.of(new Cursor(new Cursor(getCursor(), source), entry)).comment(PROPS_MIGRATION_MESSAGE);
                     }
                 } else if (source instanceof Yaml) {
                     Set<Yaml.Block> foundEntriesValues = FindProperty.find((Yaml) source, PROPERTY_KEY, false);
@@ -243,7 +230,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                             @Override
                             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                                 if (foundEntriesValues.contains(entry.getValue())) {
-                                    entry = entry.withPrefix("\n#" + PROPS_MIGRATION_MESSAGE + entry.getPrefix());
+                                    entry = Comments.of(getCursor()).comment(PROPS_MIGRATION_MESSAGE);
                                 }
                                 return super.visitMappingEntry(entry, ctx);
                             }
@@ -254,11 +241,11 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                         final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
 
                         @Override
-                        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                            if (annotationMatcher.matches(annotation)) {
-                                annotation = annotation.withComments(ListUtils.concat(annotation.getComments(), new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY)));
+                        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                            if (classDecl.getAllAnnotations().stream().anyMatch(annotationMatcher::matches)) {
+                                return Comments.of(getCursor()).comment(GENERAL_MIGRATION_MESSAGE, Comments.Placement.BEFORE, "\n" + classDecl.getPrefix().getIndent());
                             }
-                            return annotation;
+                            return super.visitClassDeclaration(classDecl, ctx);
                         }
                     };
                     source = (SourceFile) commentVisitor.visitNonNull(source, ctx);

@@ -303,6 +303,143 @@ class PropertiesToKebabCaseTest implements RewriteTest {
     }
 
     @Test
+    void driverPropertiesKeepTheirNames() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                spring.datasource.hikari.dataSourceProperties.cachePrepStmts=true
+                spring.datasource.hikari.data-source-properties.prepStmtCacheSize=250
+                """,
+              """
+                spring.datasource.hikari.data-source-properties.cachePrepStmts=true
+                spring.datasource.hikari.data-source-properties.prepStmtCacheSize=250
+                """,
+              spec -> spec.path("application.properties")
+            ),
+            yaml(
+              """
+                spring:
+                  datasource:
+                    hikari:
+                      dataSourceProperties:
+                        cachePrepStmts: true
+                        prepStmtCacheSize: 250
+                """,
+              """
+                spring:
+                  datasource:
+                    hikari:
+                      data-source-properties:
+                        cachePrepStmts: true
+                        prepStmtCacheSize: 250
+                """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void clientRegistrationIdsKeepTheirNames() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                spring.security.oauth2.client.registration.myClient.client-id=abc
+                spring.security.oauth2.client.provider.myProvider.issuer-uri=https://idp.example.com
+                """,
+              spec -> spec.path("application.properties")
+            ),
+            yaml(
+              """
+                spring:
+                  security:
+                    oauth2:
+                      client:
+                        registration:
+                          myClient:
+                            client-id: abc
+                """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
+    void userDefinedNamesUnchanged() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                info.app.buildVersion=1.0
+                logging.group.myGroup=com.example
+                management.endpoint.health.group.customGroup.include=db
+                spring.profiles.group.myProd=db,cache
+                spring.cloud.stream.bindings.processOrder-in-0.destination=orders
+                resilience4j.circuitbreaker.instances.backendA.sliding-window-size=10
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void keysBeforeTheUserDefinedNameAreConverted() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                management.metrics.distribution.percentilesHistogram.http.server.requests=true
+                """,
+              """
+                management.metrics.distribution.percentiles-histogram.http.server.requests=true
+                """,
+              spec -> spec.path("application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void bracketedMapKeysUnchanged() {
+        rewriteRun(
+          srcMainResources(
+            properties(
+              """
+                myApp.featureFlags[newCheckout]=true
+                """,
+              """
+                my-app.feature-flags[newCheckout]=true
+                """,
+              spec -> spec.path("application.properties")
+            ),
+            yaml(
+              """
+                myApp:
+                  featureFlags:
+                    "[newCheckout]": true
+                  clients:
+                    "[api.example.com]":
+                      connectTimeout: 5s
+                """,
+              """
+                my-app:
+                  feature-flags:
+                    "[newCheckout]": true
+                  clients:
+                    "[api.example.com]":
+                      connectTimeout: 5s
+                """,
+              spec -> spec.path("application.yaml")
+            )
+          )
+        );
+    }
+
+    @Test
     void doNotChange() {
         //language=yaml
         rewriteRun(

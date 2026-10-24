@@ -2363,9 +2363,9 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.boot2.search.IntegrationSchedulerPoolRecipe
+recipeName: org.openrewrite.java.spring.boot2.search.FindIntegrationSchedulerPool
 examples:
-- description: '`IntegrationSchedulerPoolRecipeTest#noSchedulerProperty`'
+- description: '`FindIntegrationSchedulerPoolTest#noSchedulerProperty`'
   sources:
   - before: |
       package demo;

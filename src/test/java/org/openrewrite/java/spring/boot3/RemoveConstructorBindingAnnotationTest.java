@@ -118,12 +118,44 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
               import org.springframework.boot.context.properties.ConstructorBinding;
 
               @ConfigurationProperties
-              /**
-               * TODO:
-               * You need to remove ConstructorBinding on class level and move it to appropriate
-               * constructor.
-               */
+              // TODO: Remove ConstructorBinding on class level and move it to the appropriate constructor.
               @ConstructorBinding
+              class A {
+                  A() {
+                  }
+                  A(int n) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void topLevelTypeAnnotationBeforeConfigurationProperties() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.boot.context.properties.ConstructorBinding;
+
+              @ConstructorBinding
+              @ConfigurationProperties
+              class A {
+                  A() {
+                  }
+                  A(int n) {
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.boot.context.properties.ConstructorBinding;
+
+              // TODO: Remove ConstructorBinding on class level and move it to the appropriate constructor.
+              @ConstructorBinding
+              @ConfigurationProperties
               class A {
                   A() {
                   }
@@ -385,11 +417,7 @@ class RemoveConstructorBindingAnnotationTest implements RewriteTest {
 
               class A {
                   @ConfigurationProperties
-                  /**
-                   * TODO:
-                   * You need to remove ConstructorBinding on class level and move it to appropriate
-                   * constructor.
-                   */
+                  // TODO: Remove ConstructorBinding on class level and move it to the appropriate constructor.
                   @ConstructorBinding
                   static class B {
                       B() {

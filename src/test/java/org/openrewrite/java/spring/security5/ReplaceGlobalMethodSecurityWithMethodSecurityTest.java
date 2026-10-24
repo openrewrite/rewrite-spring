@@ -103,6 +103,100 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     }
 
     @Test
+    void keepExplicitPrePostDisabled() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = false, securedEnabled = true)
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = false, securedEnabled = true)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepNonLiteralPrePostEnabled() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = config.PRE_POST)
+              public class config {
+                  static final boolean PRE_POST = false;
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = config.PRE_POST)
+              public class config {
+                  static final boolean PRE_POST = false;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dropPrePostEnabledAlongsideOtherAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(securedEnabled = true)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void emptyParentheses() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity()
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = false)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void removeUseAuthorizationManagerAttribute() {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml"),

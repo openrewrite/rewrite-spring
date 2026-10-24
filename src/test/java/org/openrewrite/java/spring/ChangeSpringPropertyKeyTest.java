@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -465,7 +464,6 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Disabled
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
     @Test
     void loggingFileSubpropertiesYaml() {
@@ -491,6 +489,23 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                       path: ${user.home}/some-folder
                     level:
                       org: INFO
+                  """
+              ),
+              yaml(
+                """
+                  logging.file.max-history: 10
+                  logging.file.max-size: 10MB
+                  """
+              ),
+              yaml(
+                """
+                  logging:
+                    file: app.log
+                  """,
+                """
+                  logging:
+                    file:
+                      name: app.log
                   """
               )
             )

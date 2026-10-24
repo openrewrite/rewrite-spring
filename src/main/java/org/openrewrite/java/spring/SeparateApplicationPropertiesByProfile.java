@@ -145,17 +145,20 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 }
 
                 // Append extracted content to (now) existing profile-specific files
-                return file.withContent(ListUtils.concatAll(file.getContent(),
-                        moduleInfo.extractedProfileProperties.get(file.getSourcePath())));
+                String extracted = moduleInfo.extractedProfileProperties.get(file.getSourcePath());
+                if (extracted == null) {
+                    return file;
+                }
+                return file.withContent(ListUtils.concatAll(file.getContent(), parse(extracted).getContent()));
             }
         };
     }
 
-    private Map<Path, List<Properties.Content>> extractPropertiesPerProfile(Properties.File propertyFile) {
+    private Map<Path, String> extractPropertiesPerProfile(Properties.File propertyFile) {
         Path applicationProperties = propertyFile.getSourcePath();
         List<Properties.Content> contentList = propertyFile.getContent();
 
-        Map<Path, List<Properties.Content>> map = new HashMap<>();
+        Map<Path, String> map = new HashMap<>();
         int index = 0;
         while (index < contentList.size()) {
             if (isSeparator(contentList.get(index))) {
@@ -163,12 +166,21 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
                 if (!newContent.isEmpty() && newContent.get(0) instanceof Properties.Entry) {
                     String profileName = ((Properties.Entry) newContent.get(0)).getValue().getText();
                     map.put(applicationProperties.resolveSibling(String.format("application-%s.properties", profileName)),
-                            newContent.subList(1, newContent.size()));
+                            propertyFile.withContent(newContent.subList(1, newContent.size())).withEof("")
+                                    .printAll(new PrintOutputCapture<>(0, PrintOutputCapture.MarkerPrinter.SANITIZED)));
                 }
             }
             index++;
         }
         return map;
+    }
+
+    private static Properties.File parse(String properties) {
+        return PropertiesParser.builder().build().parse(properties)
+                .findFirst()
+                .filter(Properties.File.class::isInstance)
+                .map(Properties.File.class::cast)
+                .orElseThrow(() -> new IllegalArgumentException("Could not parse as properties"));
     }
 
     private List<Properties.Content> extractProfileContent(List<Properties.Content> contentList, int index) {
@@ -201,6 +213,7 @@ public class SeparateApplicationPropertiesByProfile extends ScanningRecipe<Separ
 
     public static class ModulePropertyInfo {
         Set<Path> existingProfileProperties = new HashSet<>();
-        Map<Path, List<Properties.Content>> extractedProfileProperties = new HashMap<>();
+        // The printed properties of each profile, by the path of its file
+        Map<Path, String> extractedProfileProperties = new HashMap<>();
     }
 }

@@ -31,11 +31,11 @@ import static org.openrewrite.yaml.Assertions.yaml;
  * @author Alex Boyko
  */
 @SuppressWarnings("UnusedProperty")
-class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
+class FindIntegrationSchedulerPoolTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new IntegrationSchedulerPoolRecipe())
+        spec.recipe(new FindIntegrationSchedulerPool())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.4", "spring-boot-autoconfigure-2.3"));
     }
 
@@ -332,6 +332,7 @@ class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
                   package demo;
                   import org.springframework.boot.SpringApplication;
                   import org.springframework.boot.autoconfigure.SpringBootApplication;
+
                   // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
                   @SpringBootApplication
                   public class ExampleApplication {
@@ -424,7 +425,7 @@ class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
                           scheduling:
                             foo: bar
                             pool:
-                      # TODO: Consider Scheduler thread pool size for Spring Integration
+                              # TODO: Consider Scheduler thread pool size for Spring Integration
                               size: 6
                             bar: foo
                         application:
