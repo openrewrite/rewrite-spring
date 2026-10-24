@@ -24,9 +24,17 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
+  - org.openrewrite.java.flyway.AlignFlywayModuleScopeWithFlywayCore:
+      artifactId: flyway-database-postgresql
   - org.openrewrite.java.flyway.AddFlywayModuleMySQL
+  - org.openrewrite.java.flyway.AlignFlywayModuleScopeWithFlywayCore:
+      artifactId: flyway-mysql
   - org.openrewrite.java.flyway.AddFlywayModuleOracle
+  - org.openrewrite.java.flyway.AlignFlywayModuleScopeWithFlywayCore:
+      artifactId: flyway-database-oracle
   - org.openrewrite.java.flyway.AddFlywayModuleSqlServer
+  - org.openrewrite.java.flyway.AlignFlywayModuleScopeWithFlywayCore:
+      artifactId: flyway-sqlserver
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModulePostgreSQL
