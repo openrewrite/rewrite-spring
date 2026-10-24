@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.util.concurrent;
 
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
@@ -157,18 +156,15 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
         return newClassDeclaration.withPrefix(nc.getPrefix());
     }
 
-    @SuppressWarnings("DataFlowIssue")
     private static J.@Nullable MethodDeclaration extract(MethodMatcher matcher, J j) {
-        AtomicReference<J.MethodDeclaration> methodDecl = new AtomicReference<>();
-        new JavaIsoVisitor<ExecutionContext>() {
+        return new JavaIsoVisitor<AtomicReference<J.@Nullable MethodDeclaration>>() {
             @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, AtomicReference<J.@Nullable MethodDeclaration> methodDecl) {
                 if (matcher.matches(method.getMethodType())) {
                     methodDecl.set(method);
                 }
-                return super.visitMethodDeclaration(method, ctx);
+                return super.visitMethodDeclaration(method, methodDecl);
             }
-        }.visitNonNull(j, new InMemoryExecutionContext());
-        return methodDecl.get();
+        }.reduce(j, new AtomicReference<>()).get();
     }
 }
