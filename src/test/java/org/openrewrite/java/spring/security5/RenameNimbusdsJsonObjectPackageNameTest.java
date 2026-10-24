@@ -23,7 +23,11 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainJava;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
     @Override
@@ -73,6 +77,53 @@ class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
                 }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void addJsonSmartDependency() {
+        rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          mavenProject("project",
+            srcMainJava(
+              java(
+                """
+                  import com.nimbusds.jose.shaded.json.JSONObject;
+
+                  class A {
+                    JSONObject dsl;
+                  }
+                  """,
+                """
+                  import net.minidev.json.JSONObject;
+
+                  class A {
+                    JSONObject dsl;
+                  }
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                  <groupId>com.example</groupId>
+                  <artifactId>demo</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <dependencies>
+                    <dependency>
+                      <groupId>com.nimbusds</groupId>
+                      <artifactId>nimbus-jose-jwt</artifactId>
+                      <version>9.13</version>
+                    </dependency>
+                  </dependencies>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>json-smart</artifactId>")
+                .actual())
+            )
           )
         );
     }

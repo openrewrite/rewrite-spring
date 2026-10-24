@@ -112,4 +112,4 @@ recipeList:
       groupId: net.minidev
       artifactId: json-smart
       version: 2.x
-      onlyIfUsing: com.nimbusds.jose
+      onlyIfUsing: com.nimbusds.jose.shaded.json.*

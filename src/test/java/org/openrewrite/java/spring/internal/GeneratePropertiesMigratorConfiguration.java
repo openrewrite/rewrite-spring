@@ -38,6 +38,9 @@ class GeneratePropertiesMigratorConfiguration {
     private static final ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     private static final String DEPRECATION_PREFIX = "This property is deprecated: ";
     private static final String DEFAULT_DEPRECATION_COMMENT = "This property is deprecated and will be removed in future Spring Boot versions";
+    private static final Map<String, String> UPSTREAM_TYPO_CORRECTIONS = Map.of(
+      "management.promethus.metrics.export.pushgateway.base-url", "management.prometheus.metrics.export.pushgateway.base-url"
+    );
 
     public static void main(String[] args) throws IOException {
         var springBootReleases = new SpringBootReleases(true); // `true` for release candidates
@@ -108,6 +111,7 @@ class GeneratePropertiesMigratorConfiguration {
                       var metadata = objectMapper.readValue(inputStream2, SpringConfigurationMetadata.class);
                       return metadata.properties().stream()
                         .filter(p -> p.deprecation() != null)
+                        .map(GeneratePropertiesMigratorConfiguration::correctUpstreamTypo)
                         .filter(p -> alreadyDefined.add(getPropertyKey(p)));
                   } catch (IOException e) {
                       throw new UncheckedIOException(e);
@@ -154,6 +158,11 @@ class GeneratePropertiesMigratorConfiguration {
                 .collect(joining("", "", "\n")),
               StandardOpenOption.APPEND);
         }
+    }
+
+    private static SpringConfigurationMetadata.ConfigurationProperty correctUpstreamTypo(SpringConfigurationMetadata.ConfigurationProperty property) {
+        String corrected = UPSTREAM_TYPO_CORRECTIONS.get(property.name());
+        return corrected == null ? property : new SpringConfigurationMetadata.ConfigurationProperty(corrected, property.deprecation());
     }
 
     private static String getPropertyKey(SpringConfigurationMetadata.ConfigurationProperty property) {
