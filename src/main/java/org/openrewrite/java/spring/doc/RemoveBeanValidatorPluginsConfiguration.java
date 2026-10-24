@@ -42,11 +42,11 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
     private static final TypeMatcher BEAN_VALIDATOR_TYPEMATCHER = new TypeMatcher("springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration");
 
     @Getter
-    final String displayName = "Removes @Import(BeanValidatorPluginsConfiguration.class)";
+    final String displayName = "Remove `@Import(BeanValidatorPluginsConfiguration.class)`";
 
     @Getter
-    final String description = "As Springdoc OpenAPI supports Bean Validation out of the box, the BeanValidatorPluginsConfiguration is no longer supported nor needed. " +
-            "Thus remove @Import(BeanValidatorPluginsConfiguration.class).";
+    final String description = "As Springdoc OpenAPI supports Bean Validation out of the box, the `BeanValidatorPluginsConfiguration` is no longer supported nor needed. " +
+            "Thus remove `@Import(BeanValidatorPluginsConfiguration.class)`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -43,7 +43,7 @@ public class MigrateItemWriterWrite extends Recipe {
     final String displayName = "Migrate `ItemWriter`";
 
     @Getter
-    final String description = "In `ItemWriter` the signature of the `write()` method has changed in spring-batch 5.x.";
+    final String description = "In `ItemWriter` the signature of the `write()` method has changed in Spring Batch 5.x.";
 
     private static final String CHUNK_FQN = "org.springframework.batch.item.Chunk";
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);

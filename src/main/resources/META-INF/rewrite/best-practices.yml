@@ -95,7 +95,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.EnableVirtualThreads
-displayName: Enable Virtual Threads on Java 21
+displayName: Enable virtual threads on Java 21
 description: Set `spring.threads.virtual.enabled` to `true` in `application.properties` or `application.yml`.
 preconditions:
   - org.openrewrite.java.search.HasJavaVersion:
@@ -109,7 +109,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security.SpringSecurityBestPractices
-displayName: Spring security best practices
+displayName: Spring Security best practices
 description: Applies security best practices to Spring applications, including TLS for database and message broker connections.
 tags:
   - spring

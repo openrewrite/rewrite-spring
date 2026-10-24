@@ -34,10 +34,10 @@ import static java.util.Collections.emptyList;
 
 public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolean> {
     @Getter
-    final String displayName = "Add logging.pattern.level for traceId and spanId";
+    final String displayName = "Add `logging.pattern.level` for `traceId` and `spanId`";
 
     @Getter
-    final String description = "Add `logging.pattern.level` for traceId and spanId which was previously set by default, if not already set.";
+    final String description = "Add `logging.pattern.level` for `traceId` and `spanId` which was previously set by default, if not already set.";
 
     @Override
     public AtomicBoolean getInitialValue(ExecutionContext ctx) {

@@ -45,10 +45,10 @@ public class UnnecessarySpringExtension extends Recipe {
     private static final AnnotationMatcher EXTENDS_WITH_SPRING_EXACT_MATCHER = new AnnotationMatcher(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN, false);
 
     @Getter
-    final String displayName = "Remove `@SpringExtension`";
+    final String displayName = "Remove redundant `@ExtendWith(SpringExtension.class)`";
 
     @Getter
-    final String description = "`@SpringBootTest` and all test slice annotations already applies `@SpringExtension` as of Spring Boot 2.1.0.";
+    final String description = "`@SpringBootTest` and all test slice annotations already apply `@ExtendWith(SpringExtension.class)` as of Spring Boot 2.1.0.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
