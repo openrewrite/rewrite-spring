@@ -24,9 +24,6 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-/**
- * @author Alex Boyko
- */
 class RemoveConstructorBindingAnnotationTest implements RewriteTest {
 
     @Override

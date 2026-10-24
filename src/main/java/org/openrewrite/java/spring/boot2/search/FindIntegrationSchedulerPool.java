@@ -47,9 +47,6 @@ import java.util.regex.Pattern;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
-/**
- * @author Alex Boyko
- */
 public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegrationSchedulerPool.JavaProjects> {
 
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");

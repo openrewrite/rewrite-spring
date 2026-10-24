@@ -35,9 +35,6 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
-/**
- * @author Alex Boyko
- */
 public class RemoveConstructorBindingAnnotation extends Recipe {
 
     private static final String ANNOTATION_CONSTRUCTOR_BINDING = "org.springframework.boot.context.properties.ConstructorBinding";

@@ -28,10 +28,6 @@ import org.openrewrite.marker.SearchResult;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Migration for Spring Boot 2.4 to 2.5
- * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.5-Release-Notes#customizing-jooqs-defaultconfiguration">Customizing jOOQ’s DefaultConfiguration</a>
- */
 @Incubating(since = "4.16.0")
 public class CustomizingJooqDefaultConfiguration extends Recipe {
     private static final List<String> jooqTypes = Arrays.asList(

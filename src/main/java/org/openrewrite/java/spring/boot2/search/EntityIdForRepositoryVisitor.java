@@ -35,8 +35,6 @@ import static java.util.Collections.emptyList;
  * Adds a marker to an AST if Spring Data Repository invalid domain ID type is discovered. The marker is over the AST
  * node of an ID type if it is available in the AST. Alternatively it would over the class name the repository extends
  * from.
- *
- * @author Alex Boyko
  */
 @RequiredArgsConstructor
 public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {

@@ -29,15 +29,6 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * A recipe to uniformly add a property to Spring configuration file. This recipe supports adding properties to
- * ".properties" and YAML files. This recipe will only add the property if it does not already exist within the
- * configuration file.
- * <p>
- * NOTE: Because an application may have a large collection of yaml files (some of which may not even be related to
- * Spring configuration), this recipe will only make changes to files that match one of the pathExpressions. If
- * the recipe is configured without pathExpressions, it will query the execution context for reasonable defaults.
- */
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class AddSpringProperty extends Recipe {
