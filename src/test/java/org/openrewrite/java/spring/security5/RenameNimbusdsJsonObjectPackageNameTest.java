@@ -84,7 +84,6 @@ class RenameNimbusdsJsonObjectPackageNameTest implements RewriteTest {
     @Test
     void addJsonSmartDependency() {
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           mavenProject("project",
             srcMainJava(
               java(
