@@ -24,6 +24,7 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
@@ -40,7 +41,7 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
     @Override
     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
         J.ClassDeclaration cd = (J.ClassDeclaration) super.visitClassDeclaration(classDecl, ctx);
-        if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, cd.getType())) {
+        if (!implementsListenableFutureCallback(cd)) {
             return cd;
         }
 
@@ -94,7 +95,7 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
     @SuppressWarnings("DataFlowIssue")
     public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
         J.NewClass nc = (J.NewClass) super.visitNewClass(newClass, ctx);
-        if (!TypeUtils.isAssignableTo(LISTENABLE_FUTURE_CALLBACK, nc.getType())) {
+        if (!isListenableFutureCallback(nc.getClazz())) {
             return nc;
         }
 
@@ -154,6 +155,21 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
                         successCallback.getBody(),
                         failureCallback.getBody());
         return newClassDeclaration.withPrefix(nc.getPrefix());
+    }
+
+    private static boolean implementsListenableFutureCallback(J.ClassDeclaration cd) {
+        if (cd.getImplements() != null) {
+            for (TypeTree implemented : cd.getImplements()) {
+                if (isListenableFutureCallback(implemented)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isListenableFutureCallback(@Nullable TypeTree typeTree) {
+        return typeTree != null && TypeUtils.isOfClassType(typeTree.getType(), LISTENABLE_FUTURE_CALLBACK);
     }
 
     private static J.@Nullable MethodDeclaration extract(MethodMatcher matcher, J j) {

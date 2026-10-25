@@ -79,6 +79,51 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
     }
 
     @Test
+    void leaveSubclassesOfCallbackImplementationUnchanged() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+
+              abstract class LoggingCallback<T> implements ListenableFutureCallback<T> {
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      System.err.println(ex.getMessage());
+                  }
+              }
+
+              class MyCallback extends LoggingCallback<String> {
+                  @Override
+                  public void onSuccess(String result) {
+                      System.out.println(result);
+                  }
+
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      super.onFailure(ex);
+                  }
+              }
+
+              class Holder {
+                  Object callback = new LoggingCallback<String>() {
+                      @Override
+                      public void onSuccess(String result) {
+                          System.out.println(result);
+                      }
+
+                      @Override
+                      public void onFailure(Throwable ex) {
+                          super.onFailure(ex);
+                      }
+                  };
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void anonymousClassToLambda() {
         //language=java
         rewriteRun(
