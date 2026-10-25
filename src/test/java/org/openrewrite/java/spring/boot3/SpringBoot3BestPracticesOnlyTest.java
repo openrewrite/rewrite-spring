@@ -33,6 +33,36 @@ class SpringBoot3BestPracticesOnlyTest implements RewriteTest {
     }
 
     @Test
+    void simplifyMediaTypeParseCallsOutsideController() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-core-6.+")),
+          //language=java
+          java(
+            """
+              import org.springframework.http.HttpHeaders;
+              import org.springframework.http.MediaType;
+
+              class GreetingClient {
+                  void accept(HttpHeaders headers) {
+                      headers.setContentType(MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE));
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpHeaders;
+              import org.springframework.http.MediaType;
+
+              class GreetingClient {
+                  void accept(HttpHeaders headers) {
+                      headers.setContentType(MediaType.APPLICATION_JSON);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void simplifyWebTestClientCallsInTestWithoutController() {
         rewriteRun(
           srcTestJava(
