@@ -79,6 +79,96 @@ class ListenableFutureCallbackToBiConsumerVisitorTest implements RewriteTest {
     }
 
     @Test
+    void keepSuperclassAndOtherInterfaces() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+
+              abstract class Base {
+              }
+
+              class MyCallback extends Base implements ListenableFutureCallback<String>, Runnable {
+                  @Override
+                  public void onSuccess(String result) {
+                      System.out.println(result);
+                  }
+
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      System.err.println(ex.getMessage());
+                  }
+
+                  @Override
+                  public void run() {
+                  }
+              }
+              """,
+            """
+              import java.util.function.BiConsumer;
+
+              abstract class Base {
+              }
+
+              class MyCallback extends Base implements BiConsumer<String, Throwable>, Runnable {
+                  @Override
+                  public void accept(String result, Throwable ex) {
+                      if (ex == null) {
+                          System.out.println(result);
+                      } else {
+                          System.err.println(ex.getMessage());
+                      }
+                  }
+
+                  @Override
+                  public void run() {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepTypeParameters() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFutureCallback;
+
+              class MyCallback<T> implements ListenableFutureCallback<T> {
+                  @Override
+                  public void onSuccess(T result) {
+                      System.out.println(result);
+                  }
+
+                  @Override
+                  public void onFailure(Throwable ex) {
+                      System.err.println(ex.getMessage());
+                  }
+              }
+              """,
+            """
+              import java.util.function.BiConsumer;
+
+              class MyCallback<T> implements BiConsumer<T, Throwable> {
+                  @Override
+                  public void accept(T result, Throwable ex) {
+                      if (ex == null) {
+                          System.out.println(result);
+                      } else {
+                          System.err.println(ex.getMessage());
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void leaveSubclassesOfCallbackImplementationUnchanged() {
         //language=java
         rewriteRun(
