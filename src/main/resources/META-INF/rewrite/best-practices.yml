@@ -67,6 +67,8 @@ recipeList:
   - org.openrewrite.java.spring.framework.BeanMethodsNotPublic # Intentionally not in 2.x
   - org.openrewrite.java.spring.boot3.PreciseBeanType
   - org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants
+  - org.openrewrite.java.spring.http.SimplifyMediaTypeParseCalls
+  - org.openrewrite.java.spring.http.SimplifyWebTestClientCalls
   - org.openrewrite.java.spring.NoRepoAnnotationOnRepoInterface
   - org.openrewrite.java.spring.NoHttpExchangeAnnotation
   - org.openrewrite.java.spring.security.SpringSecurityBestPractices
@@ -87,11 +89,9 @@ preconditions:
       matchMetaAnnotations: true
   - org.openrewrite.Singleton
 recipeList:
-  # Replace literals with constants and simplify MediaType parse calls
+  # Replace literals with constants
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithHttpHeadersConstants
   - org.openrewrite.java.spring.http.ReplaceStringLiteralsWithMediaTypeConstants
-  - org.openrewrite.java.spring.http.SimplifyMediaTypeParseCalls
-  - org.openrewrite.java.spring.http.SimplifyWebTestClientCalls
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.EnableVirtualThreads
