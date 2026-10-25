@@ -45,46 +45,36 @@ recipeList:
       groupId: org.springframework.data
       artifactId: spring-data-mongodb
       newVersion: 5.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-bom
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-core
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-sync
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-reactivestreams
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-crypt
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: bson
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: bson-record-codec
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.mongodb
       artifactId: mongodb-driver-legacy
       newVersion: 5.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.data.AddMongoValueRepresentationProperty
-

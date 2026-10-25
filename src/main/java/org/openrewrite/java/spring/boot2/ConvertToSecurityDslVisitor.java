@@ -167,8 +167,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             select = invocation;
         }
         // Check if top-level invocation to remove the prefix as the prefix is space before the root call, i.e. before httpSecurity identifier. We don't want to have inside the lambda
-        assert invocation != null;
-        if (invocation.getMarkers().getMarkers().stream().filter(Markup.Info.class::isInstance).map(Markup.Info.class::cast).anyMatch(marker -> MSG_TOP_INVOCATION.equals(marker.getMessage()))) {
+        if (requireNonNull(invocation).getMarkers().getMarkers().stream().filter(Markup.Info.class::isInstance).map(Markup.Info.class::cast).anyMatch(marker -> MSG_TOP_INVOCATION.equals(marker.getMessage()))) {
             invocation = invocation
                     .withMarkers(invocation.getMarkers().removeByType(Markup.Info.class))
                     .withPrefix(Space.EMPTY);

@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 @Value
 public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles> {
 
-    String displayName = "Change the value of a spring application property";
+    String displayName = "Change the value of a Spring application property";
 
     String description = "Change Spring application property values existing in either Properties or YAML files, " +
             "and in `@Value`, `@ConditionalOnProperty`, `@SpringBootTest`, or `@TestPropertySource` annotations.";
@@ -178,6 +178,7 @@ public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles>
             boolean changed = false;
             StringBuilder newValue = new StringBuilder();
             int lastEnd = 0;
+            int sourceFrom = 0;
 
             while (matcher.find()) {
                 String key = matcher.group(1);
@@ -190,10 +191,16 @@ public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles>
                         newValue.append("${").append(key).append(":").append(computedNewValue).append("}");
                         lastEnd = matcher.end();
 
-                        // Also update valueSource by replacing the old default with new default
-                        // This preserves all other escaping (e.g., \$ in Kotlin)
+                        // Edit valueSource in place to keep its escaping, such as `\$` in Kotlin
                         if (valueSource != null) {
-                            valueSource = valueSource.replace(defaultValue, computedNewValue);
+                            String oldPlaceholder = "{" + key + ":" + defaultValue + "}";
+                            int at = valueSource.indexOf(oldPlaceholder, sourceFrom);
+                            if (at < 0) {
+                                return literal;
+                            }
+                            String newPlaceholder = "{" + key + ":" + computedNewValue + "}";
+                            valueSource = valueSource.substring(0, at) + newPlaceholder + valueSource.substring(at + oldPlaceholder.length());
+                            sourceFrom = at + newPlaceholder.length();
                         }
 
                         changed = true;

@@ -418,8 +418,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 template.append(".build();\n")
                         .append("}");
 
-                maybeAddImport("org.springdoc.core.models.GroupedOpenApi", false);
-                maybeAddImport("org.springframework.context.annotation.Bean", false);
+                maybeAddImport("org.springdoc.core.models.GroupedOpenApi");
+                maybeAddImport("org.springframework.context.annotation.Bean");
                 return JavaTemplate.builder(template.toString())
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-context", "springdoc-openapi-starter-common"))
                         .imports("org.springdoc.core.models.GroupedOpenApi", "org.springframework.context.annotation.Bean").build()

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.boot2;
+package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty;
 import org.openrewrite.maven.RemoveProperty;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;

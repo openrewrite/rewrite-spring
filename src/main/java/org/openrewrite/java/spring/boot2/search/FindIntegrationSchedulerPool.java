@@ -45,11 +45,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
-/**
- * @author Alex Boyko
- */
 public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegrationSchedulerPool.JavaProjects> {
 
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
@@ -71,8 +69,8 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
             "default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
 
     private boolean isApplicableMavenProject(Xml.Document maven) {
-        DependencyMatcher boot25Matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
-        DependencyMatcher integrationMatcher = DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue();
+        DependencyMatcher boot25Matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
+        DependencyMatcher integrationMatcher = requireNonNull(DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue());
 
         List<ResolvedDependency> deps = maven.getMarkers().findFirst(MavenResolutionResult.class)
                 .orElseThrow(() -> new IllegalStateException("Maven visitors should not be visiting XML documents without a Maven marker"))
@@ -83,11 +81,9 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
 
         for (ResolvedDependency d : deps) {
             if (!boot25) {
-                assert boot25Matcher != null;
                 boot25 = boot25Matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion());
             }
             if (!si) {
-                assert integrationMatcher != null;
                 si = integrationMatcher.matches(d.getGroupId(), d.getArtifactId());
             }
             if (boot25 && si) {

@@ -30,7 +30,6 @@ recipeList:
       groupId: org.springframework.batch
       artifactId: "*"
       newVersion: 6.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.batch.item
       newPackageName: org.springframework.batch.infrastructure.item

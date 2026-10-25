@@ -33,12 +33,10 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 6.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: spring-security-oauth2-authorization-server
       newVersion: 1.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.security6.UseSha256InRememberMe
   - org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions
   - org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository
@@ -52,7 +50,7 @@ recipeList:
 ########################################################################################################################
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security6.RemoveUseAuthorizationManager
-displayName: Remove unnecessary `use-authorization-manager` for message security in Spring security 6
+displayName: Remove unnecessary `use-authorization-manager` for message security in Spring Security 6
 description: >-
   In Spring Security 6, `<websocket-message-broker>` defaults `use-authorization-manager` to `true`.
   So, the `use-authorization-manager` attribute for message security is no longer needed and can be removed.
@@ -67,4 +65,3 @@ recipeList:
       attributeName: use-authorization-manager
       newValue: null
       oldValue: true
-      fileMatcher: null

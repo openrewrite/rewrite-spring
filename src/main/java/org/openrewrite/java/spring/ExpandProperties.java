@@ -26,7 +26,6 @@ import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -175,18 +174,14 @@ public class ExpandProperties extends Recipe {
                                     "", newMapping),
                             ctx, getCursor());
 
-                    AtomicInteger insertIndex = new AtomicInteger(-1);
-                    mapping = mapping.withEntries(ListUtils.map(mapping.getEntries(), (i, ent) -> {
-                        if (ent.getKey().getValue().equals(keyMappings.getKey())) {
-                            if (insertIndex.get() < 0) {
-                                insertIndex.set(i);
-                            }
-                            return null;
-                        }
-                        return ent;
-                    }));
-                    //noinspection ConstantConditions
-                    mapping = mapping.withEntries(ListUtils.insertAll(mapping.getEntries(), insertIndex.get(), singletonList(newEntry)));
+                    String key = keyMappings.getKey();
+                    int insertIndex = 0;
+                    while (!key.equals(mapping.getEntries().get(insertIndex).getKey().getValue())) {
+                        insertIndex++;
+                    }
+                    mapping = mapping.withEntries(ListUtils.insert(
+                            ListUtils.filter(mapping.getEntries(), ent -> !key.equals(ent.getKey().getValue())),
+                            newEntry, insertIndex));
                 }
             }
             return super.visitMapping(mapping, ctx);

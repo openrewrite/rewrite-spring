@@ -28,10 +28,10 @@ import static java.util.Collections.emptyList;
 
 public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
     @Getter
-    final String displayName = "Migrate deprecated Spring-Boot `EmbeddedDatabaseConnection.HSQL`";
+    final String displayName = "Migrate deprecated Spring Boot `EmbeddedDatabaseConnection.HSQL`";
 
     @Getter
-    final String description = "Spring-Boot `EmbeddedDatabaseConnection.HSQL` was deprecated in favor of `EmbeddedDatabaseConnection.HSQLDB` in 2.4.";
+    final String description = "Spring Boot `EmbeddedDatabaseConnection.HSQL` was deprecated in favor of `EmbeddedDatabaseConnection.HSQLDB` in 2.4.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -40,7 +40,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
     }
 
     private static class UpdateDeprecatedConstantFieldNames extends JavaIsoVisitor<ExecutionContext> {
-        private static final JavaType.FullyQualified EMBEDDED_DATABASE_CONNECTION_FNQ =
+        private static final JavaType.FullyQualified EMBEDDED_DATABASE_CONNECTION_FQN =
                 JavaType.ShallowClass.build("org.springframework.boot.jdbc.EmbeddedDatabaseConnection");
         private final Map<String, String> updateDeprecatedFields = new HashMap<>();
 
@@ -51,11 +51,11 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
         @Override
         public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
             J.FieldAccess fa = super.visitFieldAccess(fieldAccess, ctx);
-            if (TypeUtils.isOfType(EMBEDDED_DATABASE_CONNECTION_FNQ, fa.getTarget().getType()) &&
+            if (TypeUtils.isOfType(EMBEDDED_DATABASE_CONNECTION_FQN, fa.getTarget().getType()) &&
                     updateDeprecatedFields.containsKey(fa.getName().getSimpleName())) {
 
                 if (fa.getTarget() instanceof J.FieldAccess) {
-                    fa = TypeTree.build(EMBEDDED_DATABASE_CONNECTION_FNQ.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
+                    fa = TypeTree.build(EMBEDDED_DATABASE_CONNECTION_FQN.getFullyQualifiedName() + "." + updateDeprecatedFields.get(fieldAccess.getName().getSimpleName()))
                             .withPrefix(fa.getPrefix());
                 } else {
                     fa = fa.withName(fa.getName().withSimpleName(updateDeprecatedFields.get(fa.getName().getSimpleName())));
@@ -64,8 +64,8 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                             fa.getTarget().getPrefix(),
                             fa.getTarget().getMarkers(),
                             emptyList(),
-                            EMBEDDED_DATABASE_CONNECTION_FNQ.getClassName(),
-                            EMBEDDED_DATABASE_CONNECTION_FNQ,
+                            EMBEDDED_DATABASE_CONNECTION_FQN.getClassName(),
+                            EMBEDDED_DATABASE_CONNECTION_FQN,
                             null));
                 }
             }
@@ -88,7 +88,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
                                 null,
                                 fieldType == null ? 0 : Flag.flagsToBitMap(fieldType.getFlags()),
                                 updateDeprecatedFields.get(id.getSimpleName()),
-                                EMBEDDED_DATABASE_CONNECTION_FNQ,
+                                EMBEDDED_DATABASE_CONNECTION_FQN,
                                 fieldType == null ? null : fieldType.getType(),
                                 emptyList()));
             }
@@ -98,7 +98,7 @@ public class MigrateHsqlEmbeddedDatabaseConnection extends Recipe {
         private boolean isTargetFieldType(J.Identifier identifier) {
             if (identifier.getFieldType() != null) {
                 JavaType.FullyQualified fqn = TypeUtils.asFullyQualified(identifier.getFieldType().getOwner());
-                return fqn != null && EMBEDDED_DATABASE_CONNECTION_FNQ.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
+                return fqn != null && EMBEDDED_DATABASE_CONNECTION_FQN.getFullyQualifiedName().equals(fqn.getFullyQualifiedName());
             }
             return false;
         }

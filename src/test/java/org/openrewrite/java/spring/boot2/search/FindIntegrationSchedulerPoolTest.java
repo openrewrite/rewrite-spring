@@ -27,9 +27,6 @@ import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-/**
- * @author Alex Boyko
- */
 @SuppressWarnings("UnusedProperty")
 class FindIntegrationSchedulerPoolTest implements RewriteTest {
 

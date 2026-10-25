@@ -323,9 +323,6 @@ public class MoveAutoConfigurationToImportsFile extends ScanningRecipe<MoveAutoC
         Map<Path, TargetImports> targetImports = new HashMap<>();
     }
 
-    /**
-     * Used to track the auto configurations defined in `spring.factories` (along with any markers on that file)
-     */
     @Value
     static class TargetImports {
         Set<String> autoConfigurations;

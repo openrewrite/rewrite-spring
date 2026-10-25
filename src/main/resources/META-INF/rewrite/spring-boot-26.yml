@@ -36,7 +36,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.6.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-dependencies
@@ -67,7 +66,6 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "spring-cloud-dependencies"
       newVersion: 2021.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_6
 
 ---

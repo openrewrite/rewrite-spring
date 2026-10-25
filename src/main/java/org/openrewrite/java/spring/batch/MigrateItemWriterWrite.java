@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 public class MigrateItemWriterWrite extends Recipe {
@@ -43,7 +44,7 @@ public class MigrateItemWriterWrite extends Recipe {
     final String displayName = "Migrate `ItemWriter`";
 
     @Getter
-    final String description = "In `ItemWriter` the signature of the `write()` method has changed in spring-batch 5.x.";
+    final String description = "In `ItemWriter` the signature of the `write()` method has changed in Spring Batch 5.x.";
 
     private static final String CHUNK_FQN = "org.springframework.batch.item.Chunk";
     private static final MethodMatcher ITEM_WRITER_MATCHER = new MethodMatcher("org.springframework.batch.item.ItemWriter write(java.util.List)", true);
@@ -176,9 +177,8 @@ public class MigrateItemWriterWrite extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if ((COLLECTION_MATCHER.matches(mi) || LIST_MATCHER.matches(mi)) && isParameter(mi.getSelect())) {
-                assert mi.getPadding().getSelect() != null;
                 // No need to take care of typing here, since it's going to be printed and parsed on the JavaTemplate later on.
-                mi = mi.withSelect(newGetItemsMethodInvocation(mi.getPadding().getSelect()));
+                mi = mi.withSelect(newGetItemsMethodInvocation(requireNonNull(mi.getPadding().getSelect())));
 
             }
             if (!ITEM_WRITER_MATCHER.matches(mi) && mi.getMethodType() != null) {

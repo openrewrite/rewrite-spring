@@ -49,7 +49,6 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 4.3.x
-      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
@@ -58,7 +57,6 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2025.0.x
-      overrideManagedVersion: false
 
   # circuitbreaker, kubernetes & task follow a different versioning scheme
   # https://docs.spring.io/spring-cloud-release/reference/2025.0/
@@ -66,32 +64,26 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-circuitbreaker-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-circuitbreaker-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-kubernetes-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-kubernetes-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-task-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-task-*
       newVersion: 3.3.x
-      overrideManagedVersion: false
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -117,19 +109,17 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 5.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.cloud2025.AddSpringCloudDependenciesBom
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2025.1.x
-      overrideManagedVersion: false
   # Circuitbreaker, kubernetes, task and others once again use aligned 5.0.x; no need to bump those separately anymore
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayDeprecatedModulesAndStarters
-displayName: Migrate to New Spring Cloud Gateway Modules and Starters
+displayName: Migrate to new Spring Cloud Gateway modules and starters
 description: Migrate to new Spring Cloud Gateway modules and starters for Spring Cloud 2025.
 tags:
   - spring
@@ -171,7 +161,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayProperties
-displayName: Migrate Spring Cloud Gateway Properties
+displayName: Migrate Spring Cloud Gateway properties
 description: Migrate Spring Cloud Gateway properties for Spring Cloud 2025 release.
 tags:
   - spring
@@ -190,7 +180,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayWebfluxProperties
-displayName: Migrate Spring Cloud Gateway Webflux Properties
+displayName: Migrate Spring Cloud Gateway WebFlux properties
 description: Migrate Spring Cloud Gateway Webflux properties for Spring Cloud 2025 release.
 tags:
   - spring
@@ -208,7 +198,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayProxyWebfluxProperties
-displayName: Migrate Spring Cloud Gateway Proxy Webflux Properties
+displayName: Migrate Spring Cloud Gateway Proxy WebFlux properties
 description: Migrate Spring Cloud Gateway Proxy Webflux properties for Spring Cloud 2025 release.
 tags:
   - spring
@@ -226,7 +216,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayWebMvcProperties
-displayName: Migrate Spring Cloud Gateway WebMvc Properties
+displayName: Migrate Spring Cloud Gateway WebMvc properties
 description: Migrate Spring Cloud Gateway WebMvc properties for Spring Cloud 2025 release.
 tags:
   - spring
@@ -244,7 +234,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.cloud2025.SpringCloudGatewayProxyWebMvcProperties
-displayName: Migrate Spring Cloud Gateway Proxy WebMvc Properties
+displayName: Migrate Spring Cloud Gateway Proxy WebMvc properties
 description: Migrate Spring Cloud Gateway Proxy WebMvc properties for Spring Cloud 2025 release.
 tags:
   - spring

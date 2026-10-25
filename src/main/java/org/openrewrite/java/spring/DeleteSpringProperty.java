@@ -23,10 +23,6 @@ import org.openrewrite.properties.DeleteProperty;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
-/**
- * A recipe to remove a property (or matching property group) from Spring configuration files. This recipe supports deleting properties from
- * ".properties" and YAML files.
- */
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class DeleteSpringProperty extends ScanningRecipe<SpringConfigFiles> {
@@ -36,7 +32,7 @@ public class DeleteSpringProperty extends ScanningRecipe<SpringConfigFiles> {
             example = "management.endpoint.configprops.*")
     String propertyKey;
 
-    String displayName = "Delete a spring configuration property";
+    String displayName = "Delete a Spring configuration property";
 
     String description = "Delete a spring configuration property from any configuration file that contains a matching key.";
 

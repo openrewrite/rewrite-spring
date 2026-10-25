@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.search;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -28,8 +27,6 @@ import java.util.List;
 
 import static org.openrewrite.java.Assertions.java;
 
-@Disabled
-// TODO work in progress
 class FindApiCallsTest implements RewriteTest {
 
     @Override
@@ -38,6 +35,7 @@ class FindApiCallsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-webflux-5.+",
             "spring-web-5.3",
+            "spring-core-5.3",
             "spring-boot-3.5"));
     }
 
@@ -119,9 +117,10 @@ class FindApiCallsTest implements RewriteTest {
                   RestTemplate restTemplate;
                   void test(HttpMethod in) {
                       HttpMethod m = HttpMethod.GET;
-                      restTemplate.exchange("/getThing", HttpMethod.GET, String.class);
-                      restTemplate.exchange("/getThing", m, String.class);
-                      restTemplate.exchange("/getThing", in, String.class);
+                      restTemplate.exchange("/getThing", HttpMethod.GET, null, String.class);
+                      restTemplate.exchange("/postThing", HttpMethod.POST, null, String.class);
+                      restTemplate.exchange("/getThing", m, null, String.class);
+                      restTemplate.exchange("/getThing", in, null, String.class);
                   }
               }
               """,
@@ -132,9 +131,39 @@ class FindApiCallsTest implements RewriteTest {
                   RestTemplate restTemplate;
                   void test(HttpMethod in) {
                       HttpMethod m = HttpMethod.GET;
-                      /*~~(GET /getThing)~~>*/restTemplate.exchange("/getThing", HttpMethod.GET, String.class);
-                      /*~~(GET /getThing)~~>*/restTemplate.exchange("/getThing", m, String.class);
-                      /*~~(UNKNOWN /getThing)~~>*/restTemplate.exchange("/getThing", in, String.class);
+                      /*~~(GET /getThing)~~>*/restTemplate.exchange("/getThing", HttpMethod.GET, null, String.class);
+                      /*~~(POST /postThing)~~>*/restTemplate.exchange("/postThing", HttpMethod.POST, null, String.class);
+                      /*~~(UNKNOWN /getThing)~~>*/restTemplate.exchange("/getThing", m, null, String.class);
+                      /*~~(UNKNOWN /getThing)~~>*/restTemplate.exchange("/getThing", in, null, String.class);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void staticallyImportedHttpMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.web.client.RestTemplate;
+              import static org.springframework.http.HttpMethod.DELETE;
+              class Test {
+                  RestTemplate restTemplate;
+                  void test() {
+                      restTemplate.exchange("/deleteThing", DELETE, null, Void.class);
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.client.RestTemplate;
+              import static org.springframework.http.HttpMethod.DELETE;
+              class Test {
+                  RestTemplate restTemplate;
+                  void test() {
+                      /*~~(DELETE /deleteThing)~~>*/restTemplate.exchange("/deleteThing", DELETE, null, Void.class);
                   }
               }
               """
@@ -162,7 +191,7 @@ class FindApiCallsTest implements RewriteTest {
     }
 
     @Test
-    void uriDataFlow() {
+    void uri() {
         rewriteRun(
           //language=java
           java(
@@ -173,9 +202,8 @@ class FindApiCallsTest implements RewriteTest {
               class Test {
                   RestTemplate restTemplate;
                   void test(URI in) {
-                      URI local = URI.create("/getThing");
-                      restTemplate.exchange(URI.create("/getThing"), HttpMethod.GET, String.class);
-                      restTemplate.getForObject(local, String.class);
+                      restTemplate.exchange(URI.create("/getThing"), HttpMethod.GET, null, String.class);
+                      restTemplate.getForObject(URI.create("/getThing"), String.class);
                       restTemplate.getForObject(in, String.class);
                   }
               }
@@ -187,10 +215,9 @@ class FindApiCallsTest implements RewriteTest {
               class Test {
                   RestTemplate restTemplate;
                   void test(URI in) {
-                      URI local = URI.create("/getThing");
-                      /*~~(GET /getThing)~~>*/restTemplate.exchange(URI.create("/getThing"), HttpMethod.GET, String.class);
-                      /*~~(GET /getThing)~~>*/restTemplate.getForObject(local, String.class);
-                      /*~~(GET UNKNOWN)~~>*/restTemplate.getForObject(in, String.class);
+                      /*~~(GET /getThing)~~>*/restTemplate.exchange(URI.create("/getThing"), HttpMethod.GET, null, String.class);
+                      /*~~(GET /getThing)~~>*/restTemplate.getForObject(URI.create("/getThing"), String.class);
+                      /*~~(GET in)~~>*/restTemplate.getForObject(in, String.class);
                   }
               }
               """

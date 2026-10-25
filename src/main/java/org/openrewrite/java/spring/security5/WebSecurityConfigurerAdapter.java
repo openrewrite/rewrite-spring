@@ -35,9 +35,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
-/**
- * @author Alex Boyko
- */
 public class WebSecurityConfigurerAdapter extends Recipe {
 
     private static final Collection<J.Modifier.Type> EXPLICIT_ACCESS_LEVELS = Arrays.asList(J.Modifier.Type.Public,
