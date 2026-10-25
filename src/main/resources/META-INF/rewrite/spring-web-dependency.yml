@@ -29,4 +29,4 @@ recipeList:
   - org.openrewrite.gradle.search.DependencyInsight:
       groupIdPattern: org.springframework
       artifactIdPattern: spring-web
-      scope: compileClasspath
+      configuration: compileClasspath
