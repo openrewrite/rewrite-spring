@@ -20,6 +20,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
@@ -30,8 +31,6 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
     private static final AnnotationMatcher ENABLE_GLOBAL_METHOD_SECURITY_MATCHER =
@@ -67,28 +66,31 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                                     .apply(getCursor(), annotation.getCoordinates().replace());
 
                             List<Expression> oldArgs = annotation.getArguments();
-                            if (oldArgs == null || oldArgs.isEmpty()) {
+                            if (oldArgs == null || oldArgs.isEmpty() || oldArgs.get(0) instanceof J.Empty) {
                                 return replacementAnnotation;
                             }
 
-                            List<Expression> newArgs = oldArgs;
-                            if (oldArgs.stream().noneMatch(this::hasPrePostEnabled)) {
-                                newArgs.add(replacementAnnotation.getArguments().get(0));
+                            List<Expression> newArgs;
+                            if (oldArgs.stream().noneMatch(this::isPrePostEnabled)) {
+                                newArgs = ListUtils.concat(oldArgs, replacementAnnotation.getArguments().get(0));
                             } else {
-                                newArgs = oldArgs.stream().filter(arg -> !hasPrePostEnabled(arg)).collect(toList());
+                                newArgs = ListUtils.map(oldArgs, arg -> isPrePostEnabledTrue(arg) ? null : arg);
                             }
                             return autoFormat(replacementAnnotation.withArguments(newArgs), ctx);
                         }
                         return annotation;
                     }
 
-                    private boolean hasPrePostEnabled(Expression arg) {
+                    private boolean isPrePostEnabled(Expression arg) {
                         if (arg instanceof J.Assignment) {
-                            J.Assignment assignment = (J.Assignment) arg;
-                            return "prePostEnabled".equals(((J.Identifier) assignment.getVariable()).getSimpleName()) &&
-                                    RemoveMethodInvocationsVisitor.isTrue(assignment.getAssignment());
+                            Expression variable = ((J.Assignment) arg).getVariable();
+                            return variable instanceof J.Identifier && "prePostEnabled".equals(((J.Identifier) variable).getSimpleName());
                         }
                         return false;
+                    }
+
+                    private boolean isPrePostEnabledTrue(Expression arg) {
+                        return isPrePostEnabled(arg) && RemoveMethodInvocationsVisitor.isTrue(((J.Assignment) arg).getAssignment());
                     }
                 }
         );

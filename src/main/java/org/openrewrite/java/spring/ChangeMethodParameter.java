@@ -33,13 +33,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.Tree.randomId;
 
-/**
- * A recipe to change parameter type for a method declaration.
- * <p>
- * NOTE: This recipe is usually used for initial modification of parameter changes.
- * After modifying method parameters using this recipe, you may also need to modify
- * the method definition as needed to avoid compilation errors.
- */
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class ChangeMethodParameter extends Recipe {
@@ -189,7 +182,8 @@ public class ChangeMethodParameter extends Recipe {
                 );
             }
             JavaType.Primitive type = JavaType.Primitive.fromKeyword(typeName);
-            if (type != null) {
+            // the parser makes String a name of the class, not a primitive
+            if (type != null && type != JavaType.Primitive.String) {
                 return new J.Primitive(
                         randomId(),
                         Space.EMPTY,

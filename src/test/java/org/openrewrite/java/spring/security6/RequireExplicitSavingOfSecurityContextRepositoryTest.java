@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.security5;
+package org.openrewrite.java.spring.security6;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.security6.RequireExplicitSavingOfSecurityContextRepository;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -458,9 +456,8 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
         );
     }
 
-    @Disabled
     @Test
-    void lambdaAssignment() {
+    void lambdaOnCapturedConfigurerIsUnchanged() {
         // language=java
         rewriteRun(
           java(
@@ -473,20 +470,6 @@ class RequireExplicitSavingOfSecurityContextRepositoryTest implements RewriteTes
                   void method() {
                       SecurityContextConfigurer<HttpSecurity> configurer = new SecurityContextConfigurer<>();
                       Customizer<SecurityContextConfigurer<HttpSecurity>> customizer = x -> configurer.requireExplicitSave(true);
-                      customizer.toString();
-                  }
-              }
-              """,
-            """
-
-              import org.springframework.security.config.Customizer;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer;
-
-              public class config2 {
-                  void method() {
-                      SecurityContextConfigurer<HttpSecurity> configurer = new SecurityContextConfigurer<>();
-                      Customizer<SecurityContextConfigurer<HttpSecurity>> customizer = x -> {};
                       customizer.toString();
                   }
               }

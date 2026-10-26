@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.security6.oauth2.client;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -40,10 +39,10 @@ class OAuth2LoginLambdaDslTest implements RewriteTest {
               "spring-security-core-5.5",
               "spring-security-config-5.5",
               "spring-security-web-5.5",
+              "spring-security-oauth2-client-5.8",
               "tomcat-embed"));
     }
 
-    @Disabled("Broke following introduction of test type table")
     @DocumentExample
     @Test
     void advanced() {

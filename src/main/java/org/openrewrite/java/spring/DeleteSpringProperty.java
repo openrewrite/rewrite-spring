@@ -23,26 +23,32 @@ import org.openrewrite.properties.DeleteProperty;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
-/**
- * A recipe to remove a property (or matching property group) from Spring configuration files. This recipe supports deleting properties from
- * ".properties" and YAML files.
- */
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class DeleteSpringProperty extends Recipe {
+public class DeleteSpringProperty extends ScanningRecipe<SpringConfigFiles> {
 
     @Option(displayName = "Property key",
             description = "The property key to delete. Supports glob expressions",
             example = "management.endpoint.configprops.*")
     String propertyKey;
 
-    String displayName = "Delete a spring configuration property";
+    String displayName = "Delete a Spring configuration property";
 
     String description = "Delete a spring configuration property from any configuration file that contains a matching key.";
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
+    public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
+        return new SpringConfigFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(SpringConfigFiles acc) {
+        return acc.getScanner();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
+        return Preconditions.check(new IsPossibleSpringConfigFile(acc), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
                 return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;

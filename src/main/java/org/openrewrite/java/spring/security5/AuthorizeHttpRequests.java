@@ -16,40 +16,72 @@
 package org.openrewrite.java.spring.security5;
 
 import lombok.Getter;
-import org.openrewrite.Cursor;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
-import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
+
+import static java.util.Collections.singletonList;
 
 public class AuthorizeHttpRequests extends Recipe {
-
-    private static final String MSG_ADD_COMMENT = "add-comment";
 
     private static final String AUTHORIZE_HTTP_REQUESTS = "authorizeHttpRequests";
 
     private static final MethodMatcher MATCH_AUTHORIZE_REQUESTS = new MethodMatcher(
             "org.springframework.security.config.annotation.web.builders.HttpSecurity authorizeRequests(..)");
 
-    private static final MethodMatcher MATCH_ACCESS_DECISION_MANAGER = new MethodMatcher(
-            "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry accessDecisionManager(..)");
+    private static final String ABSTRACT_INTERCEPT_URL_REGISTRY = "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer$AbstractInterceptUrlRegistry";
+    private static final String EXPRESSION_INTERCEPT_URL_REGISTRY = "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer$ExpressionInterceptUrlRegistry";
+    private static final String AUTHORIZED_URL = "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer$AuthorizedUrl";
+
+    private static final MethodMatcher MATCH_ACCESS = new MethodMatcher(AUTHORIZED_URL + " access(java.lang.String)", true);
+    private static final MethodMatcher MATCH_HAS_IP_ADDRESS = new MethodMatcher(AUTHORIZED_URL + " hasIpAddress(java.lang.String)", true);
+    private static final Pattern IP_ADDRESS = Pattern.compile("[0-9A-Fa-f:./]+");
+
+    private static final String WEB_EXPRESSION_AUTHORIZATION_MANAGER = "org.springframework.security.web.access.expression.WebExpressionAuthorizationManager";
+    private static final String AUTHORIZATION_MANAGER = "org.springframework.security.authorization.AuthorizationManager";
+
+    // Not offered by `AuthorizeHttpRequestsConfigurer`. It does have a `withObjectPostProcessor`, but post-processors
+    // written for the `FilterSecurityInterceptor` it replaces would silently stop being applied.
+    private static final List<MethodMatcher> EXPRESSION_ONLY_API = Arrays.asList(
+            new MethodMatcher(ABSTRACT_INTERCEPT_URL_REGISTRY + " accessDecisionManager(..)", true),
+            new MethodMatcher(AUTHORIZED_URL + " not()", true),
+            new MethodMatcher(EXPRESSION_INTERCEPT_URL_REGISTRY + " expressionHandler(..)"),
+            new MethodMatcher(EXPRESSION_INTERCEPT_URL_REGISTRY + " withObjectPostProcessor(..)"),
+            new MethodMatcher(ABSTRACT_INTERCEPT_URL_REGISTRY + " filterSecurityInterceptorOncePerRequest(..)", true));
 
     @Getter
     final String displayName = "Replace `HttpSecurity.authorizeRequests(...)` with `HttpSecurity.authorizeHttpRequests(...)` and `ExpressionUrlAuthorizationConfigurer`, `AbstractInterceptUrlConfigurer` with `AuthorizeHttpRequestsConfigurer`, etc";
 
     @Getter
-    final String description = "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses.";
+    final String description = "Replace `HttpSecurity.authorizeRequests(...)` deprecated in Spring Security 6 with `HttpSecurity.authorizeHttpRequests(...)` and all method calls on the resultant object respectively. Replace deprecated `AbstractInterceptUrlConfigurer` and its deprecated subclasses with `AuthorizeHttpRequestsConfigurer` and its corresponding subclasses. Literal `access(String)` and `hasIpAddress(String)` expressions are wrapped in a `WebExpressionAuthorizationManager`. Files using expression-based authorization that can't be converted faithfully, such as `not()`, `expressionHandler(..)` or a custom `accessDecisionManager(..)`, are left unchanged, as `authorizeRequests` is still available in Spring Security 6.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(MATCH_AUTHORIZE_REQUESTS), new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                // The configurer types are changed throughout the file, so migrate all of it or none. `authorizeRequests`
+                // is still available in Spring Security 6, so leaving it as is keeps the file compiling.
+                if (usesExpressionOnlyApi(cu)) {
+                    return cu;
+                }
+                return super.visitCompilationUnit(cu, ctx);
+            }
+
             private void changeTypesAfterVisit() {
                 doAfterVisit(new ChangeType(
                         "org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer.ExpressionInterceptUrlRegistry",
@@ -66,27 +98,16 @@ public class AuthorizeHttpRequests extends Recipe {
             }
 
             @Override
-            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J visited = super.visitMethodInvocation(method, ctx);
-                if (visited instanceof J.MethodInvocation) {
-                    J.MethodInvocation m = (J.MethodInvocation) visited;
-                    JavaType.Method methodType = method.getMethodType();
-                    if (methodType != null) {
-                        if (MATCH_AUTHORIZE_REQUESTS.matches(methodType)) {
-                            changeTypesAfterVisit();
-                            return processAuthorizeRequests(m);
-                        }
-                        if (MATCH_ACCESS_DECISION_MANAGER.matches(methodType)) {
-                            changeTypesAfterVisit();
-                            return processAccessDecisionManager(m, ctx);
-                        }
-                    }
-                    String commentToAdd = getCursor().pollMessage(MSG_ADD_COMMENT);
-                    if (commentToAdd != null) {
-                        return addTextCommentAfterSelect(m, commentToAdd);
-                    }
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
+                if (MATCH_AUTHORIZE_REQUESTS.matches(method)) {
+                    changeTypesAfterVisit();
+                    return processAuthorizeRequests(m);
                 }
-                return visited;
+                if (MATCH_ACCESS.matches(method) || MATCH_HAS_IP_ADDRESS.matches(method)) {
+                    return accessWithWebExpression(m, ctx);
+                }
+                return m;
             }
 
             private J.MethodInvocation processAuthorizeRequests(J.MethodInvocation m) {
@@ -102,38 +123,52 @@ public class AuthorizeHttpRequests extends Recipe {
                         .withMethodType(newMethodType);
             }
 
-            private J processAccessDecisionManager(J.MethodInvocation m, ExecutionContext ctx) {
-                StringBuilder commentText = new StringBuilder();
-                commentText.append("TODO: replace removed '.");
-                commentText.append(m.getSimpleName());
-                commentText.append('(');
-                commentText.append(String.join(", ", m.getArguments().stream().map(a -> a.print(getCursor())).toArray(String[]::new)));
-                commentText.append(");' with appropriate call to 'access(AuthorizationManager)' after antMatcher(...) call etc.");
+            private J.MethodInvocation accessWithWebExpression(J.MethodInvocation m, ExecutionContext ctx) {
+                boolean access = MATCH_ACCESS.matches(m);
+                String expression = access ? "#{any(java.lang.String)}" : "\"" + webExpression(m) + "\"";
+                maybeAddImport(WEB_EXPRESSION_AUTHORIZATION_MANAGER);
+                J.MethodInvocation applied = JavaTemplate.builder("access(new WebExpressionAuthorizationManager(" + expression + "))")
+                        .imports(WEB_EXPRESSION_AUTHORIZATION_MANAGER)
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-web-5.8"))
+                        .build()
+                        .apply(getCursor(), m.getCoordinates().replaceMethod(), access ? m.getArguments().toArray() : new Object[0]);
+                JavaType.Method newMethodType = m.getMethodType()
+                        .withName("access")
+                        .withParameterNames(singletonList("manager"))
+                        .withParameterTypes(singletonList(JavaType.ShallowClass.build(AUTHORIZATION_MANAGER)));
+                return applied
+                        .withSelect(m.getSelect())
+                        .withName(m.getName().withSimpleName("access").withType(newMethodType))
+                        .withMethodType(newMethodType);
+            }
+        });
+    }
 
-                List<Comment> newComments = new ArrayList<>(m.getComments());
-                newComments.addAll(m.getSelect().getComments());
-
-                Expression selectExpr = m.getSelect();
-                Cursor parentInvocationCursor = getCursor().getParent(2);
-                if (parentInvocationCursor == null || !(parentInvocationCursor.getValue() instanceof J.MethodInvocation)) {
-                    // top level method invocation
-                    newComments.add(new TextComment(true, commentText.toString(), newComments.isEmpty() ? "\n" + m.getPrefix().getIndent() : newComments.get(0).getSuffix(), Markers.EMPTY));
-                    selectExpr = selectExpr.withPrefix(m.getPrefix());
-                } else {
-                    // parent is method invocation
-                    parentInvocationCursor.putMessage(MSG_ADD_COMMENT, commentText.toString());
+    private static boolean usesExpressionOnlyApi(J.CompilationUnit cu) {
+        return new JavaIsoVisitor<AtomicBoolean>() {
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicBoolean found) {
+                if (EXPRESSION_ONLY_API.stream().anyMatch(matcher -> matcher.matches(method)) ||
+                    (MATCH_ACCESS.matches(method) || MATCH_HAS_IP_ADDRESS.matches(method)) && webExpression(method) == null) {
+                    found.set(true);
+                    return method;
                 }
-                return selectExpr.withComments(newComments);
+                return super.visitMethodInvocation(method, found);
             }
+        }.reduce(cu, new AtomicBoolean()).get();
+    }
 
-            private J.MethodInvocation addTextCommentAfterSelect(J.MethodInvocation m, String s) {
-                J.MethodInvocation.Padding padding = m.getPadding();
-                Space afterSelect = padding.getSelect().getAfter();
-                List<Comment> newComments = new ArrayList<>(afterSelect.getComments());
-                newComments.add(new TextComment(true, s, newComments.isEmpty() ? "\n" + afterSelect.getIndent() : newComments.get(0).getSuffix(), Markers.EMPTY));
-                JRightPadded<Expression> paddedSelect = padding.getSelect().withAfter(afterSelect.withComments(newComments));
-                return new J.MethodInvocation(m.getId(), m.getPrefix(), m.getMarkers(), paddedSelect, padding.getTypeParameters(), m.getName(), padding.getArguments(), m.getMethodType());
-            }
-        };
+    private static @Nullable String webExpression(J.MethodInvocation accessOrHasIpAddress) {
+        Expression argument = accessOrHasIpAddress.getArguments().get(0);
+        if (!(argument instanceof J.Literal) || !(((J.Literal) argument).getValue() instanceof String)) {
+            return null;
+        }
+        String value = (String) ((J.Literal) argument).getValue();
+        if (MATCH_ACCESS.matches(accessOrHasIpAddress)) {
+            // `WebExpressionAuthorizationManager` evaluates without the application context, so it can't
+            // resolve bean references or the `PermissionEvaluator` that `hasPermission` relies on.
+            return value.contains("@") || value.contains("hasPermission") ? null : value;
+        }
+        return IP_ADDRESS.matcher(value).matches() ? "hasIpAddress('" + value + "')" : null;
     }
 }

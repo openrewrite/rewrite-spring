@@ -25,6 +25,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.srcTestJava;
 import static org.openrewrite.kotlin.Assertions.kotlin;
 
 @SuppressWarnings({"MissortedModifiers"})
@@ -604,6 +605,63 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void keepAutowiredOnTestClassConstructor() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "junit-jupiter-api-5", "spring-beans-5", "spring-context-5", "spring-core-5")),
+          java("@org.springframework.stereotype.Component public class OrderService {}"),
+          srcTestJava(
+            //language=java
+            java(
+              """
+                import org.junit.jupiter.api.Test;
+                import org.springframework.beans.factory.annotation.Autowired;
+
+                class OrderServiceTest {
+                    private final OrderService orderService;
+
+                    @Autowired
+                    OrderServiceTest(OrderService orderService) {
+                        this.orderService = orderService;
+                    }
+
+                    @Test
+                    void placesOrder() {
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void keepAutowiredOnConstructorInTestSourceSet() {
+        rewriteRun(
+          java("@org.springframework.stereotype.Component public class OrderService {}"),
+          srcTestJava(
+            //language=java
+            java(
+              """
+                import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.stereotype.Component;
+
+                @Component
+                class OrderServiceFixture {
+                    private final OrderService orderService;
+
+                    @Autowired
+                    OrderServiceFixture(OrderService orderService) {
+                        this.orderService = orderService;
+                    }
+                }
+                """
+            )
           )
         );
     }

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring;
+package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.framework.MigrateHandlerInterceptor;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -32,7 +31,7 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-webmvc-5.3", "javax.servlet-api-4"))
+            "spring-webmvc-5.3", "spring-core-5", "javax.servlet-api-4"))
           .recipe(new MigrateHandlerInterceptor());
     }
 
@@ -83,6 +82,37 @@ class MigrateHandlerInterceptorTest implements RewriteTest {
 
                   @Override
                   public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepOtherImplementedInterfaces() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.core.Ordered;
+              import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+              class MyInterceptor extends HandlerInterceptorAdapter implements Ordered {
+                  @Override
+                  public int getOrder() {
+                      return 0;
+                  }
+              }
+              """,
+            """
+              import org.springframework.core.Ordered;
+              import org.springframework.web.servlet.HandlerInterceptor;
+
+              class MyInterceptor implements Ordered, HandlerInterceptor {
+                  @Override
+                  public int getOrder() {
+                      return 0;
                   }
               }
               """

@@ -29,6 +29,7 @@ import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 
 @EqualsAndHashCode(callSuper = false)
@@ -39,6 +40,7 @@ public class UseNewRequestMatchers extends Recipe {
     private static final MethodMatcher ANT_MATCHERS = new MethodMatcher(CLAZZ + " antMatchers(..)");
     private static final MethodMatcher MVC_MATCHERS = new MethodMatcher(CLAZZ + " mvcMatchers(..)", true);
     private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher(CLAZZ + " regexMatchers(..)");
+    private static final String REQUEST_MATCHER = "org.springframework.security.web.util.matcher.RequestMatcher";
     private static final MethodMatcher CSRF_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.CsrfConfigurer ignoringAntMatchers(..)");
 
     String displayName = "Use the new `requestMatchers` methods";
@@ -52,13 +54,17 @@ public class UseNewRequestMatchers extends Recipe {
         return Preconditions.check(Preconditions.or(
                         new UsesMethod<>(ANT_MATCHERS),
                         new UsesMethod<>(MVC_MATCHERS),
-                        new UsesMethod<>(REGEX_MATCHERS)),
+                        new UsesMethod<>(REGEX_MATCHERS),
+                        new UsesMethod<>(CSRF_MATCHERS)),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                        if (REGEX_MATCHERS.matches(mi) && mi.getSelect() != null) {
+                            return regexToRequestMatchers(mi, ctx);
+                        }
                         boolean isCsrfMatcher = CSRF_MATCHERS.matches(mi);
-                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || REGEX_MATCHERS.matches(mi) || isCsrfMatcher) &&
+                        if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || isCsrfMatcher) &&
                                 mi.getSelect() != null) {
                             String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
                             String replacementMethodName = isCsrfMatcher ? "ignoringRequestMatchers" : "requestMatchers";
@@ -72,6 +78,24 @@ public class UseNewRequestMatchers extends Recipe {
                                     .withMethodType(newMethodType);
                         }
                         return mi;
+                    }
+
+                    private J.MethodInvocation regexToRequestMatchers(J.MethodInvocation mi, ExecutionContext ctx) {
+                        RegexRequestMatchers matchers = RegexRequestMatchers.from(mi.getArguments());
+                        if (matchers == null || mi.getMethodType() == null) {
+                            return mi;
+                        }
+                        maybeAddImport(RegexRequestMatchers.REGEX_REQUEST_MATCHER);
+                        J.MethodInvocation applied = matchers.template("requestMatchers(%s)", ctx)
+                                .build().apply(getCursor(), mi.getCoordinates().replaceMethod(), matchers.getParameters());
+                        JavaType.Method newMethodType = mi.getMethodType()
+                                .withName("requestMatchers")
+                                .withParameterNames(singletonList("requestMatchers"))
+                                .withParameterTypes(singletonList(new JavaType.Array(null, JavaType.ShallowClass.build(REQUEST_MATCHER), null)));
+                        return applied
+                                .withSelect(mi.getSelect())
+                                .withName(mi.getName().withSimpleName("requestMatchers").withType(newMethodType))
+                                .withMethodType(newMethodType);
                     }
                 });
     }

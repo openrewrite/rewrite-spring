@@ -17,27 +17,23 @@ package org.openrewrite.java.spring.boot2.search;
 
 import lombok.Data;
 import lombok.Getter;
-import lombok.Value;
-import lombok.With;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TextComment;
-import org.openrewrite.marker.Marker;
-import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
-import org.openrewrite.properties.PropertiesVisitor;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.semver.DependencyMatcher;
+import org.openrewrite.trait.Comments;
 import org.openrewrite.xml.tree.Xml;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
@@ -45,16 +41,14 @@ import org.openrewrite.yaml.tree.Yaml;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
-/**
- * @author Alex Boyko
- */
-public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSchedulerPoolRecipe.JavaProjects> {
+public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegrationSchedulerPool.JavaProjects> {
 
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
     private static final Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
@@ -62,7 +56,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
     private static final String PROPERTY_KEY = "spring.task.scheduling.pool.size";
 
     private static final String PROPS_MIGRATION_MESSAGE = " TODO: Consider Scheduler thread pool size for Spring Integration";
-    private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server\n";
+    private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server";
     private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
 
     @Getter
@@ -75,8 +69,8 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
             "default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
 
     private boolean isApplicableMavenProject(Xml.Document maven) {
-        DependencyMatcher boot25Matcher = DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue();
-        DependencyMatcher integrationMatcher = DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue();
+        DependencyMatcher boot25Matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
+        DependencyMatcher integrationMatcher = requireNonNull(DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue());
 
         List<ResolvedDependency> deps = maven.getMarkers().findFirst(MavenResolutionResult.class)
                 .orElseThrow(() -> new IllegalStateException("Maven visitors should not be visiting XML documents without a Maven marker"))
@@ -87,16 +81,49 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
 
         for (ResolvedDependency d : deps) {
             if (!boot25) {
-                assert boot25Matcher != null;
                 boot25 = boot25Matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion());
             }
             if (!si) {
-                assert integrationMatcher != null;
                 si = integrationMatcher.matches(d.getGroupId(), d.getArtifactId());
             }
             if (boot25 && si) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private static boolean usesSpringBootApplication(JavaSourceFile javaSourceFile) {
+        return javaSourceFile.getTypesInUse().getTypesInUse().stream().anyMatch(t -> t instanceof
+                JavaType.Class && ((JavaType.Class) t).getFullyQualifiedName().equals(SPRING_BOOT_APPLICATION));
+    }
+
+    private static boolean hasMigrationComment(SourceFile source) {
+        if (source instanceof Properties.File) {
+            return ((Properties.File) source).getContent().stream().anyMatch(c ->
+                    c instanceof Properties.Comment && PROPS_MIGRATION_MESSAGE.equals(((Properties.Comment) c).getMessage()));
+        } else if (source instanceof Yaml.Documents) {
+            return new YamlIsoVisitor<AtomicBoolean>() {
+                @Override
+                public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, AtomicBoolean found) {
+                    if (entry.getPrefix().contains("#" + PROPS_MIGRATION_MESSAGE)) {
+                        found.set(true);
+                    }
+                    return super.visitMappingEntry(entry, found);
+                }
+            }.reduce(source, new AtomicBoolean()).get();
+        } else if (source instanceof JavaSourceFile && usesSpringBootApplication((JavaSourceFile) source)) {
+            // Look in every space, as a re-parse moves the comment from the annotation to the class declaration
+            return new JavaIsoVisitor<AtomicBoolean>() {
+                @Override
+                public Space visitSpace(Space space, Space.Location loc, AtomicBoolean found) {
+                    if (space.getComments().stream().anyMatch(c -> c instanceof TextComment &&
+                            GENERAL_MIGRATION_MESSAGE.trim().equals(((TextComment) c).getText().trim()))) {
+                        found.set(true);
+                    }
+                    return space;
+                }
+            }.reduce(source, new AtomicBoolean()).get();
         }
         return false;
     }
@@ -114,8 +141,8 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                 if (!(tree instanceof SourceFile)) {
                     return tree;
                 }
-                if (tree.getMarkers().findFirst(CommentAdded.class).isPresent()) {
-                    // already processed in a previous cycle
+                if (hasMigrationComment((SourceFile) tree)) {
+                    // already processed in a previous cycle or run
                     tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getProcessedProjects()::add);
                     tree.getMarkers().findFirst(JavaProject.class).ifPresent(acc.getApplicableProjects()::remove);
                     return tree;
@@ -146,8 +173,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                     }
                 } else if (source instanceof JavaSourceFile && acc.getSourceToCommentByProject().get(javaProject) == null) {
                     JavaSourceFile javaSourceFile = (JavaSourceFile) source;
-                    if (javaSourceFile.getTypesInUse().getTypesInUse().stream().anyMatch(t -> t instanceof
-                            JavaType.Class && ((JavaType.Class) t).getFullyQualifiedName().equals(SPRING_BOOT_APPLICATION))) {
+                    if (usesSpringBootApplication(javaSourceFile)) {
                         new JavaIsoVisitor<Integer>() {
                             final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
 
@@ -180,7 +206,8 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!(tree instanceof SourceFile) || !sourcesToComment.contains(((SourceFile) tree).getSourcePath())) {
+                if (!(tree instanceof SourceFile) || !sourcesToComment.contains(((SourceFile) tree).getSourcePath()) ||
+                        hasMigrationComment((SourceFile) tree)) {
                     return tree;
                 }
 
@@ -190,18 +217,7 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                     if (!foundEntries.isEmpty()) {
                         // There should only be one exact match!
                         Properties.Entry entry = foundEntries.iterator().next();
-                        source = (SourceFile) new PropertiesVisitor<ExecutionContext>() {
-                            @Override
-                            public Properties visitFile(Properties.File file, ExecutionContext ctx) {
-                                int idx = file.getContent().indexOf(entry);
-                                if (idx >= 0) {
-                                    Properties.Comment comment = new Properties.Comment(Tree.randomId(), "\n", Markers.EMPTY, Properties.Comment.Delimiter.HASH_TAG, PROPS_MIGRATION_MESSAGE);
-                                    return file.withContent(ListUtils.insertAll(file.getContent(), idx, singletonList(comment)));
-                                }
-                                throw new RuntimeException("Entry must be present in the properties file!");
-                            }
-                        }.visitNonNull(source, ctx);
-                        source = source.withMarkers(source.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
+                        source = Comments.of(new Cursor(new Cursor(getCursor(), source), entry)).comment(PROPS_MIGRATION_MESSAGE);
                     }
                 } else if (source instanceof Yaml) {
                     Set<Yaml.Block> foundEntriesValues = FindProperty.find((Yaml) source, PROPERTY_KEY, false);
@@ -210,29 +226,25 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
                             @Override
                             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                                 if (foundEntriesValues.contains(entry.getValue())) {
-                                    entry = entry.withPrefix("\n#" + PROPS_MIGRATION_MESSAGE + entry.getPrefix());
+                                    entry = Comments.of(getCursor()).comment(PROPS_MIGRATION_MESSAGE);
                                 }
                                 return super.visitMappingEntry(entry, ctx);
                             }
                         }.visitNonNull(source, ctx);
-                        source = source.withMarkers(source.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
                     }
                 } else if (source instanceof JavaSourceFile) {
                     JavaIsoVisitor<ExecutionContext> commentVisitor = new JavaIsoVisitor<ExecutionContext>() {
                         final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
 
                         @Override
-                        public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
-                            if (annotationMatcher.matches(annotation)) {
-                                annotation = annotation.withComments(ListUtils.concat(annotation.getComments(), new TextComment(false, GENERAL_MIGRATION_MESSAGE, "", Markers.EMPTY)));
+                        public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                            if (classDecl.getAllAnnotations().stream().anyMatch(annotationMatcher::matches)) {
+                                return Comments.of(getCursor()).comment(GENERAL_MIGRATION_MESSAGE, Comments.Placement.BEFORE, "\n" + classDecl.getPrefix().getIndent());
                             }
-                            return annotation;
+                            return super.visitClassDeclaration(classDecl, ctx);
                         }
                     };
-                    SourceFile after = (SourceFile) commentVisitor.visitNonNull(source, ctx);
-                    if (after != source) {
-                        source = after.withMarkers(after.getMarkers().addIfAbsent(new CommentAdded(Tree.randomId())));
-                    }
+                    source = (SourceFile) commentVisitor.visitNonNull(source, ctx);
                 }
                 return source;
             }
@@ -244,11 +256,5 @@ public class IntegrationSchedulerPoolRecipe extends ScanningRecipe<IntegrationSc
         Set<JavaProject> applicableProjects = new HashSet<>();
         Set<JavaProject> processedProjects = new HashSet<>();
         Map<JavaProject, Path> sourceToCommentByProject = new HashMap<>();
-    }
-
-    @Value
-    @With
-    static class CommentAdded implements Marker {
-        UUID id;
     }
 }

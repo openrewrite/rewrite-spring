@@ -164,7 +164,7 @@ examples:
         servlet:
           path: /tmp/my-server-path
     language: yaml
-- description: '`MarkAdditionalSpringConfigFilesTest#enablesChangeSpringPropertyKeyOnFileOutsideSourceSet`'
+- description: '`SpringConfigFilesTest#changesFileImportedByApplicationYaml`'
   parameters:
   - server.servlet-path
   - server.servlet.path
@@ -174,7 +174,14 @@ examples:
       server.servlet-path=/tmp/my-server-path
     after: |
       server.servlet.path=/tmp/my-server-path
+    path: config/extra.properties
     language: properties
+  - before: |
+      spring:
+        config:
+          import: optional:file:./config/extra.properties
+    path: application.yml
+    language: yaml
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.ChangeSpringPropertyValue
@@ -1176,7 +1183,6 @@ examples:
           public ThingOne thingOne() {
               return new ThingOne();
           }
-
           @Bean
           @Conditional(ConditionAaOrBb.class)
           public ThingTwo thingTwo() {
@@ -1898,6 +1904,26 @@ examples:
     language: xml
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot2.SpringBootProperties_2_0
+examples:
+- description: '`SpringBoot20ActuatorPathTest#preservesEndpointPrefixOnApplicationPort`'
+  sources:
+  - before: app
+    language: mavenProject
+  - before: management.context-path=/management
+    after: management.endpoints.web.base-path=/management
+    language: properties
+  - before: |
+      management:
+        context-path: /management
+    after: |
+      management:
+        endpoints:
+          web:
+            base-path: /management
+    language: yaml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot2.SpringBootProperties_2_4
 examples:
 - description: '`UpgradeSpringBoot2ConfigurationTest#activateOnProfileDoNotMoveActivate`'
@@ -2337,9 +2363,9 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
-recipeName: org.openrewrite.java.spring.boot2.search.IntegrationSchedulerPoolRecipe
+recipeName: org.openrewrite.java.spring.boot2.search.FindIntegrationSchedulerPool
 examples:
-- description: '`IntegrationSchedulerPoolRecipeTest#noSchedulerProperty`'
+- description: '`FindIntegrationSchedulerPoolTest#noSchedulerProperty`'
   sources:
   - before: |
       package demo;
@@ -2899,6 +2925,28 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot3.UpdatePrometheusPushgateway
+examples:
+- description: '`UpdatePrometheusPushgatewayTest#explicitVersionMovesToResolvableVersion`'
+  sources:
+  - before: |
+      <project>
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.example</groupId>
+        <artifactId>demo</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <dependencies>
+          <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_pushgateway</artifactId>
+            <version>0.16.0</version>
+          </dependency>
+        </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
 examples:
 - description: '`Boot3UpgradeTest#xmlBindMissing`'
@@ -3288,6 +3336,25 @@ examples:
       </project>
     path: pom.xml
     language: xml
+- description: '`MigrateHibernateEmailValidatorTest#migrateDirectEmailValidation`'
+  sources:
+  - before: |
+      import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
+
+      class A {
+          boolean valid(String value) {
+              return new EmailValidator().isValid(value, null);
+          }
+      }
+    after: |
+      import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
+
+      class A {
+          boolean valid(String value) {
+              return new EmailValidator().isValid(value, null);
+          }
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
@@ -3451,6 +3518,75 @@ examples:
     language: java
 ---
 type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.AddSpringBootBomForTransitiveDependencyManagement
+examples:
+- description: '`AddSpringBootBomForTransitiveDependencyManagementTest#overrideTransitiveBootManagementBeforeVendorBom`'
+  parameters:
+  - 4.0.0
+  sources:
+  - before: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>app</artifactId>
+          <version>1.0</version>
+          <dependencyManagement>
+              <!-- Preserve management comments too. -->
+              <dependencies>
+                  <!-- Keep the vendor BOM and its comment together. -->
+                  <dependency>
+                      <groupId>io.github.jhipster</groupId>
+                      <artifactId>jhipster-dependencies</artifactId>
+                      <version>3.7.1</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter</artifactId>
+              </dependency>
+          </dependencies>
+      </project>
+    after: |
+      <project>
+          <modelVersion>4.0.0</modelVersion>
+          <groupId>com.example</groupId>
+          <artifactId>app</artifactId>
+          <version>1.0</version>
+          <dependencyManagement>
+              <!-- Preserve management comments too. -->
+              <dependencies>
+                  <dependency>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-dependencies</artifactId>
+                      <version>4.0.0</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+                  <!-- Keep the vendor BOM and its comment together. -->
+                  <dependency>
+                      <groupId>io.github.jhipster</groupId>
+                      <artifactId>jhipster-dependencies</artifactId>
+                      <version>3.7.1</version>
+                      <type>pom</type>
+                      <scope>import</scope>
+                  </dependency>
+              </dependencies>
+          </dependencyManagement>
+          <dependencies>
+              <dependency>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter</artifactId>
+              </dependency>
+          </dependencies>
+      </project>
+    path: pom.xml
+    language: xml
+---
+type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
 examples:
 - description: '`MigrateJsonschema2PojoToSpringBoot4Test#migrateJacksonAndJakartaValidation`'
@@ -3498,6 +3634,33 @@ examples:
       </project>
     path: pom.xml
     language: xml
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.boot4.MigrateLiquibasePropertiesApi
+examples:
+- description: '`MigrateLiquibasePropertiesApiTest#renameLiteralLabelsAndPreserveUnrelatedContexts`'
+  sources:
+  - before: |
+      import liquibase.integration.spring.SpringLiquibase;
+
+      class Config {
+          String getContexts() { return "test"; }
+          void configure(SpringLiquibase liquibase) {
+              liquibase.setContexts(getContexts());
+              liquibase.setLabels("test");
+          }
+      }
+    after: |
+      import liquibase.integration.spring.SpringLiquibase;
+
+      class Config {
+          String getContexts() { return "test"; }
+          void configure(SpringLiquibase liquibase) {
+              liquibase.setContexts(getContexts());
+              liquibase.setLabelFilter("test");
+          }
+      }
+    language: java
 ---
 type: specs.openrewrite.org/v1beta/example
 recipeName: org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
@@ -3990,7 +4153,7 @@ examples:
 
       public class MyAuditorAware implements AuditorAware<String> {
           @Override
-          public Optional<java.lang.String> getCurrentAuditor() {
+          public Optional<String> getCurrentAuditor() {
               return Optional.ofNullable("admin");
           }
       }
@@ -6610,6 +6773,31 @@ examples:
                       .requestCache(requestCache));
 
               return http.build();
+          }
+      }
+    language: java
+---
+type: specs.openrewrite.org/v1beta/example
+recipeName: org.openrewrite.java.spring.security6.UpgradeSpringSecurity_6_4
+examples:
+- description: '`MigratePermissionsPolicyTest#keepsFollowingHeaderConfigurationOnHeadersConfigurer`'
+  sources:
+  - before: |
+      import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+      class Security {
+          void configure(HttpSecurity http) throws Exception {
+              http.headers(headers -> headers
+                  .permissionsPolicy().policy("camera=()").and()
+                  .frameOptions().sameOrigin());
+          }
+      }
+    after: |
+      import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+      class Security {
+          void configure(HttpSecurity http) throws Exception {
+              http.headers(headers -> headers
+                      .permissionsPolicyHeader(policy -> policy.policy("camera=()"))
+                      .frameOptions(options -> options.sameOrigin()));
           }
       }
     language: java

@@ -44,7 +44,6 @@ recipeList:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-dependencies
@@ -70,7 +69,6 @@ recipeList:
       groupId: org.mockito
       artifactId: "*"
       newVersion: 3.x
-      overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
   - org.openrewrite.java.dependencies.ChangeDependency:
@@ -150,8 +148,8 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
       newFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UnderTowEmbeddedServletContainerFactory
-      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UnderTowServletWebServerFactory
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName

@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -46,8 +47,7 @@ public class SpringRequestMapping implements Trait<J.Annotation> {
 
     public String getHttpMethod() {
         J.Annotation annotation = getCursor().getValue();
-        JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
-        assert type != null;
+        JavaType.FullyQualified type = requireNonNull(TypeUtils.asFullyQualified(annotation.getType()));
         return type.getClassName().startsWith("Request") ?
                 new Annotated(cursor).getDefaultAttribute("method").map(Literal::toString).orElse("GET") :
                 type.getClassName().replace("Mapping", "").toUpperCase();

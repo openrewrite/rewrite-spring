@@ -37,17 +37,6 @@ import java.util.Set;
 
 import static java.util.Collections.singleton;
 
-/**
- * Replace method declaration @RequestMapping annotations with the associated variant
- * as defined by the request method type (GET, POST, PUT, PATCH, DELETE)
- * <p>
- * (HEAD, OPTIONS, TRACE) methods do not have associated RequestMapping variant and are not converted
- * <ul>
- * <li> @RequestMapping() changes to @GetMapping
- * <li> @RequestMapping(method = POST) changes to @PostMapping
- * <li> @RequestMapping(method = { HEAD, GET }) No change
- * </ul>
- */
 public class NoRequestMappingAnnotation extends Recipe {
 
     @Getter
@@ -90,7 +79,7 @@ public class NoRequestMappingAnnotation extends Recipe {
                 // Remove the argument
                 if (methodArgumentHasSingleType(requestMethodArg.get())) {
                     if (a.getArguments() != null) {
-                        a = a.withArguments(ListUtils.map(a.getArguments(), arg -> requestMethodArg.get().equals(arg) ? null : arg));
+                        a = a.withArguments(ListUtils.filter(a.getArguments(), arg -> !requestMethodArg.get().equals(arg)));
                     }
                 }
 

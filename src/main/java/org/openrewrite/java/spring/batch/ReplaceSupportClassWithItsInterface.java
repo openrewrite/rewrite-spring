@@ -17,13 +17,12 @@ package org.openrewrite.java.spring.batch;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.spring.internal.AdapterSuperCallsToInterface;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -32,9 +31,9 @@ import org.openrewrite.java.tree.TypeUtils;
 @Value
 public class ReplaceSupportClassWithItsInterface extends Recipe {
 
-    String displayName = "Transform classes that extend a given Class to implement the given Interface instead";
+    String displayName = "Transform classes that extend a given class to implement the given interface instead";
 
-    String description = "As of spring-batch 5.x Listeners has default methods (made possible by a Java 8 baseline) and can be " +
+    String description = "As of Spring Batch 5.x listeners have default methods (made possible by a Java 8 baseline) and can be " +
             "implemented directly without the need for this adapter.";
 
     @Option(displayName = "Fully qualified class name",
@@ -79,27 +78,13 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                                     getCursor(),
                                     cd.getCoordinates().addImplementsClause()
                             );
-                    cd = (J.ClassDeclaration) new RemoveSuperStatementVisitor().visitNonNull(cd, ctx, getCursor().getParentOrThrow());
+                    cd = (J.ClassDeclaration) new AdapterSuperCallsToInterface(fullyQualifiedClassName, fullyQualifiedInterfaceName)
+                            .visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport(fullyQualifiedClassName);
                     maybeAddImport(fullyQualifiedInterfaceName);
                 }
                 return cd;
             }
         });
-    }
-
-    class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
-        final MethodMatcher wm = new MethodMatcher(fullyQualifiedClassName + " *(..)");
-
-        @Override
-        public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method,
-                                                                  ExecutionContext ctx) {
-            J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-            if (wm.matches(method.getMethodType())) {
-                //noinspection DataFlowIssue
-                return null;
-            }
-            return mi;
-        }
     }
 }

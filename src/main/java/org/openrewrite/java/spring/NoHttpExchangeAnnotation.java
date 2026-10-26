@@ -32,19 +32,6 @@ import org.openrewrite.java.tree.Space;
 
 import java.util.Optional;
 
-/**
- * Replace method declaration @HttpExchange annotations with the associated variant
- * as defined by the request method type (GET, POST, PUT, PATCH, DELETE)
- * <p>
- * <ul>
- * <li> @HttpExchange(method = "GET") changes to @GetExchange
- * <li> @HttpExchange(method = "POST") changes to @PostExchange
- * <li> @HttpExchange(method = "PATCH") changes to @PatchExchange
- * <li> @HttpExchange(method = "PUT") changes to @PutExchange
- * <li> @HttpExchange(method = "DELETE") changes to @DeleteExchange
- * </ul>
- */
-
 public class NoHttpExchangeAnnotation extends Recipe {
 
     private static final AnnotationMatcher HTTP_EXCHANGE_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.web.service.annotation.HttpExchange");

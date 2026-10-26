@@ -45,10 +45,10 @@ public class UnnecessarySpringExtension extends Recipe {
     private static final AnnotationMatcher EXTENDS_WITH_SPRING_EXACT_MATCHER = new AnnotationMatcher(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN, false);
 
     @Getter
-    final String displayName = "Remove `@SpringExtension`";
+    final String displayName = "Remove redundant `@ExtendWith(SpringExtension.class)`";
 
     @Getter
-    final String description = "`@SpringBootTest` and all test slice annotations already applies `@SpringExtension` as of Spring Boot 2.1.0.";
+    final String description = "`@SpringBootTest` and all test slice annotations already apply `@ExtendWith(SpringExtension.class)` as of Spring Boot 2.1.0.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -74,8 +74,8 @@ public class UnnecessarySpringExtension extends Recipe {
                                             maybeRemoveImport(EXTEND_WITH);
                                             maybeRemoveImport(SPRING_EXTENSION);
                                             J.Annotation newAnnotation = annotation.withArguments(singletonList(((J.NewArray) expression)
-                                                    .withInitializer(ListUtils.map(((J.NewArray) expression).getInitializer(),
-                                                            e -> TypeUtils.isAssignableTo("java.lang.Class<" + SPRING_EXTENSION + ">", e.getType()) ? null : e))));
+                                                    .withInitializer(ListUtils.filter(((J.NewArray) expression).getInitializer(),
+                                                            e -> !TypeUtils.isAssignableTo("java.lang.Class<" + SPRING_EXTENSION + ">", e.getType())))));
                                             return maybeAutoFormat(annotation, newAnnotation, ctx);
                                         }
                                     }

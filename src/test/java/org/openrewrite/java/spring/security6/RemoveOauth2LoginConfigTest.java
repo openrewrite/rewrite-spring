@@ -13,35 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.security5;
+package org.openrewrite.java.spring.security6;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.security6.UpdateRequestCache;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class UpdateRequestCacheTest implements RewriteTest {
-
+class RemoveOauth2LoginConfigTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UpdateRequestCache())
+        spec.recipe(new RemoveOauth2LoginConfig())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-context-5.3.+",
             "spring-beans-5.3.+",
             "spring-web-5.3.+",
             "spring-security-web-5.8.+",
-            "spring-security-config-5.8.+"));
+            "spring-security-config-5.8.+",
+            "spring-security-oauth2-client-5.8.+"));
     }
 
     @DocumentExample
     @Test
-    void security5Default() {
-        //language=java
+    void removeUnneededConfigFromEndOfCallChain() {
+        // language=java
         rewriteRun(
           java(
             """
@@ -50,26 +49,22 @@ class UpdateRequestCacheTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-              import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+
+              import java.util.HashSet;
+              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
-
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()
                               .requestMatchers("/login").permitAll()
                               .anyRequest().authenticated())
-                          .oauth2Login(oauth2 -> oauth2
-                              .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
-                          .requestCache((cache) -> cache
-                              .requestCache(requestCache));
-
+                          .oauth2Login()
+                          .userInfoEndpoint()
+                              .userAuthoritiesMapper(null);
                       return http.build();
                   }
               }
@@ -80,27 +75,19 @@ class UpdateRequestCacheTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-              import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+
+              import java.util.HashSet;
+              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
-
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-                      requestCache.setMatchingRequestParameterName("continue");
-
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()
                               .requestMatchers("/login").permitAll()
-                              .anyRequest().authenticated())
-                          .oauth2Login(oauth2 -> oauth2
-                              .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
-                          .requestCache((cache) -> cache
-                              .requestCache(requestCache));
-
+                              .anyRequest().authenticated());
                       return http.build();
                   }
               }
@@ -110,8 +97,8 @@ class UpdateRequestCacheTest implements RewriteTest {
     }
 
     @Test
-    void NoChangeIfContinueParameterHasBeenSet() {
-        //language=java
+    void noChangeIfMethodsAreInTheMiddleOfChain() {
+        // language=java
         rewriteRun(
           java(
             """
@@ -120,27 +107,22 @@ class UpdateRequestCacheTest implements RewriteTest {
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
               import org.springframework.security.web.SecurityFilterChain;
-              import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-              import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+
+              import java.util.HashSet;
+              import java.util.Set;
 
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
-
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-                      requestCache.setMatchingRequestParameterName("continue");
-
                       http.authorizeHttpRequests(authorize -> authorize
                               .requestMatchers("/public", "/public/*").permitAll()
                               .requestMatchers("/login").permitAll()
                               .anyRequest().authenticated())
-                          .oauth2Login(oauth2 -> oauth2
-                              .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
-                          .requestCache((cache) -> cache
-                                  .requestCache(requestCache));
-
+                          .oauth2Login()
+                          .userInfoEndpoint()
+                              .oidcUserService(null);
                       return http.build();
                   }
               }
@@ -150,8 +132,8 @@ class UpdateRequestCacheTest implements RewriteTest {
     }
 
     @Test
-    void HttpSessionRequestCacheConstructorAsParameter() {
-        //language=java
+    void removeUserInfoEndpointStatement() {
+        // language=java
         rewriteRun(
           java(
             """
@@ -159,26 +141,19 @@ class UpdateRequestCacheTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
               import org.springframework.security.web.SecurityFilterChain;
-              import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-              import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
-
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                    http.authorizeHttpRequests(authorize -> authorize
-                            .requestMatchers("/public", "/public/*").permitAll()
-                            .requestMatchers("/login").permitAll()
-                            .anyRequest().authenticated())
-                        .oauth2Login(oauth2 -> oauth2
-                            .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
-                        .requestCache((cache) -> cache
-                            .requestCache(new HttpSessionRequestCache()));
-
-                    return http.build();
+                      OAuth2LoginConfigurer<HttpSecurity> auth2 = http.oauth2Login();
+                      auth2.userInfoEndpoint()
+                          .userAuthoritiesMapper(null);
+                      auth2.init(null);
+                      return http.build();
                   }
               }
               """,
@@ -187,26 +162,92 @@ class UpdateRequestCacheTest implements RewriteTest {
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
               import org.springframework.security.web.SecurityFilterChain;
-              import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-              import org.springframework.security.web.savedrequest.NullRequestCache;
 
               @Configuration
               @EnableWebSecurity
               public class SecurityConfig {
-
                   @Bean
                   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                    http.authorizeHttpRequests(authorize -> authorize
-                            .requestMatchers("/public", "/public/*").permitAll()
-                            .requestMatchers("/login").permitAll()
-                            .anyRequest().authenticated())
-                        .oauth2Login(oauth2 -> oauth2
-                            .failureHandler(new SimpleUrlAuthenticationFailureHandler("/auth-error")))
-                        .requestCache((cache) -> cache
-                            .requestCache(new NullRequestCache()));
+                      OAuth2LoginConfigurer<HttpSecurity> auth2 = http.oauth2Login();
+                      auth2.init(null);
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
 
-                    return http.build();
+    @Test
+    void removeUserAuthoritiesMapperStatement() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      OAuth2LoginConfigurer<HttpSecurity>.UserInfoEndpointConfig x = http.authorizeHttpRequests(authorize -> authorize
+                              .requestMatchers("/public", "/public/*").permitAll()
+                              .requestMatchers("/login").permitAll()
+                              .anyRequest().authenticated())
+                          .oauth2Login()
+                          .userInfoEndpoint();
+                      x.userAuthoritiesMapper(null);
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              @EnableWebSecurity
+              public class SecurityConfig {
+                  @Bean
+                  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      OAuth2LoginConfigurer<HttpSecurity>.UserInfoEndpointConfig x = http.authorizeHttpRequests(authorize -> authorize
+                              .requestMatchers("/public", "/public/*").permitAll()
+                              .requestMatchers("/login").permitAll()
+                              .anyRequest().authenticated())
+                          .oauth2Login()
+                          .userInfoEndpoint();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeForReturn() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
+
+              public class config2 {
+                  OAuth2LoginConfigurer<HttpSecurity> get(HttpSecurity http) throws Exception {
+                      return http.oauth2Login();
                   }
               }
               """

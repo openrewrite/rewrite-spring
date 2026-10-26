@@ -25,7 +25,7 @@ import org.openrewrite.yaml.tree.Yaml;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class CommentOutSpringPropertyKey extends Recipe {
+public class CommentOutSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
     String displayName = "Comment out Spring properties";
 
@@ -48,11 +48,21 @@ public class CommentOutSpringPropertyKey extends Recipe {
     Boolean commentOutProperty;
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
+        return new SpringConfigFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(SpringConfigFiles acc) {
+        return acc.getScanner();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
         boolean commentOut = !Boolean.FALSE.equals(commentOutProperty);
         Recipe changeProperties = new org.openrewrite.properties.AddPropertyComment(propertyKey, comment, commentOut);
         Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment, commentOut);
-        return Preconditions.check(new IsPossibleSpringConfigFile(), new TreeVisitor<Tree, ExecutionContext>() {
+        return Preconditions.check(new IsPossibleSpringConfigFile(acc), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree preVisit(@NonNull Tree tree, ExecutionContext ctx) {
                 stopAfterPreVisit();

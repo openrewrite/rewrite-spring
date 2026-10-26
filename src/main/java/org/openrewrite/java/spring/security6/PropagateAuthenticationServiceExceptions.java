@@ -38,7 +38,7 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
 
     @Getter
     final String description = "Remove any calls matching `AuthenticationEntryPointFailureHandler.setRethrowAuthenticationServiceException(true)`. " +
-            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
+            "See the corresponding [Spring Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#_propagate_authenticationserviceexceptions) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -47,7 +47,8 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
             @Override
             public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
-                if (method.getSelect() != null && method.getArguments().size() == 1 && MATCHER.matches(method)) {
+                if (method.getSelect() != null && method.getArguments().size() == 1 && MATCHER.matches(method) &&
+                        getCursor().getParentTreeCursor().getValue() instanceof J.Block) {
                     Expression arg0 = method.getArguments().get(0);
                     if (arg0 instanceof J.Literal && Objects.equals(((J.Literal) arg0).getValue(), Boolean.TRUE)) {
                         //noinspection DataFlowIssue

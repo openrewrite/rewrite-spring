@@ -44,7 +44,6 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 4.0.x
-      overrideManagedVersion: false
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
@@ -57,37 +56,30 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2022.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-circuitbreaker-*
       newVersion: 3.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-circuitbreaker-*
       newVersion: 3.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-kubernetes-*
       newVersion: 3.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-kubernetes-*
       newVersion: 3.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-task-*
       newVersion: 3.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-task-*
       newVersion: 3.0.x
-      overrideManagedVersion: false
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -127,11 +119,13 @@ recipeList:
       oldArtifactId: spring-cloud-sleuth-autoconfigure
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-actuator-autoconfigure
+      newVersion: 3.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-otel-autoconfigure
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-actuator-autoconfigure
+      newVersion: 3.0.x
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.cloud
       oldArtifactId: spring-cloud-sleuth-zipkin

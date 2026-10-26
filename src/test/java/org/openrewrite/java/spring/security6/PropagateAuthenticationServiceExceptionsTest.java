@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.security5;
+package org.openrewrite.java.spring.security6;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.security6.PropagateAuthenticationServiceExceptions;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -62,6 +61,24 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
                   void m() {
                       AuthenticationEntryPointFailureHandler handler = null;
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepCallAsExpressionLambdaBody() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  Consumer<AuthenticationEntryPointFailureHandler> c = h -> h.setRethrowAuthenticationServiceException(true);
               }
               """
           )

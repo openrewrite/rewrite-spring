@@ -21,14 +21,13 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
+import org.openrewrite.trait.Comments;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,7 +40,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
     private static final MethodMatcher SET_DEFAULT_SOCKET_CONFIG = new MethodMatcher(POOLING_CONNECTION_MANAGER + " setDefaultSocketConfig(org.apache.hc.core5.http.io.SocketConfig)");
 
     @Getter
-    final String displayName = "Migrate `setReadTimeout(java.lang.int)` to SocketConfig `setSoTimeout(..)`";
+    final String displayName = "Migrate `setReadTimeout(int)` to SocketConfig `setSoTimeout(..)`";
 
     @Getter
     final String description = "`setReadTimeout(..)` was removed in Spring Framework 6.1.";
@@ -65,11 +64,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
 
                             String message = " Manual migration to `SocketConfig.Builder.setSoTimeout(Timeout)` necessary; see: " +
                                     "https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)";
-                            if (method.getComments().stream().noneMatch(c -> c.printComment(getCursor()).contains(message))) {
-                                return method.withPrefix(method.getPrefix().withComments(ListUtils.concat(method.getComments(),
-                                        new TextComment(false, message, "\n" + method.getPrefix().getIndent(), Markers.EMPTY)
-                                )));
-                            }
+                            return Comments.of(getCursor()).comment(message, Comments.Placement.BEFORE, "\n" + method.getPrefix().getIndent());
                         } else if (SET_DEFAULT_SOCKET_CONFIG.matches(method)) {
                             incompatibilityFound.set(true);
                         }

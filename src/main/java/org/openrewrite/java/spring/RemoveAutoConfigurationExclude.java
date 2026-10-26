@@ -103,8 +103,8 @@ public class RemoveAutoConfigurationExclude extends Recipe {
                             if (padded.isEmpty()) {
                                 return original;
                             }
-                            List<JRightPadded<Expression>> newPadded = ListUtils.map(padded,
-                                    rp -> matches.test(rp.getElement()) ? null : rp);
+                            List<JRightPadded<Expression>> newPadded = ListUtils.filter(padded,
+                                    rp -> !matches.test(rp.getElement()));
                             //noinspection DataFlowIssue
                             if (newPadded.isEmpty()) {
                                 return null;

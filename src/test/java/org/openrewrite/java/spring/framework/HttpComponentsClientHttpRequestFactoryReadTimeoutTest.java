@@ -415,6 +415,40 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
     }
 
     @Test
+    void keepBlankLineAboveComment() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class RestContextInitializer {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+
+                      clientHttpRequestFactory.setReadTimeout(30000);
+                      return clientHttpRequestFactory;
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class RestContextInitializer {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+
+                      // Manual migration to `SocketConfig.Builder.setSoTimeout(Timeout)` necessary; see: https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)
+                      clientHttpRequestFactory.setReadTimeout(30000);
+                      return clientHttpRequestFactory;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotDuplicateSetDefaultSocketConfig() {
         rewriteRun(
           //language=java

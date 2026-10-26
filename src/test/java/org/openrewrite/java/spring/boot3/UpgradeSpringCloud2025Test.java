@@ -101,4 +101,76 @@ class UpgradeSpringCloud2025Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void renameWebMvcProxyProperty() {
+        rewriteRun(
+          mavenProject("project",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>fooservice</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-gateway-mvc</artifactId>
+                            <version>4.2.4</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("spring-cloud-gateway-proxyexchange-webmvc")
+                .actual())
+            ),
+            srcMainResources(
+              //language=properties
+              properties(
+                "spring.cloud.gateway.proxy.auto-forward=foo",
+                "spring.cloud.gateway.proxy-exchange.webmvc.auto-forward=foo",
+                spec -> spec.path("application.properties")
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void renameProxyPropertyWithProxyExchangeWebMvc() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.cloud2025.SpringCloudGatewayProxyWebMvcProperties"),
+          mavenProject("project",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>fooservice</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-gateway-proxyexchange-webmvc</artifactId>
+                            <version>4.3.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainResources(
+              //language=properties
+              properties(
+                "spring.cloud.gateway.proxy.auto-forward=foo",
+                "spring.cloud.gateway.proxy-exchange.webmvc.auto-forward=foo",
+                spec -> spec.path("application.properties")
+              )
+            )
+          )
+        );
+    }
 }

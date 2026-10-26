@@ -30,7 +30,6 @@ recipeList:
       groupId: org.springframework.batch
       artifactId: "*"
       newVersion: 6.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.batch.item
       newPackageName: org.springframework.batch.infrastructure.item
@@ -169,7 +168,7 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.batch.core.launch.support.RunIdIncrementer
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.RunIdIncrementer
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.batch.core.job.launch.support.DataFieldMaxValueJobParametersIncrementer
+      oldFullyQualifiedTypeName: org.springframework.batch.core.launch.support.DataFieldMaxValueJobParametersIncrementer
       newFullyQualifiedTypeName: org.springframework.batch.core.job.parameters.DataFieldMaxValueJobParametersIncrementer
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.Step

@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.gradle.marker.GradleDependencyConfiguration;
@@ -27,6 +28,7 @@ import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.yaml.CoalescePropertiesVisitor;
 import org.openrewrite.yaml.MergeYamlVisitor;
+import org.openrewrite.yaml.YamlParser;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
@@ -68,8 +70,11 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                     Matcher matcher = CONFIG_FILE.matcher(sourcePath.getFileName().toString());
                     if (matcher.matches()) {
                         Path applicationStem = sourcePath.resolveSibling("application" + (matcher.group(2) == null ? "" : matcher.group(2)));
-                        Map<Path, SourceFile> yamls = "bootstrap".equals(matcher.group(1)) ? acc.getBootstrapYamls() : acc.getApplicationYamls();
-                        yamls.putIfAbsent(applicationStem, source);
+                        boolean bootstrap = "bootstrap".equals(matcher.group(1));
+                        boolean yaml = source instanceof Yaml.Documents;
+                        Map<Path, ConfigFile> yamls = bootstrap ? acc.getBootstrapYamls() : acc.getApplicationYamls();
+                        yamls.computeIfAbsent(applicationStem, stem -> new ConfigFile(sourcePath, yaml, bootstrap && yaml ?
+                                source.printAll(new PrintOutputCapture<>(0, PrintOutputCapture.MarkerPrinter.SANITIZED)) : null));
                     }
                 }
                 if (!acc.isSpringCloudBootstrapPresent()) {
@@ -98,21 +103,22 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
             return TreeVisitor.noop();
         }
 
-        Map<Path, Yaml.Documents> bootstrapByApplicationPath = new HashMap<>();
+        Map<Path, String> bootstrapByApplicationPath = new HashMap<>();
         Set<Path> bootstrapPathsToDelete = new HashSet<>();
         Map<Path, Path> bootstrapPathsToRename = new HashMap<>();
-        for (Map.Entry<Path, SourceFile> entry : acc.getBootstrapYamls().entrySet()) {
+        for (Map.Entry<Path, ConfigFile> entry : acc.getBootstrapYamls().entrySet()) {
             Path applicationStem = entry.getKey();
-            SourceFile bootstrap = entry.getValue();
-            if (!(bootstrap instanceof Yaml.Documents)) {
+            ConfigFile bootstrap = entry.getValue();
+            String bootstrapYaml = bootstrap.getText();
+            if (bootstrapYaml == null) {
                 continue;
             }
-            SourceFile application = acc.getApplicationYamls().get(applicationStem);
+            ConfigFile application = acc.getApplicationYamls().get(applicationStem);
             if (application == null) {
                 String extension = PathUtils.matchesGlob(bootstrap.getSourcePath(), "**/*.yaml") ? ".yaml" : ".yml";
                 bootstrapPathsToRename.put(bootstrap.getSourcePath(), applicationStem.resolveSibling(applicationStem.getFileName() + extension));
-            } else if (application instanceof Yaml.Documents) {
-                bootstrapByApplicationPath.put(application.getSourcePath(), (Yaml.Documents) bootstrap);
+            } else if (application.isYaml()) {
+                bootstrapByApplicationPath.put(application.getSourcePath(), bootstrapYaml);
                 bootstrapPathsToDelete.add(bootstrap.getSourcePath());
             }
         }
@@ -136,9 +142,9 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
                 if (renamedPath != null) {
                     return source.withSourcePath(renamedPath);
                 }
-                Yaml.Documents bootstrap = bootstrapByApplicationPath.get(sourcePath);
+                String bootstrap = bootstrapByApplicationPath.get(sourcePath);
                 if (bootstrap != null && source instanceof Yaml.Documents) {
-                    source = mergeBootstrapInto((Yaml.Documents) source, bootstrap, ctx);
+                    source = mergeBootstrapInto((Yaml.Documents) source, parse(bootstrap), ctx);
                 }
                 return source;
             }
@@ -146,10 +152,8 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
     }
 
     private static SourceFile mergeBootstrapInto(Yaml.Documents application, Yaml.Documents bootstrap, ExecutionContext ctx) {
-        Yaml.Documents a = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(application, ctx);
-        Yaml.Documents b = (Yaml.Documents) new ExpandProperties(null).getVisitor().visit(bootstrap, ctx);
-        assert a != null;
-        assert b != null;
+        Yaml.Documents a = (Yaml.Documents) new ExpandProperties(null).getVisitor().visitNonNull(application, ctx);
+        Yaml.Documents b = (Yaml.Documents) new ExpandProperties(null).getVisitor().visitNonNull(bootstrap, ctx);
 
         List<Yaml.Document> bootstrapBaseDocuments = new ArrayList<>();
         List<Yaml.Document> bootstrapProfileDocuments = new ArrayList<>();
@@ -170,7 +174,7 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
             }
             Yaml.Document mergedDocument = doc;
             for (Yaml.Document d : bootstrapBaseDocuments) {
-                Yaml.Document mergedDocumentOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(mergedDocument.getBlock(), d.getBlock(), true, null, null, null).visit(mergedDocument, 0, new Cursor(new Cursor(null, a), mergedDocument));
+                Yaml.Document mergedDocumentOrNull = (Yaml.Document) new MergeYamlVisitor<Integer>(mergedDocument.getBlock(), d.getBlock(), true, null, null, null).visit(mergedDocument, 0, new Cursor(null, a));
                 if (mergedDocumentOrNull != null) {
                     mergedDocument = mergedDocumentOrNull;
                 }
@@ -195,7 +199,17 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
         }
 
         //noinspection unchecked
-        return (SourceFile) new CoalescePropertiesVisitor<Integer>(null, null).visit(a.withDocuments(documents), 0);
+        SourceFile coalesced = (SourceFile) new CoalescePropertiesVisitor<Integer>(null, null).visitNonNull(a.withDocuments(documents), 0);
+        // Expanding and coalescing the properties copies an application file that gains nothing from the merge
+        return coalesced.printAll().equals(application.printAll()) ? application : coalesced;
+    }
+
+    private static Yaml.Documents parse(String yaml) {
+        return YamlParser.builder().build().parse(yaml)
+                .findFirst()
+                .filter(Yaml.Documents.class::isInstance)
+                .map(Yaml.Documents.class::cast)
+                .orElseThrow(() -> new IllegalArgumentException("Could not parse as YAML"));
     }
 
     private static Yaml.Block startOnNewLine(Yaml.Block block) {
@@ -220,8 +234,21 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
 
     @Data
     static class Accumulator {
-        final Map<Path, SourceFile> bootstrapYamls = new LinkedHashMap<>();
-        final Map<Path, SourceFile> applicationYamls = new LinkedHashMap<>();
+        final Map<Path, ConfigFile> bootstrapYamls = new LinkedHashMap<>();
+        final Map<Path, ConfigFile> applicationYamls = new LinkedHashMap<>();
         boolean springCloudBootstrapPresent;
+    }
+
+    /**
+     * The first bootstrap or application file scanned for an application file stem: its path, whether it is YAML,
+     * and the printed YAML of a bootstrap file to merge.
+     */
+    @Value
+    static class ConfigFile {
+        Path sourcePath;
+        boolean yaml;
+
+        @Nullable
+        String text;
     }
 }

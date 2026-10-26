@@ -28,7 +28,9 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.text.RuleBasedCollator;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -53,9 +55,9 @@ public class OutputCaptureExtension extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
 
-                c = c.withBody(c.getBody().withStatements(ListUtils.map(c.getBody().getStatements(), s -> {
+                c = c.withBody(c.getBody().withStatements(ListUtils.filter(c.getBody().getStatements(), s -> {
                     if (!(s instanceof J.VariableDeclarations)) {
-                        return s;
+                        return true;
                     }
 
                     J.VariableDeclarations field = (J.VariableDeclarations) s;
@@ -68,7 +70,7 @@ public class OutputCaptureExtension extends Recipe {
                         //Add the CapturedOutput parameter to any method that has a method call to OutputCapture
                         doAfterVisit(new AddCapturedOutputParameter(fieldName));
 
-                        //Convert any method invocations from OutputCaptureRule.expect(Matcher) -> Matcher.match(CapturedOutput.getAll())
+                        //Move OutputCaptureRule.expect(Matcher) to assertThat(CapturedOutput.getAll(), Matcher) at the end of the method
                         doAfterVisit(new ConvertExpectMethods(fieldName));
 
                         //Covert any remaining method calls from OutputCapture -> CapturedOutput
@@ -77,15 +79,13 @@ public class OutputCaptureExtension extends Recipe {
                         doAfterVisit(new ChangeMethodTargetToVariable("org.springframework.boot.test.system.OutputCaptureRule *(..)",
                                 fieldName, "org.springframework.boot.test.system.CapturedOutput", false).getVisitor());
 
-                        getCursor().putMessageOnFirstEnclosing(J.ClassDeclaration.class, "addOutputCaptureExtension", true);
-
                         maybeRemoveImport("org.springframework.boot.test.system.OutputCaptureRule");
                         maybeRemoveImport("org.springframework.boot.test.rule.OutputCapture");
                         maybeRemoveImport("org.junit.Rule");
 
-                        return null;
+                        return false;
                     }
-                    return s;
+                    return true;
                 })));
                 updateCursor(c);
 
@@ -127,18 +127,42 @@ public class OutputCaptureExtension extends Recipe {
         private final String variableName;
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-            if (!OUTPUT_CAPTURE_MATCHER.matches(m) && !OUTPUT_CAPTURE_RULE_MATCHER.matches(m)) {
+        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
+            if (m.getBody() == null) {
                 return m;
             }
 
-            JavaTemplate matchesTemplate = JavaTemplate.builder("#{any()}.matches(#{}.getAll())")
+            List<Expression> matchers = new ArrayList<>();
+            m = m.withBody(m.getBody().withStatements(ListUtils.filter(m.getBody().getStatements(), s -> {
+                if (s instanceof J.MethodInvocation && isExpect((J.MethodInvocation) s)) {
+                    matchers.add(((J.MethodInvocation) s).getArguments().get(0));
+                    return false;
+                }
+                return true;
+            })));
+            if (matchers.isEmpty()) {
+                return m;
+            }
+
+            JavaTemplate assertThat = JavaTemplate.builder("assertThat(#{}.getAll(), #{any(org.hamcrest.Matcher)});")
                     .contextSensitive()
+                    .staticImports("org.hamcrest.MatcherAssert.assertThat")
                     .javaParser(JavaParser.fromJavaVersion()
-                            .classpathFromResources(ctx, "spring-boot-test-2.*", "junit-jupiter-api-5.*"))
+                            .classpathFromResources(ctx, "spring-boot-test-2.*")
+                            .dependsOn(
+                                    "package org.hamcrest; public interface Matcher<T> {}",
+                                    "package org.hamcrest; public class MatcherAssert { public static <T> void assertThat(T actual, Matcher<? super T> matcher) {} }"))
                     .build();
-            return matchesTemplate.apply(getCursor(), m.getCoordinates().replace(), m.getArguments().get(0), variableName);
+            for (Expression matcher : matchers) {
+                m = assertThat.apply(updateCursor(m), m.getBody().getCoordinates().lastStatement(), variableName, matcher);
+            }
+            maybeAddImport("org.hamcrest.MatcherAssert", "assertThat");
+            return m;
+        }
+
+        private static boolean isExpect(J.MethodInvocation method) {
+            return OUTPUT_CAPTURE_MATCHER.matches(method) || OUTPUT_CAPTURE_RULE_MATCHER.matches(method);
         }
     }
 

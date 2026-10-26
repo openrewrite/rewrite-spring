@@ -27,15 +27,12 @@ import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
-/**
- * @author Alex Boyko
- */
 @SuppressWarnings("UnusedProperty")
-class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
+class FindIntegrationSchedulerPoolTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new IntegrationSchedulerPoolRecipe())
+        spec.recipe(new FindIntegrationSchedulerPool())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.4", "spring-boot-autoconfigure-2.3"));
     }
 
@@ -332,6 +329,7 @@ class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
                   package demo;
                   import org.springframework.boot.SpringApplication;
                   import org.springframework.boot.autoconfigure.SpringBootApplication;
+
                   // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
                   @SpringBootApplication
                   public class ExampleApplication {
@@ -424,13 +422,67 @@ class IntegrationSchedulerPoolRecipeTest implements RewriteTest {
                           scheduling:
                             foo: bar
                             pool:
-                      # TODO: Consider Scheduler thread pool size for Spring Integration
+                              # TODO: Consider Scheduler thread pool size for Spring Integration
                               size: 6
                             bar: foo
                         application:
                           name: demo
                   """,
                 spec -> spec.path("application.yaml")
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void commentAddedByPreviousRun() {
+        rewriteRun(
+          mavenProject("sample",
+            pomXml(
+              //language=xml
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-integration</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  package demo;
+
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
+                  @SpringBootApplication
+                  public class ExampleApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(ExampleApplication.class, args);
+                      }
+                  }
+                  """
               )
             )
           )

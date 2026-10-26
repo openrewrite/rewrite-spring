@@ -44,7 +44,7 @@ public class UseSha256InRememberMe extends Recipe {
 
     @Getter
     final String description = "As of Spring Security 6.0 the SHA-256 algorithm is the default for the encoding and matching algorithm used by `TokenBasedRememberMeServices` and does thus no longer need to be explicitly configured. " +
-            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
+            "See the corresponding [Spring Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/authentication.html#servlet-opt-in-sha256-rememberme) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -54,6 +54,7 @@ public class UseSha256InRememberMe extends Recipe {
                 newClass = super.visitNewClass(newClass, ctx);
                 if (newClass.getArguments().size() == 3 && REMEMBER_ME_SERVICES_CONSTRUCTOR_MATCHER.matches(newClass)) {
                     if (isSha256Algorithm(newClass.getArguments().get(2), getCursor())) {
+                        maybeRemoveImport(REMEMBER_ME_TOKEN_ALGORITHM_TYPE);
                         return newClass.withArguments(new ArrayList<>(newClass.getArguments().subList(0, 2)));
                     }
                 }
@@ -65,8 +66,10 @@ public class UseSha256InRememberMe extends Recipe {
             public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
                 if (method.getSelect() != null && method.getArguments().size() == 1 &&
-                        REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method)) {
+                        REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER.matches(method) &&
+                        getCursor().getParentTreeCursor().getValue() instanceof J.Block) {
                     if (isSha256Algorithm(method.getArguments().get(0), getCursor())) {
+                        maybeRemoveImport(REMEMBER_ME_TOKEN_ALGORITHM_TYPE);
                         return null;
                     }
                 }

@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openrewrite.java.spring.security5;
+package org.openrewrite.java.spring.security6;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.spring.security6.UseSha256InRememberMe;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -128,7 +127,6 @@ class UseSha256InRememberMeTest implements RewriteTest {
             """
               import org.springframework.security.core.userdetails.UserDetailsService;
               import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
 
               class T {
                   void qualifiedFieldAccess(UserDetailsService userDetailsService) {
@@ -160,12 +158,30 @@ class UseSha256InRememberMeTest implements RewriteTest {
             """
               import org.springframework.security.core.userdetails.UserDetailsService;
               import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
 
               class T {
                   void qualifiedFieldAccess(UserDetailsService userDetailsService) {
                       TokenBasedRememberMeServices rememberMe = new TokenBasedRememberMeServices("key", userDetailsService);
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepMatchingAlgorithmAsExpressionLambdaBody() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+              import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  Consumer<TokenBasedRememberMeServices> c = s -> s.setMatchingAlgorithm(RememberMeTokenAlgorithm.SHA256);
               }
               """
           )

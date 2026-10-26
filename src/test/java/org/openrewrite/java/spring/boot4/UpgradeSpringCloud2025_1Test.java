@@ -75,7 +75,6 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
     @Test
     void migrateSpringCloudStarterParentToBootParentWithBom() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("project",
             pomXml(
               //language=xml

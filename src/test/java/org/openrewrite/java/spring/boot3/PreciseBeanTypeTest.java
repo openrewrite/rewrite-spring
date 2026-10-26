@@ -19,9 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 @SuppressWarnings("rawtypes")
@@ -145,6 +147,45 @@ class PreciseBeanTypeTest implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void arrayType() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.List;
+              import java.util.ArrayList;
+
+              class A {
+                  @Bean
+                  List[] bean1() {
+                      return new ArrayList[0];
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import java.util.ArrayList;
+
+              class A {
+                  @Bean
+                  ArrayList[] bean1() {
+                      return new ArrayList[0];
+                  }
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                var md = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                var returnType = (J.ArrayType) md.getReturnTypeExpression();
+                assertThat(returnType.getType()).hasToString("java.util.ArrayList[]");
+                assertThat(returnType.getElementType().getType()).hasToString("java.util.ArrayList");
+                assertThat(md.getMethodType().getReturnType()).isSameAs(returnType.getType());
+            })
           )
         );
     }

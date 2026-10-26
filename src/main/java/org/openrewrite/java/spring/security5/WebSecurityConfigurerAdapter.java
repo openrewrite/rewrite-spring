@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.security5;
 
 import lombok.Getter;
+import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -29,14 +30,11 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.marker.SearchResult;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
-/**
- * @author Alex Boyko
- */
 public class WebSecurityConfigurerAdapter extends Recipe {
 
     private static final Collection<J.Modifier.Type> EXPLICIT_ACCESS_LEVELS = Arrays.asList(J.Modifier.Type.Public,
@@ -54,6 +52,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final String FQN_AUTH_MANAGER_BUILDER = "org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder";
     private static final String FQN_USER = "org.springframework.security.core.userdetails.User";
     private static final String FQN_USER_DETAILS_BUILDER = "org.springframework.security.core.userdetails.User$UserBuilder";
+    private static final String FQN_IN_MEMORY_USER_BUILDER = "org.springframework.security.config.annotation.authentication.configurers.provisioning.UserDetailsManagerConfigurer$UserDetailsBuilder";
     private static final String FQN_USER_DETAILS = "org.springframework.security.core.userdetails.UserDetails";
     private static final String FQN_BEAN = "org.springframework.context.annotation.Bean";
 
@@ -69,6 +68,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final MethodMatcher AUTHENTICATION_MANAGER_BEAN_METHOD_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter  authenticationManagerBean()", true);
 
+    private static final MethodMatcher IN_MEMORY_AUTHENTICATION =
+            new MethodMatcher(FQN_AUTH_MANAGER_BUILDER + " inMemoryAuthentication()");
     private static final MethodMatcher AUTH_INMEMORY_WITH_USER =
             new MethodMatcher("org.springframework.security.config.annotation.authentication.configurers.provisioning.UserDetailsManagerConfigurer withUser(..)");
 
@@ -204,8 +205,8 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                                         continue;
                                     }
                                     String uniqueName = computeBeanNameFromClassName(fc.getSimpleName(), beanType.getClassName());
-                                    List<J.Annotation> fcLeadingAnnotations = ListUtils.map(fc.getLeadingAnnotations(),
-                                            anno -> TypeUtils.isOfClassType(anno.getType(), FQN_CONFIGURATION) ? null : anno);
+                                    List<J.Annotation> fcLeadingAnnotations = ListUtils.filter(fc.getLeadingAnnotations(),
+                                            anno -> !TypeUtils.isOfClassType(anno.getType(), FQN_CONFIGURATION));
                                     s = m
                                             .withName(m.getName().withSimpleName(uniqueName))
                                             .withMethodType(m.getMethodType().withName(uniqueName))
@@ -231,8 +232,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             }
 
             private boolean inConflictingAuthConfigMethod(J.MethodDeclaration m) {
-                AuthType authType = getAuthType(m);
-                return authType != WebSecurityConfigurerAdapter.AuthType.INMEMORY;
+                return getAuthType(m) != AuthType.INMEMORY || m.getBody() == null || InMemoryUsers.from(m.getBody().getStatements()) == null;
             }
 
             @Override
@@ -292,7 +292,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                         .withReturnTypeExpression(new J.Identifier(Tree.randomId(), returnPrefix, Markers.EMPTY, emptyList(), inmemoryAuthConfigType.getClassName(), inmemoryAuthConfigType, null))
                         .withName(m.getName().withSimpleName(newMethodName))
                         .withMethodType(type)
-                        .withModifiers(ListUtils.map(m.getModifiers(), modifier -> EXPLICIT_ACCESS_LEVELS.contains(modifier.getType()) ? null : modifier));
+                        .withModifiers(ListUtils.filter(m.getModifiers(), modifier -> !EXPLICIT_ACCESS_LEVELS.contains(modifier.getType())));
 
                 if (!keepParams) {
                     m = m.withParameters(emptyList());
@@ -322,14 +322,14 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     J.ClassDeclaration classDecl = classDeclCursor.getValue();
                     if (!classDeclCursor.getMessage(HAS_CONFLICT, true)) {
                         if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
-                            b = handleHttpSecurity(b, parentMethod);
+                            b = handleHttpSecurity(b, parentMethod, ctx);
                         } else if (CONFIGURE_WEB_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
                             b = handleWebSecurity(b, parentMethod);
                         } else if (CONFIGURE_AUTH_MANAGER_SECURITY_METHOD_MATCHER.matches(parentMethod, classDecl)) {
                             AuthType authType = getAuthType(parentMethod);
                             switch (authType) {
                                 case INMEMORY:
-                                    b = handleAuthInMemory(b, parentMethod);
+                                    b = handleAuthInMemory(b, ctx);
                                     break;
                                 case LDAP:
                                     //TODO: implement
@@ -344,16 +344,19 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 return b;
             }
 
-            private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod) {
-                b = b.withStatements(ListUtils.map(b.getStatements(), stmt -> {
-                    if (stmt instanceof J.MethodInvocation) {
-                        J.MethodInvocation mi = (J.MethodInvocation) stmt;
-                        if (CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(mi.getMethodType())) {
-                            return null;
-                        }
+            private J.Block handleHttpSecurity(J.Block b, J.MethodDeclaration parentMethod, ExecutionContext ctx) {
+                for (Statement stmt : b.getStatements()) {
+                    if (stmt instanceof J.MethodInvocation && CONFIGURE_HTTP_SECURITY_METHOD_MATCHER.matches(((J.MethodInvocation) stmt).getMethodType())) {
+                        // Inline the defaults that `WebSecurityConfigurerAdapter#configure(HttpSecurity)` applied
+                        b = JavaTemplate.builder("#{http:any(org.springframework.security.config.annotation.web.builders.HttpSecurity)}.authorizeRequests((requests) -> requests.anyRequest().authenticated());\n" +
+                                                 "#{http}.formLogin();\n" +
+                                                 "#{http}.httpBasic();")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8", "spring-security-web-5.8"))
+                                .build()
+                                .apply(updateCursor(b), stmt.getCoordinates().replace(), ((J.MethodInvocation) stmt).getArguments().get(0));
+                        break;
                     }
-                    return stmt;
-                }));
+                }
                 return JavaTemplate.builder("return #{any(org.springframework.security.config.annotation.SecurityBuilder)}.build();")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
@@ -388,63 +391,21 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                 }));
             }
 
-            private J.Block handleAuthInMemory(J.Block b, J.MethodDeclaration parentMethod) {
-                Expression userExpr = findUserParameterExpression(b.getStatements().get(b.getStatements().size() - 1));
-                String typeStr = "";
-                if (userExpr != null) {
-                    if (userExpr.getType() instanceof JavaType.Primitive) {
-                        typeStr = ((JavaType.Primitive) userExpr.getType()).getClassName();
-                    } else if (userExpr.getType() instanceof JavaType.FullyQualified) {
-                        typeStr = ((JavaType.FullyQualified) userExpr.getType()).getFullyQualifiedName();
-                    }
+            private J.Block handleAuthInMemory(J.Block b, ExecutionContext ctx) {
+                InMemoryUsers users = InMemoryUsers.from(b.getStatements());
+                if (users == null) {
+                    return b;
                 }
-                String t;
-                Object[] templateParams = new Object[0];
-                switch (typeStr) {
-                    case FQN_USER_DETAILS_BUILDER:
-                        t = "return new InMemoryUserDetailsManager(#{any()}.build());";
-                        templateParams = new Object[]{userExpr};
-                        break;
-                    case FQN_USER_DETAILS:
-                        t = "return new InMemoryUserDetailsManager(#{any()});";
-                        templateParams = new Object[]{userExpr};
-                        break;
-                    case "java.lang.String":
-                        t = "return new InMemoryUserDetailsManager(User.builder().username(#{any()}).build());";
-                        templateParams = new Object[]{userExpr};
-                        maybeAddImport(FQN_USER);
-                        break;
-                    default:
-                        t = "return new InMemoryUserDetailsManager();";
-                        b = SearchResult.found(b, "Unrecognized type of user expression " + userExpr + "\n.Please correct manually");
-                }
-                JavaTemplate template = JavaTemplate.builder(t)
+                maybeAddImport(FQN_USER);
+                JavaTemplate template = JavaTemplate.builder("return new InMemoryUserDetailsManager(" + users.getTemplate() + ");")
                         .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .dependsOn(
-                                        "package org.springframework.security.core.userdetails;\n" +
-                                                "public interface UserDetails {}\n",
-
-                                        "package org.springframework.security.provisioning;\n" +
-                                                "public class InMemoryUserDetailsManager {\n" +
-                                                "    public InMemoryUserDetailsManager(org.springframework.security.core.userdetails.UserDetails user) {}\n" +
-                                                "}",
-
-                                        "package org.springframework.security.core.userdetails;\n" +
-                                                "public class User {\n" +
-                                                "   public static UserBuilder builder() {}\n" +
-                                                "   public interface UserBuilder {\n" +
-                                                "       UserBuilder username(String s);\n" +
-                                                "       UserDetails build();\n" +
-                                                "   }\n" +
-                                                "}\n"
-                                ))
-                        .imports(FQN_INMEMORY_AUTH_MANAGER, FQN_USER_DETAILS_BUILDER, FQN_USER)
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-core-6"))
+                        .imports(FQN_INMEMORY_AUTH_MANAGER, FQN_USER)
                         .build();
-                List<Statement> allExceptLastStatements = b.getStatements();
-                allExceptLastStatements.remove(b.getStatements().size() - 1);
-                b = b.withStatements(allExceptLastStatements);
-                b = template.apply(updateCursor(b), b.getCoordinates().lastStatement(), templateParams);
+                b = b.withStatements(ListUtils.mapLast(b.getStatements(), last -> null));
+                b = template.apply(updateCursor(b), b.getCoordinates().lastStatement(), users.getParameters());
+                Cursor blockCursor = updateCursor(b);
+                b = b.withStatements(ListUtils.mapLast(b.getStatements(), returnStatement -> autoFormat(returnStatement, ctx, blockCursor)));
                 maybeRemoveImport(FQN_AUTH_MANAGER_BUILDER);
                 maybeAddImport(FQN_INMEMORY_AUTH_MANAGER);
                 return b;
@@ -517,18 +478,85 @@ public class WebSecurityConfigurerAdapter extends Recipe {
         return AuthType.NONE;
     }
 
-    private @Nullable Expression findUserParameterExpression(Statement s) {
-        AtomicReference<@Nullable Expression> context = new AtomicReference<>();
-        new JavaIsoVisitor<AtomicReference<Expression>>() {
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, AtomicReference<Expression> ref) {
-                if (AUTH_INMEMORY_WITH_USER.matches(method)) {
-                    ref.set(method.getArguments().get(0));
-                    return method;
-                }
-                return super.visitMethodInvocation(method, ref);
+    /// The users of an `auth.inMemoryAuthentication().withUser(..)` chain as `InMemoryUserDetailsManager` constructor arguments.
+    @Value
+    private static class InMemoryUsers {
+        String template;
+        Object[] parameters;
+
+        /// @return `null` when the last statement configures more than in-memory users, or the `AuthenticationManagerBuilder`
+        /// is used elsewhere, as either would be lost in the conversion.
+        static @Nullable InMemoryUsers from(List<Statement> statements) {
+            if (statements.isEmpty() || !(statements.get(statements.size() - 1) instanceof J.MethodInvocation)) {
+                return null;
             }
-        }.visit(s, context);
-        return context.get();
+            List<J.MethodInvocation> chain = new ArrayList<>();
+            Expression select = (Expression) statements.get(statements.size() - 1);
+            while (select instanceof J.MethodInvocation) {
+                chain.add(0, (J.MethodInvocation) select);
+                select = ((J.MethodInvocation) select).getSelect();
+            }
+            if (!(select instanceof J.Identifier) || !IN_MEMORY_AUTHENTICATION.matches(chain.get(0)) ||
+                    isReferenced((J.Identifier) select, statements.subList(0, statements.size() - 1))) {
+                return null;
+            }
+
+            List<String> users = new ArrayList<>();
+            List<Object> parameters = new ArrayList<>();
+            @Nullable StringBuilder userBuilder = null;
+            for (J.MethodInvocation call : chain.subList(1, chain.size())) {
+                if (AUTH_INMEMORY_WITH_USER.matches(call) && call.getMethodType() != null) {
+                    if (userBuilder != null) {
+                        users.add(userBuilder.append(".build()").toString());
+                        userBuilder = null;
+                    }
+                    JavaType parameterType = call.getMethodType().getParameterTypes().get(0);
+                    parameters.add(call.getArguments().get(0));
+                    if (TypeUtils.isString(parameterType)) {
+                        userBuilder = new StringBuilder("User.withUsername(#{any(java.lang.String)})");
+                    } else if (TypeUtils.isOfClassType(parameterType, FQN_USER_DETAILS_BUILDER)) {
+                        users.add("#{any()}.build()");
+                    } else if (TypeUtils.isOfClassType(parameterType, FQN_USER_DETAILS)) {
+                        users.add("#{any()}");
+                    } else {
+                        return null;
+                    }
+                } else if (userBuilder != null && call.getMethodType() != null &&
+                        TypeUtils.isOfClassType(call.getMethodType().getDeclaringType(), FQN_IN_MEMORY_USER_BUILDER)) {
+                    if ("and".equals(call.getSimpleName())) {
+                        users.add(userBuilder.append(".build()").toString());
+                        userBuilder = null;
+                    } else {
+                        List<Expression> args = ListUtils.filter(call.getArguments(), arg -> !(arg instanceof J.Empty));
+                        userBuilder.append('.').append(call.getSimpleName()).append('(')
+                                .append(String.join(", ", Collections.nCopies(args.size(), "#{any()}"))).append(')');
+                        parameters.addAll(args);
+                    }
+                } else {
+                    return null;
+                }
+            }
+            if (userBuilder != null) {
+                users.add(userBuilder.append(".build()").toString());
+            }
+            if (users.isEmpty()) {
+                return null;
+            }
+            String template = users.size() == 1 ? users.get(0) : "\n" + String.join(",\n", users);
+            return new InMemoryUsers(template, parameters.toArray());
+        }
+
+        private static boolean isReferenced(J.Identifier identifier, List<Statement> statements) {
+            JavaIsoVisitor<AtomicBoolean> visitor = new JavaIsoVisitor<AtomicBoolean>() {
+                @Override
+                public J.Identifier visitIdentifier(J.Identifier id, AtomicBoolean found) {
+                    if (id.getSimpleName().equals(identifier.getSimpleName())) {
+                        found.set(true);
+                    }
+                    return id;
+                }
+            };
+            return statements.stream().anyMatch(statement -> visitor.reduce(statement, new AtomicBoolean()).get());
+        }
     }
 }

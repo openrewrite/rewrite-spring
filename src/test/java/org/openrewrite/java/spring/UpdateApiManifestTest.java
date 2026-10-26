@@ -59,4 +59,59 @@ class UpdateApiManifestTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void requestMappingWithPositionalPathDefaultsToGet() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import java.util.List;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              @RequestMapping("/users")
+              public class UsersController {
+                  @RequestMapping("/all")
+                  public ResponseEntity<List<String>> getUsers() {
+                      return null;
+                  }
+              }
+              """
+          ),
+          text(
+            null,
+            "GET /users/all",
+            spec -> spec.path("META-INF/api-manifest.txt")
+          )
+        );
+    }
+
+    @Test
+    void requestMappingWithPathAttribute() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.*;
+
+              @RestController
+              @RequestMapping(path = "/users")
+              public class UsersController {
+                  @RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
+                  public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+                      return null;
+                  }
+              }
+              """
+          ),
+          text(
+            null,
+            "DELETE /users/{id}",
+            spec -> spec.path("META-INF/api-manifest.txt")
+          )
+        );
+    }
 }

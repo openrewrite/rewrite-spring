@@ -94,4 +94,33 @@ class RenameDeprecatedStartersManagedVersionsTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void removeAopStarterWhenAspectjUnusedAndDepMgmtPluginPresent() {
+        rewriteRun(
+          mavenProject("sample",
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                    id 'org.springframework.boot' version '3.4.1'
+                    id 'io.spring.dependency-management' version '1.1.7'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-aop'
+                }
+                """,
+              spec -> spec.after(gradle ->
+                assertThat(gradle)
+                  .doesNotContain("spring-boot-starter-aop")
+                  .doesNotContain("spring-boot-starter-aspectj")
+                  .actual())
+            )
+          )
+        );
+    }
 }

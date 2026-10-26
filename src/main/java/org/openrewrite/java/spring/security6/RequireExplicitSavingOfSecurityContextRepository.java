@@ -18,11 +18,14 @@ package org.openrewrite.java.spring.security6;
 import lombok.Getter;
 import lombok.Value;
 import lombok.With;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
@@ -46,11 +49,36 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     @Getter
     final String description = "Remove explicit `SecurityContextConfigurer.requireExplicitSave(true)` opt-in as that is the new default in Spring Security 6. " +
-            "See the corresponding [Sprint Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
+            "See the corresponding [Spring Security 6.0 migration step](https://docs.spring.io/spring-security/reference/6.0.0/migration/servlet/session-management.html#_require_explicit_saving_of_securitycontextrepository) for details.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true), new JavaIsoVisitor<ExecutionContext>() {
+            private int depth;
+            private boolean changed;
+
+            @Override
+            public @Nullable J visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (depth == 0) {
+                    changed = false;
+                }
+                depth++;
+                try {
+                    J j = super.visit(tree, ctx);
+                    if (depth > 1 || j == null) {
+                        return j;
+                    }
+                    // Marking alone rebuilds the tree, so return the original when nothing was actually removed
+                    if (!changed) {
+                        return (J) tree;
+                    }
+                    // Elements whose parent doesn't remove them, like a lambda passed to a method not on `HttpSecurity`, still carry the marker
+                    return ToBeRemoved.removeAll(j);
+                } finally {
+                    depth--;
+                }
+            }
+
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 method = super.visitMethodInvocation(method, ctx);
@@ -60,6 +88,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     return ToBeRemoved.withMarker(method);
                 }
                 if (method.getSelect() instanceof J.MethodInvocation && ToBeRemoved.hasMarker(method.getSelect())) {
+                    changed = true;
                     return method.withSelect(((J.MethodInvocation) method.getSelect()).getSelect());
                 }
                 if (method.getArguments().stream().anyMatch(ToBeRemoved::hasMarker) &&
@@ -67,6 +96,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     if (method.getArguments().stream().allMatch(ToBeRemoved::hasMarker)) {
                         return ToBeRemoved.withMarker(method);
                     }
+                    changed = true;
                     return method.withArguments(method.getArguments().stream().filter(a -> !ToBeRemoved.hasMarker(a)).collect(toList()));
                 }
                 return method;
@@ -82,12 +112,15 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                     if (select instanceof J.Identifier && !parameters.isEmpty() && parameters.get(0) instanceof J.VariableDeclarations) {
                         J.VariableDeclarations declarations = (J.VariableDeclarations) parameters.get(0);
                         if (((J.Identifier) select).getSimpleName().equals(declarations.getVariables().get(0).getSimpleName())) {
+                            changed = true;
                             return ToBeRemoved.withMarker(lambda.withBody(J.Block.createEmptyBlock().withPrefix(body.getPrefix())));
                         }
                     } else if (select instanceof J.MethodInvocation) {
+                        changed = true;
                         return lambda.withBody(select.withPrefix(body.getPrefix()));
                     }
                 } else if (body instanceof J.Block && ToBeRemoved.hasMarker(body)) {
+                    changed = true;
                     return ToBeRemoved.withMarker(lambda.withBody(J.Block.createEmptyBlock().withPrefix(body.getPrefix())));
                 }
                 return lambda;
@@ -98,9 +131,11 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 block = super.visitBlock(block, ctx);
                 List<Statement> statements = block.getStatements();
                 if (!statements.isEmpty() && statements.stream().allMatch(ToBeRemoved::hasMarker)) {
+                    changed = true;
                     return ToBeRemoved.withMarker(block.withStatements(emptyList()));
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
+                    changed = true;
                     //noinspection DataFlowIssue
                     return block.withStatements(statements.stream()
                             .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)
@@ -127,6 +162,15 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
         static boolean hasMarker(J j) {
             return j.getMarkers().findFirst(ToBeRemoved.class).isPresent();
+        }
+
+        static J removeAll(J j) {
+            return new JavaVisitor<Integer>() {
+                @Override
+                public J preVisit(J tree, Integer p) {
+                    return hasMarker(tree) ? removeMarker(tree) : tree;
+                }
+            }.visitNonNull(j, 0);
         }
     }
 

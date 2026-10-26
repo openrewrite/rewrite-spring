@@ -33,11 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
-/**
- * Mark POM's of projects where logging shutdown hook may need to be disabled
- *
- * @author Alex Boyko
- */
 public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
 
     @Getter
