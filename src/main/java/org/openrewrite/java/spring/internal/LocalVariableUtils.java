@@ -23,9 +23,9 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Statement;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
@@ -46,7 +46,7 @@ public class LocalVariableUtils {
         }
         JavaType owner = getRootOwner(fieldType);
         JavaType localRootType = getRootOwner(cursor);
-        if (Objects.equals(owner, localRootType)) {
+        if (TypeUtils.isOfType(owner, localRootType)) {
             Expression resolvedVariable = resolveVariable(fieldType.getName(), cursor);
             return resolvedVariable != null ? resolvedVariable : expression;
         }
