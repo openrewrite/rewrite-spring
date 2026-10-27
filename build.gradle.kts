@@ -222,7 +222,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite:rewrite-test")
