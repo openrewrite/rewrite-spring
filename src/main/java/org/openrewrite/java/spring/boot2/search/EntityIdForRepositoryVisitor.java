@@ -139,14 +139,20 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
                         if (idTypeIndexInChain == 0) {
                             List<J.TypeParameter> astParams = typeDecl.getTypeParameters();
                             List<JavaType> params = typeDecl.getType().getTypeParameters();
-                            int idx = params.indexOf(idType);
+                            int idx = -1;
+                            for (int i = 0; i < params.size(); i++) {
+                                if (TypeUtils.isOfType(params.get(i), idType)) {
+                                    idx = i;
+                                    break;
+                                }
+                            }
                             if (idx < 0 || astParams == null || astParams.size() <= idx) {
                                 return typeDecl.withName(typeDecl.getName().withMarkers(typeDecl.getName().getMarkers().addIfAbsent(createMarker(domainIdType))));
                             }
                             astParams.set(idx, astParams.get(idx).withMarkers(astParams.get(idx).getMarkers().addIfAbsent(createMarker(domainIdType))));
                             return typeDecl.withTypeParameters(astParams);
                         }
-                        if (typeDecl.getExtends() != null && repoTypeChain.get(1).equals(typeDecl.getExtends().getType())) {
+                        if (typeDecl.getExtends() != null && TypeUtils.isOfType(repoTypeChain.get(1), typeDecl.getExtends().getType())) {
                             return typeDecl.withExtends(markTypeParam(typeDecl.getExtends(), idTypeIndex, createMarker(domainIdType)));
                         }
                         if (typeDecl.getImplements() != null) {
@@ -155,7 +161,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
                             AtomicBoolean hasMarker = new AtomicBoolean(false);
                             J.ClassDeclaration newTypeDecl = typeDecl.withImplements(ListUtils.map(typeDecl.getImplements(), it -> {
                                 JavaType.FullyQualified interfaceType = TypeUtils.asFullyQualified(it.getType());
-                                if (repoTypeChain.get(1).equals(interfaceType)) {
+                                if (TypeUtils.isOfType(repoTypeChain.get(1), interfaceType)) {
                                     hasMarker.set(true);
                                     return markTypeParam(it, finalIdTypeIndexInChain == 1 ? finalIdTypeIndex : -1, createMarker(domainIdType));
                                 }
@@ -198,7 +204,7 @@ public class EntityIdForRepositoryVisitor<T> extends JavaIsoVisitor<T> {
     }
 
     private static @Nullable List<JavaType.FullyQualified> findRepoTypeChain(JavaType.FullyQualified type, List<JavaType.FullyQualified> visited) {
-        if (visited.contains(type)) {
+        if (visited.stream().anyMatch(v -> v == type)) {
             return null;
         }
         List<JavaType.FullyQualified> ls = new ArrayList<>(visited.size() + 1);
