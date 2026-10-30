@@ -52,10 +52,12 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
             """
               import org.springframework.jdbc.core.JdbcTemplate;
 
+              import java.util.Optional;
+
               class Test {
                   void test(JdbcTemplate jdbcTemplate) {
                       String query = "SELECT COUNT(*) FROM table";
-                      Long count = jdbcTemplate.queryForObject(query, Long.class);
+                      Long count = Optional.ofNullable(jdbcTemplate.queryForObject(query, Long.class)).orElse(0L);
                   }
               }
               """
@@ -81,10 +83,12 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
             """
               import org.springframework.jdbc.core.JdbcTemplate;
 
+              import java.util.Optional;
+
               class Test {
                   void test(JdbcTemplate jdbcTemplate) {
                       String query = "SELECT COUNT(*) FROM table WHERE id = ? AND name = ?";
-                      Long count = jdbcTemplate.queryForObject(query, Long.class, 42, "name");
+                      Long count = Optional.ofNullable(jdbcTemplate.queryForObject(query, Long.class, 42, "name")).orElse(0L);
                   }
               }
               """
@@ -113,11 +117,12 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
               import org.springframework.jdbc.core.JdbcTemplate;
 
               import java.sql.Types;
+              import java.util.Optional;
 
               class Test {
                   void test(JdbcTemplate jdbcTemplate) {
                       String query = "SELECT COUNT(*) FROM table WHERE id = ?";
-                      Long count = jdbcTemplate.queryForObject(query, new Object[]{42}, new int[]{Types.INTEGER}, Long.class);
+                      Long count = Optional.ofNullable(jdbcTemplate.queryForObject(query, new Object[]{42}, new int[]{Types.INTEGER}, Long.class)).orElse(0L);
                   }
               }
               """
@@ -125,6 +130,36 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
         );
     }
 
+    @Test
+    void sqlNullKeepsZeroForPrimitiveResult() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class Test {
+                  long test(JdbcTemplate jdbcTemplate) {
+                      long maxId = jdbcTemplate.queryForLong("SELECT MAX(id) FROM table");
+                      return maxId + 1;
+                  }
+              }
+              """,
+            """
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.util.Optional;
+
+              class Test {
+                  long test(JdbcTemplate jdbcTemplate) {
+                      long maxId = Optional.ofNullable(jdbcTemplate.queryForObject("SELECT MAX(id) FROM table", Long.class)).orElse(0L);
+                      return maxId + 1;
+                  }
+              }
+              """
+          )
+        );
+    }
 
     @Nested
     class NoChange {

@@ -36,7 +36,9 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
     final String displayName = "Convert `JdbcTemplate.queryForLong(..)` to `queryForObject(..)`";
 
     @Getter
-    final String description = "Replaces calls to `JdbcTemplate.queryForLong(..)` with `queryForObject(..)` and a `Long.class` required type.";
+    final String description = "Replaces calls to `JdbcTemplate.queryForLong(..)` with `queryForObject(..)` and a `Long.class` required type. " +
+            "`queryForLong` returned `0` for an SQL `NULL` result where `queryForObject` returns `null`, " +
+            "so the call is wrapped in `Optional.ofNullable(..).orElse(0L)` to keep that behavior.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -50,7 +52,7 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
                 }
 
                 List<Expression> arguments = mi.getArguments();
-                StringBuilder template = new StringBuilder("#{any(org.springframework.jdbc.core.JdbcTemplate)}.queryForObject(#{any(java.lang.String)}");
+                StringBuilder template = new StringBuilder("Optional.ofNullable(#{any(org.springframework.jdbc.core.JdbcTemplate)}.queryForObject(#{any(java.lang.String)}");
                 if (QUERY_FOR_LONG_WITH_ARG_TYPES_MATCHER.matches(mi)) {
                     // `queryForObject(String, Class, Object...)` would bind both arrays as bind arguments
                     template.append(", #{anyArray(java.lang.Object)}, #{anyArray(int)}, Long.class");
@@ -60,12 +62,14 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
                         template.append(", #{any()}");
                     }
                 }
-                template.append(")");
+                template.append(")).orElse(0L)");
 
                 List<Object> parameters = new ArrayList<>(arguments.size() + 1);
                 parameters.add(mi.getSelect());
                 parameters.addAll(arguments);
+                maybeAddImport("java.util.Optional");
                 return JavaTemplate.builder(template.toString())
+                        .imports("java.util.Optional")
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-jdbc-4", "spring-tx-5", "spring-beans-5"))
                         .build()
                         .apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
