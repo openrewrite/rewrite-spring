@@ -18,80 +18,58 @@ package org.openrewrite.java.spring.data;
 import lombok.Getter;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
-import org.openrewrite.marker.Markers;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
-
 public class JdbcTemplateQueryForLongMigration extends Recipe {
 
     private static final MethodMatcher QUERY_FOR_LONG_MATCHER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForLong(..)");
+    private static final MethodMatcher QUERY_FOR_LONG_WITH_ARG_TYPES_MATCHER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForLong(String, Object[], int[])");
 
     @Getter
     final String displayName = "Convert `JdbcTemplate.queryForLong(..)` to `queryForObject(..)`";
 
     @Getter
-    final String description = "Replaces calls to `JdbcTemplate.queryForLong(..)` with `queryForObject(String, Class, Object...)`.";
+    final String description = "Replaces calls to `JdbcTemplate.queryForLong(..)` with `queryForObject(..)` and a `Long.class` required type.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaIsoVisitor<ExecutionContext> visitor = new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(QUERY_FOR_LONG_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (QUERY_FOR_LONG_MATCHER.matches(mi)) {
-                    JavaType.Method oldMethodType = mi.getMethodType();
-                    List<String> newParameterNames = new ArrayList<>(oldMethodType.getParameterNames());
-                    newParameterNames.add(1, "requiredType");
-                    List<JavaType> newParameterTypes = new ArrayList<>(oldMethodType.getParameterTypes());
-                    newParameterTypes.add(1, JavaType.ShallowClass.build("java.lang.Class"));
-                    List<Expression> newArguments = new ArrayList<>(mi.getArguments());
-                    newArguments.add(1, longDotClass());
-                    JavaType.Method newMethodType = oldMethodType.withName("queryForObject")
-                            .withParameterNames(newParameterNames)
-                            .withParameterTypes(newParameterTypes);
-                    return mi.withName(mi.getName().withSimpleName("queryForObject").withType(newMethodType))
-                            .withMethodType(newMethodType)
-                            .withArguments(newArguments);
+                // An unqualified call from a `JdbcTemplate` subclass has no receiver to pass to the template
+                if (!QUERY_FOR_LONG_MATCHER.matches(mi) || mi.getSelect() == null) {
+                    return mi;
                 }
-                return mi;
-            }
 
-            private J.FieldAccess longDotClass() {
-                return new J.FieldAccess(
-                        Tree.randomId(),
-                        Space.SINGLE_SPACE,
-                        Markers.EMPTY,
-                        new J.Identifier(
-                                Tree.randomId(),
-                                Space.EMPTY,
-                                Markers.EMPTY,
-                                emptyList(),
-                                "Long",
-                                JavaType.ShallowClass.build("java.lang.Long"),
-                                null
-                        ),
-                        new JLeftPadded<>(
-                                Space.EMPTY,
-                                new J.Identifier(
-                                        Tree.randomId(),
-                                        Space.EMPTY,
-                                        Markers.EMPTY,
-                                        emptyList(),
-                                        "class",
-                                        JavaType.ShallowClass.build("java.lang.Class"),
-                                        null),
-                                Markers.EMPTY
-                        ),
-                        null
-                );
+                List<Expression> arguments = mi.getArguments();
+                StringBuilder template = new StringBuilder("#{any(org.springframework.jdbc.core.JdbcTemplate)}.queryForObject(#{any(java.lang.String)}");
+                if (QUERY_FOR_LONG_WITH_ARG_TYPES_MATCHER.matches(mi)) {
+                    // `queryForObject(String, Class, Object...)` would bind both arrays as bind arguments
+                    template.append(", #{anyArray(java.lang.Object)}, #{anyArray(int)}, Long.class");
+                } else {
+                    template.append(", Long.class");
+                    for (int i = 1; i < arguments.size(); i++) {
+                        template.append(", #{any()}");
+                    }
+                }
+                template.append(")");
+
+                List<Object> parameters = new ArrayList<>(arguments.size() + 1);
+                parameters.add(mi.getSelect());
+                parameters.addAll(arguments);
+                return JavaTemplate.builder(template.toString())
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-jdbc-4", "spring-tx-5", "spring-beans-5"))
+                        .build()
+                        .apply(getCursor(), mi.getCoordinates().replace(), parameters.toArray());
             }
-        };
-        return Preconditions.check(new UsesMethod<>(QUERY_FOR_LONG_MATCHER), visitor);
+        });
     }
 }
