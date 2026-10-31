@@ -48,10 +48,8 @@ preconditions:
       artifactIdPattern: postgresql
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: org.flywaydb
+  - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-database-postgresql
-      acceptTransitive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModuleMySQL
@@ -73,10 +71,8 @@ preconditions:
       artifactIdPattern: mysql-connector-j
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: org.flywaydb
+  - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-mysql
-      acceptTransitive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModuleOracle
@@ -98,10 +94,8 @@ preconditions:
       artifactIdPattern: ojdbc*
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: org.flywaydb
+  - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-database-oracle
-      acceptTransitive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModuleSqlServer
@@ -123,7 +117,5 @@ preconditions:
       artifactIdPattern: mssql-jdbc
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.java.dependencies.AddDependency:
-      groupId: org.flywaydb
+  - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-sqlserver
-      acceptTransitive: true
