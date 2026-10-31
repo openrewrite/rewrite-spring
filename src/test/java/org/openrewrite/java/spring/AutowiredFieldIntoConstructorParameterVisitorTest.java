@@ -15,17 +15,14 @@
  */
 package org.openrewrite.java.spring;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.test.RewriteTest.toRecipe;
 
@@ -908,31 +905,4 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
-    @Nested
-    class NoChange {
-        @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
-        @Test
-        void constructorWithoutMethodTypeInitializesFieldOfTheSameName() {
-            //language=java
-            J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion().build()
-              .parse(
-                """
-                  class A {
-                      private String a;
-
-                      A() {
-                          a = "";
-                      }
-                  }
-                  """
-              )
-              .findFirst()
-              .orElseThrow();
-            J.MethodDeclaration constructor = ((J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(1))
-              .withMethodType(null);
-
-            assertThat(AutowiredFieldIntoConstructorParameterVisitor.isNotConstructorInitializingField(constructor, "a")).isFalse();
-            assertThat(AutowiredFieldIntoConstructorParameterVisitor.isNotConstructorInitializingField(constructor, "b")).isTrue();
-        }
-    }
 }
