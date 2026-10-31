@@ -18,10 +18,13 @@ package org.openrewrite.java.spring.batch;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
@@ -75,4 +78,34 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
         );
     }
 
+    @Test
+    void leaveMethodUnchangedWhenParameterTypeIsMissing() {
+        InMemoryExecutionContext ctx = new InMemoryExecutionContext();
+        //language=java
+        J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion()
+          .classpathFromResources(ctx, "spring-batch-core-4.3.+", "spring-batch-infrastructure-4.3.10", "spring-beans-4.3.+")
+          .build()
+          .parse(
+            """
+              import java.util.List;
+              import org.springframework.batch.core.annotation.BeforeWrite;
+
+              class ProfileUpdateWriter {
+                  @BeforeWrite
+                  public void write(List<String> items) {
+                  }
+              }
+              """
+          )
+          .findFirst()
+          .orElseThrow();
+        J.CompilationUnit withoutParameterType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+            @Override
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, Integer p) {
+                return multiVariable.withTypeExpression(null);
+            }
+        }.visitNonNull(cu, 0);
+
+        assertThat(new MigrateMethodAnnotatedByBatchAPI().getVisitor().visit(withoutParameterType, ctx)).isSameAs(withoutParameterType);
+    }
 }

@@ -89,7 +89,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             Optional<J.VariableDeclarations> parameterOptional = method.getParameters().stream()
                     .filter(J.VariableDeclarations.class::isInstance)
                     .map(parameter -> ((J.VariableDeclarations) parameter))
-                    .filter(parameter -> parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
+                    .filter(parameter -> parameter.getType() != null && parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
                     .findFirst();
             if (!parameterOptional.isPresent()) {
                 return super.visitMethodDeclaration(method, ctx);

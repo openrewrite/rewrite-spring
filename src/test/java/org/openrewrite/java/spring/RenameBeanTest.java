@@ -19,10 +19,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class RenameBeanTest implements RewriteTest {
@@ -1084,5 +1087,76 @@ class RenameBeanTest implements RewriteTest {
               )
             );
         }
+    }
+
+    @Test
+    void skipMethodBeansWithoutMethodType() {
+        //language=java
+        J.CompilationUnit cu = parse(
+          """
+            import org.springframework.context.annotation.Bean;
+            import sample.MyType;
+
+            class A {
+                @Bean
+                MyType foo() {
+                    return null;
+                }
+
+                @Bean("foo")
+                MyType other() {
+                    return null;
+                }
+            }
+            """
+        );
+        J.CompilationUnit withoutMethodType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
+                return method.withMethodType(null);
+            }
+        }.visitNonNull(cu, 0);
+
+        assertUnchanged(new RenameBean("sample.MyType", "foo", "bar"), withoutMethodType);
+    }
+
+    @Test
+    void skipClassBeansWithoutType() {
+        //language=java
+        J.CompilationUnit cu = parse(
+          """
+            import org.springframework.stereotype.Component;
+
+            @Component
+            class Foo {
+            }
+            """
+        );
+        J.CompilationUnit withoutType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+            @Override
+            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, Integer p) {
+                return classDecl.withType(null);
+            }
+        }.visitNonNull(cu, 0);
+
+        assertUnchanged(new RenameBean(null, "foo", "bar"), withoutType);
+    }
+
+    private static J.CompilationUnit parse(String source) {
+        return (J.CompilationUnit) JavaParser.fromJavaVersion()
+          //language=java
+          .dependsOn("package sample; public class MyType {}")
+          .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6.2", "spring-beans-6.+")
+          .build()
+          .parse(source)
+          .findFirst()
+          .orElseThrow();
+    }
+
+    private static void assertUnchanged(RenameBean recipe, J.CompilationUnit cu) {
+        InMemoryExecutionContext ctx = new InMemoryExecutionContext();
+        var acc = recipe.getInitialValue(ctx);
+        recipe.getScanner(acc).visit(cu, ctx);
+        assertThat(recipe.getVisitor(acc).visit(cu, ctx)).isSameAs(cu);
     }
 }

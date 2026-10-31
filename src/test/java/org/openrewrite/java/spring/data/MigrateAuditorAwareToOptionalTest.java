@@ -19,10 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 @Issue("https://github.com/openrewrite/rewrite-spring/issues/613")
@@ -540,5 +543,36 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Test
+    void leaveMethodUnchangedWhenReturnTypeIsMissing() {
+        InMemoryExecutionContext ctx = new InMemoryExecutionContext();
+        //language=java
+        J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion()
+          .classpathFromResources(ctx, "spring-data-commons-1.13")
+          .build()
+          .parse(
+            """
+              import org.springframework.data.domain.AuditorAware;
+
+              class MyAuditorAware implements AuditorAware<String> {
+                  @Override
+                  public String getCurrentAuditor() {
+                      return "admin";
+                  }
+              }
+              """
+          )
+          .findFirst()
+          .orElseThrow();
+        J.CompilationUnit withoutReturnType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
+                return method.withReturnTypeExpression(((J.Identifier) method.getReturnTypeExpression()).withType(null));
+            }
+        }.visitNonNull(cu, 0);
+
+        assertThat(new MigrateAuditorAwareToOptional().getVisitor().visit(withoutReturnType, ctx)).isSameAs(withoutReturnType);
     }
 }
