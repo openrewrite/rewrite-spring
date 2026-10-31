@@ -15,9 +15,11 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.tree.J;
@@ -216,34 +218,38 @@ class AddSetUseTrailingSlashMatchTest implements RewriteTest {
         );
     }
 
-    @Test
-    void leaveClassUnchangedWhenMethodTypeIsMissing() {
-        InMemoryExecutionContext ctx = new InMemoryExecutionContext();
-        //language=java
-        J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion()
-          .classpathFromResources(ctx, "spring-webmvc", "spring-web-5.3", "spring-context-5")
-          .build()
-          .parse(
-            """
-              import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-              import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+    @Nested
+    class NoChange {
+        @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+        @Test
+        void leaveClassUnchangedWhenMethodTypeIsMissing() {
+            InMemoryExecutionContext ctx = new InMemoryExecutionContext();
+            //language=java
+            J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion()
+              .classpathFromResources(ctx, "spring-webmvc", "spring-web-5.3", "spring-context-5")
+              .build()
+              .parse(
+                """
+                  import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+                  import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-              class MyWebConfiguration implements WebMvcConfigurer {
-                  @Override
-                  public void configurePathMatch(PathMatchConfigurer configurer) {
+                  class MyWebConfiguration implements WebMvcConfigurer {
+                      @Override
+                      public void configurePathMatch(PathMatchConfigurer configurer) {
+                      }
                   }
-              }
-              """
-          )
-          .findFirst()
-          .orElseThrow();
-        J.CompilationUnit withoutMethodType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
-                return method.withMethodType(null);
-            }
-        }.visitNonNull(cu, 0);
+                  """
+              )
+              .findFirst()
+              .orElseThrow();
+            J.CompilationUnit withoutMethodType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+                @Override
+                public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
+                    return method.withMethodType(null);
+                }
+            }.visitNonNull(cu, 0);
 
-        assertThat(new AddSetUseTrailingSlashMatch().getVisitor().visit(withoutMethodType, ctx)).isSameAs(withoutMethodType);
+            assertThat(new AddSetUseTrailingSlashMatch().getVisitor().visit(withoutMethodType, ctx)).isSameAs(withoutMethodType);
+        }
     }
 }

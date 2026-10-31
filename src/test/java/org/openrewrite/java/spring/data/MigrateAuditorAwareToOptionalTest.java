@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -545,34 +546,38 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
         );
     }
 
-    @Test
-    void leaveMethodUnchangedWhenReturnTypeIsMissing() {
-        InMemoryExecutionContext ctx = new InMemoryExecutionContext();
-        //language=java
-        J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion()
-          .classpathFromResources(ctx, "spring-data-commons-1.13")
-          .build()
-          .parse(
-            """
-              import org.springframework.data.domain.AuditorAware;
+    @Nested
+    class NoChange {
+        @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+        @Test
+        void leaveMethodUnchangedWhenReturnTypeIsMissing() {
+            InMemoryExecutionContext ctx = new InMemoryExecutionContext();
+            //language=java
+            J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion()
+              .classpathFromResources(ctx, "spring-data-commons-1.13")
+              .build()
+              .parse(
+                """
+                  import org.springframework.data.domain.AuditorAware;
 
-              class MyAuditorAware implements AuditorAware<String> {
-                  @Override
-                  public String getCurrentAuditor() {
-                      return "admin";
+                  class MyAuditorAware implements AuditorAware<String> {
+                      @Override
+                      public String getCurrentAuditor() {
+                          return "admin";
+                      }
                   }
-              }
-              """
-          )
-          .findFirst()
-          .orElseThrow();
-        J.CompilationUnit withoutReturnType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
-                return method.withReturnTypeExpression(((J.Identifier) method.getReturnTypeExpression()).withType(null));
-            }
-        }.visitNonNull(cu, 0);
+                  """
+              )
+              .findFirst()
+              .orElseThrow();
+            J.CompilationUnit withoutReturnType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+                @Override
+                public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
+                    return method.withReturnTypeExpression(((J.Identifier) method.getReturnTypeExpression()).withType(null));
+                }
+            }.visitNonNull(cu, 0);
 
-        assertThat(new MigrateAuditorAwareToOptional().getVisitor().visit(withoutReturnType, ctx)).isSameAs(withoutReturnType);
+            assertThat(new MigrateAuditorAwareToOptional().getVisitor().visit(withoutReturnType, ctx)).isSameAs(withoutReturnType);
+        }
     }
 }

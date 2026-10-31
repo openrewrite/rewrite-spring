@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.tree.J;
@@ -1089,57 +1090,62 @@ class RenameBeanTest implements RewriteTest {
         }
     }
 
-    @Test
-    void skipMethodBeansWithoutMethodType() {
-        //language=java
-        J.CompilationUnit cu = parse(
-          """
-            import org.springframework.context.annotation.Bean;
-            import sample.MyType;
+    @Nested
+    class NoChange {
+        @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+        @Test
+        void skipMethodBeansWithoutMethodType() {
+            //language=java
+            J.CompilationUnit cu = parse(
+              """
+                import org.springframework.context.annotation.Bean;
+                import sample.MyType;
 
-            class A {
-                @Bean
-                MyType foo() {
-                    return null;
+                class A {
+                    @Bean
+                    MyType foo() {
+                        return null;
+                    }
+
+                    @Bean("foo")
+                    MyType other() {
+                        return null;
+                    }
                 }
-
-                @Bean("foo")
-                MyType other() {
-                    return null;
+                """
+            );
+            J.CompilationUnit withoutMethodType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+                @Override
+                public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
+                    return method.withMethodType(null);
                 }
-            }
-            """
-        );
-        J.CompilationUnit withoutMethodType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
-            @Override
-            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, Integer p) {
-                return method.withMethodType(null);
-            }
-        }.visitNonNull(cu, 0);
+            }.visitNonNull(cu, 0);
 
-        assertUnchanged(new RenameBean("sample.MyType", "foo", "bar"), withoutMethodType);
-    }
+            assertUnchanged(new RenameBean("sample.MyType", "foo", "bar"), withoutMethodType);
+        }
 
-    @Test
-    void skipClassBeansWithoutType() {
-        //language=java
-        J.CompilationUnit cu = parse(
-          """
-            import org.springframework.stereotype.Component;
+        @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+        @Test
+        void skipClassBeansWithoutType() {
+            //language=java
+            J.CompilationUnit cu = parse(
+              """
+                import org.springframework.stereotype.Component;
 
-            @Component
-            class Foo {
-            }
-            """
-        );
-        J.CompilationUnit withoutType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, Integer p) {
-                return classDecl.withType(null);
-            }
-        }.visitNonNull(cu, 0);
+                @Component
+                class Foo {
+                }
+                """
+            );
+            J.CompilationUnit withoutType = (J.CompilationUnit) new JavaIsoVisitor<Integer>() {
+                @Override
+                public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, Integer p) {
+                    return classDecl.withType(null);
+                }
+            }.visitNonNull(cu, 0);
 
-        assertUnchanged(new RenameBean(null, "foo", "bar"), withoutType);
+            assertUnchanged(new RenameBean(null, "foo", "bar"), withoutType);
+        }
     }
 
     private static J.CompilationUnit parse(String source) {

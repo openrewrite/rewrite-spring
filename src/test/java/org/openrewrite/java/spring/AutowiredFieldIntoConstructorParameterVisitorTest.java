@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -907,27 +908,31 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
-    @Test
-    void constructorWithoutMethodTypeInitializesFieldOfTheSameName() {
-        //language=java
-        J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion().build()
-          .parse(
-            """
-              class A {
-                  private String a;
+    @Nested
+    class NoChange {
+        @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+        @Test
+        void constructorWithoutMethodTypeInitializesFieldOfTheSameName() {
+            //language=java
+            J.CompilationUnit cu = (J.CompilationUnit) JavaParser.fromJavaVersion().build()
+              .parse(
+                """
+                  class A {
+                      private String a;
 
-                  A() {
-                      a = "";
+                      A() {
+                          a = "";
+                      }
                   }
-              }
-              """
-          )
-          .findFirst()
-          .orElseThrow();
-        J.MethodDeclaration constructor = ((J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(1))
-          .withMethodType(null);
+                  """
+              )
+              .findFirst()
+              .orElseThrow();
+            J.MethodDeclaration constructor = ((J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(1))
+              .withMethodType(null);
 
-        assertThat(AutowiredFieldIntoConstructorParameterVisitor.isNotConstructorInitializingField(constructor, "a")).isFalse();
-        assertThat(AutowiredFieldIntoConstructorParameterVisitor.isNotConstructorInitializingField(constructor, "b")).isTrue();
+            assertThat(AutowiredFieldIntoConstructorParameterVisitor.isNotConstructorInitializingField(constructor, "a")).isFalse();
+            assertThat(AutowiredFieldIntoConstructorParameterVisitor.isNotConstructorInitializingField(constructor, "b")).isTrue();
+        }
     }
 }
