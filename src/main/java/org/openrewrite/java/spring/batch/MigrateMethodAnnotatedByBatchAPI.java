@@ -142,9 +142,14 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             String parameterModifiers = parameter.getModifiers().stream()
                     .map(J.Modifier::toString)
                     .collect(joining(" "));
+            String chunkParameter = parameterModifiers + " Chunk" + chunkType + " _chunk";
+            String parameters = method.getParameters().stream()
+                    .map(p -> p == parameter ? chunkParameter : p.withPrefix(Space.EMPTY).print(getCursor()))
+                    .collect(joining(", "));
             String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
             String body = method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor());
-            return JavaTemplate.builder(String.format("%s\n %s void %s(%s Chunk" + chunkType + " %s)%s %s", annotations, methodModifiers, method.getSimpleName(), parameterModifiers, "_chunk", throwz, body))
+            return JavaTemplate.builder(String.format("%s\n %s void %s(%s)%s %s",
+                            annotations, methodModifiers, method.getSimpleName(), parameters, throwz, body))
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))

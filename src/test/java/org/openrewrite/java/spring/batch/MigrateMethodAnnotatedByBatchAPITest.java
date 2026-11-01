@@ -62,34 +62,51 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
                          System.out.println(subList);
                      }
                  }
+             
+                 @OnWriteError
+                 public void onWriteError(Exception e, List<?  extends List<String>> items) throws Exception {
+                   System.out.println("ItemWriteListener - onWriteError: " + e);
+                   for (List<String> subList : items) {
+                 	  System.out.println(subList);
+                   }
+                 }
              }
              """,
             """
-              import java.util.List;
-              import org.springframework.batch.core.annotation.BeforeWrite;
-              import org.springframework.batch.core.annotation.AfterWrite;
-              import org.springframework.batch.core.annotation.OnWriteError;
-              import org.springframework.batch.item.Chunk;
-
-              public class ProfileUpdateWriter {
-
-                  @BeforeWrite
-                  public void beforeWrite(Chunk<? extends List<String>> _chunk) throws Exception {
-                      List<? extends List<String>> items = _chunk.getItems();
-                      for (List<String> subList : items) {
-                          System.out.println(subList);
-                      }
-                  }
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+             import org.springframework.batch.core.annotation.AfterWrite;
+             import org.springframework.batch.core.annotation.OnWriteError;
+             import org.springframework.batch.item.Chunk;
              
-                  @AfterWrite
-                  public void afterWrite(Chunk<? extends List<String>> _chunk) throws Exception {
-                      List<? extends List<String>> items = _chunk.getItems();
-                      for (List<String> subList : items) {
-                          System.out.println(subList);
-                      }
-                  }
-              }
-              """
+             public class ProfileUpdateWriter {
+             
+                 @BeforeWrite
+                 public void beforeWrite(Chunk<? extends List<String>> _chunk) throws Exception {
+                     List<? extends List<String>> items = _chunk.getItems();
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             
+                 @AfterWrite
+                 public void afterWrite(Chunk<? extends List<String>> _chunk) throws Exception {
+                     List<? extends List<String>> items = _chunk.getItems();
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             
+                 @OnWriteError
+                 public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk) throws Exception {
+                     List<? extends List<String>> items = _chunk.getItems();
+                     System.out.println("ItemWriteListener - onWriteError: " + e);
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             }
+             """
           )
         );
     }
