@@ -49,6 +49,10 @@ public class MigrateOpenApiGeneratorToSpringBoot4 extends Recipe {
             "The `useSpringBoot4`/`useJackson3` options were introduced in OpenAPI Generator 7.16.0, so the plugin " +
             "is upgraded to at least that version first.";
 
+    protected boolean useJackson3() {
+        return true;
+    }
+
     @Override
     public List<Recipe> getRecipeList() {
         return singletonList(new UpgradePluginVersion(
@@ -63,7 +67,7 @@ public class MigrateOpenApiGeneratorToSpringBoot4 extends Recipe {
                 for (Xml.Tag plugin : FindPlugin.find(document, OPENAPI_GENERATOR_GROUP_ID, OPENAPI_GENERATOR_ARTIFACT_ID)) {
                     for (Xml.Tag configuration : FindTags.find(plugin, "//configuration")) {
                         if (isSpringGenerator(configuration) && needsMigration(configuration)) {
-                            doAfterVisit(new MigrateSpringGeneratorConfiguration<>(configuration));
+                            doAfterVisit(new MigrateSpringGeneratorConfiguration<>(configuration, useJackson3()));
                         }
                     }
                 }
@@ -78,7 +82,7 @@ public class MigrateOpenApiGeneratorToSpringBoot4 extends Recipe {
                 return configuration.getChild("configOptions")
                         .map(configOptions -> configOptions.getChild("useSpringBoot3").isPresent() ||
                                 !"true".equals(configOptions.getChildValue("useSpringBoot4").orElse(null)) ||
-                                !"true".equals(configOptions.getChildValue("useJackson3").orElse(null)))
+                                !Boolean.toString(useJackson3()).equals(configOptions.getChildValue("useJackson3").orElse("false")))
                         .orElse(true);
             }
         };
@@ -87,6 +91,7 @@ public class MigrateOpenApiGeneratorToSpringBoot4 extends Recipe {
     @RequiredArgsConstructor
     private static class MigrateSpringGeneratorConfiguration<P> extends XmlVisitor<P> {
         private final Xml.Tag scope;
+        private final boolean useJackson3;
 
         @Override
         public Xml visitTag(Xml.Tag tag, P p) {
@@ -98,7 +103,7 @@ public class MigrateOpenApiGeneratorToSpringBoot4 extends Recipe {
                 configOptions = AddOrUpdateChild.addOrUpdateChild(configOptions,
                         Xml.Tag.build("<useSpringBoot4>true</useSpringBoot4>"), getCursor());
                 configOptions = AddOrUpdateChild.addOrUpdateChild(configOptions,
-                        Xml.Tag.build("<useJackson3>true</useJackson3>"), getCursor());
+                        Xml.Tag.build("<useJackson3>" + useJackson3 + "</useJackson3>"), getCursor());
                 t = AddOrUpdateChild.addOrUpdateChild(t, configOptions, getCursor().getParentOrThrow());
             }
             return t;

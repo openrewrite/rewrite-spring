@@ -1,0 +1,83 @@
+#
+# Copyright 2026 the original author or authors.
+# <p>
+# Licensed under the Moderne Source Available License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# <p>
+# https://docs.moderne.io/licensing/moderne-source-available-license
+# <p>
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.PrepareJackson2Compatibility
+displayName: Prepare retained Jackson 2 configuration for Spring Boot 4
+description: >-
+  Preserve Boot 3 Jackson 2 configuration under the Boot 4 Jackson 2 compatibility namespace.
+  Run before Boot 4 property and modular API migrations, on modules deliberately retaining Jackson 2.
+recipeList:
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.jackson
+      newPropertyKey: spring.jackson2
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.jackson
+      newPackageName: org.springframework.boot.jackson2.autoconfigure
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.jackson
+      newPackageName: org.springframework.boot.jackson2
+      recursive: true
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0RetainingJackson2
+displayName: Migrate to Spring Framework 7.0 retaining Jackson 2
+description: Migrate applications to the latest Spring Framework 7.0 release.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0Prepare
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0Finish
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0RetainingJackson2
+displayName: Migrate to Spring Boot 4.0 retaining Jackson 2
+description: >-
+  Migrate applications to the latest Spring Boot 4.0 release. This recipe will modify an application's build files,
+  make changes to deprecated/preferred APIs.
+tags:
+  - spring
+  - boot
+preconditions:
+  - org.openrewrite.Singleton
+  - org.openrewrite.java.spring.boot4.UsesSpringBoot
+recipeList:
+  - org.openrewrite.java.spring.boot4.PrepareJackson2Compatibility
+  - org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0Prepare
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0RetainingJackson2
+  - org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0Finish
+  - org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4RetainingJackson2
+  - org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4RetainingJackson2
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-jackson2
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.SpringApplication
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-jackson2
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.jackson2..*
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: spring.http.converters.preferred-json-mapper
+      value: jackson2
+  - org.openrewrite.java.spring.AddSpringProperty:
+      property: spring.http.codecs.preferred-json-mapper
+      value: jackson2
