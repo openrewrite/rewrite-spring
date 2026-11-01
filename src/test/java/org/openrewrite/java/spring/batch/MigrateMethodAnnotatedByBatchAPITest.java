@@ -112,10 +112,47 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
     }
 
     @Test
+    void migrateOnWriteErrorAnnotatedMethod() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.OnWriteError;
+             
+             public class ProfileUpdateWriter {
+             
+                 @OnWriteError
+                 public void onWriteError(Exception e, List<?  extends List<String>> items) throws Exception {
+                     System.out.println("ItemWriteListener - onWriteError items size: " + items.size());
+                     System.out.println("ItemWriteListener - onWriteError: " + e);
+                 }
+             }
+             """,
+             """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.OnWriteError;
+             import org.springframework.batch.item.Chunk;
+             
+             public class ProfileUpdateWriter {
+             
+                 @OnWriteError
+                 public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk) throws Exception {
+                     List<? extends List<String>> items = _chunk.getItems();
+                     System.out.println("ItemWriteListener - onWriteError items size: " + items.size());
+                     System.out.println("ItemWriteListener - onWriteError: " + e);
+                 }
+             }
+             """
+          )
+        );
+    }
+
+    @Test
     void migrateNoBodyAnnotatedMethods() {
         //language=java
         rewriteRun(
-            java(
+          java(
              """
              import java.util.List;
              import org.springframework.batch.core.annotation.BeforeWrite;
@@ -153,8 +190,43 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
                  public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk);
              }
              """
-            )
+          )
         );
     }
 
+    @Test
+    void alreadyMigratedMethodsIgnored() {
+        rewriteRun(spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+          "spring-batch-core-5.1.+",
+                    "spring-batch-infrastructure-5.1.+")),
+          //language=java
+          java(
+            """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+             import org.springframework.batch.core.annotation.AfterWrite;
+             import org.springframework.batch.item.Chunk;
+             
+             public class ProfileUpdateWriter {
+             
+                 @BeforeWrite
+                 public void beforeWrite(Chunk<? extends List<String>> _chunk) throws Exception {
+                     List<? extends List<String>> items = _chunk.getItems();
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             
+                 @AfterWrite
+                 public void afterWrite(Chunk<? extends List<String>> _chunk) throws Exception {
+                     List<? extends List<String>> items = _chunk.getItems();
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             }
+             """
+          )
+        );
+    }
 }
