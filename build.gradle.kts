@@ -21,6 +21,7 @@ recipeDependencies {
     parserClasspath("org.springframework.boot:spring-boot:1.+")
     parserClasspath("org.springframework.boot:spring-boot:2.+")
     parserClasspath("org.springframework.boot:spring-boot:3.+")
+    parserClasspath("org.springframework.boot:spring-boot:4.+")
 
     parserClasspath("org.springframework.boot:spring-boot-resttestclient:4.+")
 
