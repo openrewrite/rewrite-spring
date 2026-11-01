@@ -154,19 +154,22 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .map(J.Modifier::toString)
                     .collect(joining(" "));
             String chunkParameter = parameterModifiers + " Chunk" + chunkType + " _chunk";
-            String parameters = method.getParameters().stream()
-                    .map(p -> p == parameter ? chunkParameter : p.withPrefix(Space.EMPTY).print(getCursor()))
+            List<Object> parameters = method.getParameters().stream()
+                    .<Object>map(p -> p == parameter ? chunkParameter : p.withPrefix(Space.EMPTY))
+                    .collect(toList());
+            String parameterTemplate = parameters.stream()
+                    .map(p -> "#{}")
                     .collect(joining(", "));
             String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
             return JavaTemplate.builder(String.format("%s\n %s void %s(%s)%s %s",
-                            annotations, methodModifiers, method.getSimpleName(), parameters, throwz, body))
+                            annotations, methodModifiers, method.getSimpleName(), parameterTemplate, throwz, body))
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk", "java.util.List")
                     .imports(namedTypes)
                     .build()
-                    .apply(getCursor(), method.getCoordinates().replace());
+                    .apply(getCursor(), method.getCoordinates().replace(), parameters.toArray());
         }
     }
 }
