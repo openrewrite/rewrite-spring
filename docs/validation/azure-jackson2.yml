@@ -1,0 +1,52 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: lab.UpgradeLegacyAzureAndRetainJackson2
+displayName: Validate legacy Azure Spring integration on Boot 4 retaining Jackson 2
+description: Align the OSS validation samples with the documented Boot 4 Azure release line.
+recipeList:
+  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
+      oldGroupId: com.azure.spring
+      oldArtifactId: azure-spring-boot-bom
+      newArtifactId: spring-cloud-azure-dependencies
+      newVersion: 7.4.0
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.azure.spring
+      oldArtifactId: azure-spring-boot-starter-cosmos
+      newArtifactId: spring-cloud-azure-starter-data-cosmos
+      newVersion: 7.4.0
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.azure.spring
+      oldArtifactId: azure-spring-boot-starter-keyvault-secrets
+      newArtifactId: spring-cloud-azure-starter-keyvault-secrets
+      newVersion: 7.4.0
+  - org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0RetainingJackson2
+  - org.openrewrite.maven.RemoveRedundantDependencyVersions:
+      groupPattern: com.azure*
+      artifactPattern: '*'
+      onlyIfManagedVersionIs: GTE
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: lab.AutomaticJacksonPolicy
+displayName: Validate automatic Jackson policy for Spring Boot 4
+description: Retain Jackson 2 repository-wide when known fixed third-party signatures require it.
+recipeList:
+  - lab.RetainExternalJackson2
+  - lab.AdoptJackson3Otherwise
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: lab.RetainExternalJackson2
+displayName: Retain Jackson 2 at fixed external boundaries
+description: Retain Jackson 2 and align the legacy Azure validation starters.
+preconditions:
+  - org.openrewrite.java.jackson.UsesExternalJackson2Api
+recipeList:
+  - lab.UpgradeLegacyAzureAndRetainJackson2
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: lab.AdoptJackson3Otherwise
+displayName: Adopt Jackson 3 without fixed external Jackson 2 boundaries
+description: Apply the standard Spring Boot 4 migration when no fixed external Jackson 2 signature is detected.
+preconditions:
+  - org.openrewrite.java.jackson.DoesNotUseExternalJackson2Api
+recipeList:
+  - org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0

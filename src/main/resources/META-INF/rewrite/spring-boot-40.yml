@@ -28,12 +28,86 @@ preconditions:
   - org.openrewrite.Singleton
   - org.openrewrite.java.spring.boot4.UsesSpringBoot
 recipeList:
+  - org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0Prepare
+  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
+  - org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0Finish
+  - org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
+  - org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.RenameDeprecatedStartersManagedVersions
+displayName: Rename Spring Boot 4.0 starters with managed versions
+description: >-
+  Renames deprecated Spring Boot starters to their new names without adding explicit versions,
+  for use in projects where the `io.spring.dependency-management` plugin manages versions via BOM.
+preconditions:
+  - org.openrewrite.gradle.search.ModuleHasPlugin:
+      pluginId: io.spring.dependency-management
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-oauth2-authorization-server
+      newArtifactId: spring-boot-starter-security-oauth2-authorization-server
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-oauth2-client
+      newArtifactId: spring-boot-starter-security-oauth2-client
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-oauth2-resource-server
+      newArtifactId: spring-boot-starter-security-oauth2-resource-server
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-web
+      newArtifactId: spring-boot-starter-webmvc
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-web-services
+      newArtifactId: spring-boot-starter-webservices
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-aop
+      newArtifactId: spring-boot-starter-aspectj
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.MigrateJacksonBomProperty
+displayName: Migrate a Spring Boot 3 `jackson-bom.version` override to `jackson-2-bom.version`
+description: >-
+  In Spring Boot 4 `jackson-bom.version` controls the Jackson 3 (`tools.jackson`) BOM, while the Jackson 2 BOM is
+  controlled by `jackson-2-bom.version`. A Spring Boot 3 override pins a Jackson 2 version, so rename it to keep
+  managing Jackson 2. Gated on a Spring Boot 3 parent so a deliberate Jackson 3 override on an already-Spring-Boot-4
+  project is left untouched.
+preconditions:
+  - org.openrewrite.maven.search.ParentPomInsight:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-parent
+      version: 3.x
+recipeList:
+  - org.openrewrite.maven.RenamePropertyKey:
+      oldKey: jackson-bom.version
+      newKey: jackson-2-bom.version
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0Prepare
+displayName: Prepare migration to Spring Boot 4.0
+description: Apply the Spring Boot migration steps that precede Spring Framework and Jackson adoption.
+recipeList:
   # Upgrade transitive Boot management before older migrations add dependencies against the vendor BOM.
   - org.openrewrite.java.spring.boot4.AddSpringBootBomForTransitiveDependencyManagement:
       newVersion: 4.0.x
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5
   - org.openrewrite.java.spring.cloud2025.UpgradeSpringCloud_2025_1
-  - org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0Finish
+displayName: Finish migration to Spring Boot 4.0
+description: Apply the remaining Spring Boot migration steps after Spring Framework and Jackson adoption.
+recipeList:
   - org.openrewrite.java.spring.security7.UpgradeSpringSecurity_7_0
   - org.openrewrite.java.spring.batch.SpringBatch5To6Migration
   - org.openrewrite.java.spring.boot4.SpringBootProperties_4_0
@@ -173,62 +247,3 @@ recipeList:
   - org.openrewrite.java.spring.boot4.AddAutoConfigureTestRestTemplate
   - org.openrewrite.java.spring.boot4.AddAutoConfigureWebTestClient
   - org.openrewrite.java.spring.boot4.AddAutoConfigureMockMvc
-
-  - org.openrewrite.java.spring.boot4.MigrateOpenApiGeneratorToSpringBoot4
-  - org.openrewrite.java.spring.boot4.MigrateJsonschema2PojoToSpringBoot4
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot4.RenameDeprecatedStartersManagedVersions
-displayName: Rename Spring Boot 4.0 starters with managed versions
-description: >-
-  Renames deprecated Spring Boot starters to their new names without adding explicit versions,
-  for use in projects where the `io.spring.dependency-management` plugin manages versions via BOM.
-preconditions:
-  - org.openrewrite.gradle.search.ModuleHasPlugin:
-      pluginId: io.spring.dependency-management
-  - org.openrewrite.Singleton
-recipeList:
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-oauth2-authorization-server
-      newArtifactId: spring-boot-starter-security-oauth2-authorization-server
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-oauth2-client
-      newArtifactId: spring-boot-starter-security-oauth2-client
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-oauth2-resource-server
-      newArtifactId: spring-boot-starter-security-oauth2-resource-server
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-web
-      newArtifactId: spring-boot-starter-webmvc
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-web-services
-      newArtifactId: spring-boot-starter-webservices
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: org.springframework.boot
-      oldArtifactId: spring-boot-starter-aop
-      newArtifactId: spring-boot-starter-aspectj
-
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.boot4.MigrateJacksonBomProperty
-displayName: Migrate a Spring Boot 3 `jackson-bom.version` override to `jackson-2-bom.version`
-description: >-
-  In Spring Boot 4 `jackson-bom.version` controls the Jackson 3 (`tools.jackson`) BOM, while the Jackson 2 BOM is
-  controlled by `jackson-2-bom.version`. A Spring Boot 3 override pins a Jackson 2 version, so rename it to keep
-  managing Jackson 2. Gated on a Spring Boot 3 parent so a deliberate Jackson 3 override on an already-Spring-Boot-4
-  project is left untouched.
-preconditions:
-  - org.openrewrite.maven.search.ParentPomInsight:
-      groupIdPattern: org.springframework.boot
-      artifactIdPattern: spring-boot-starter-parent
-      version: 3.x
-recipeList:
-  - org.openrewrite.maven.RenamePropertyKey:
-      oldKey: jackson-bom.version
-      newKey: jackson-2-bom.version

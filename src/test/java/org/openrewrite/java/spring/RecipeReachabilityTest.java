@@ -33,6 +33,7 @@ class RecipeReachabilityTest {
     private static final Set<String> ENTRY_POINTS = Set.of(
       "org.openrewrite.java.spring.boot3.SpringBoot33BestPractices",
       "org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0",
+      "org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0RetainingJackson2",
       "org.openrewrite.java.spring.opentelemetry.MigrateToOpenTelemetry"
     );
 

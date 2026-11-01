@@ -46,6 +46,10 @@ public class MigrateJsonschema2PojoToSpringBoot4 extends Recipe {
             "annotations compatible with Spring Boot 4. The `jackson3` annotation style was introduced in " +
             "jsonschema2pojo 1.3.0, so the plugin is upgraded to at least that version first.";
 
+    protected boolean useJackson3() {
+        return true;
+    }
+
     @Override
     public List<Recipe> getRecipeList() {
         return singletonList(new UpgradePluginVersion(GROUP_ID, ARTIFACT_ID, "1.3.0", null, null, null));
@@ -60,9 +64,9 @@ public class MigrateJsonschema2PojoToSpringBoot4 extends Recipe {
                     Optional<Xml.Tag> configuration = plugin.getChild("configuration");
                     if (configuration.isPresent()) {
                         if (needsMigration(configuration.get())) {
-                            doAfterVisit(new MigrateConfiguration<>(configuration.get()));
+                            doAfterVisit(new MigrateConfiguration<>(configuration.get(), useJackson3()));
                         }
-                    } else {
+                    } else if (useJackson3()) {
                         doAfterVisit(new AddConfiguration<>(plugin));
                     }
                 }
@@ -71,7 +75,7 @@ public class MigrateJsonschema2PojoToSpringBoot4 extends Recipe {
 
             private boolean needsMigration(Xml.Tag configuration) {
                 String style = configuration.getChildValue("annotationStyle").orElse("jackson2");
-                boolean migrateJackson = JACKSON_STYLES.contains(style) && !"jackson3".equals(style);
+                boolean migrateJackson = useJackson3() && JACKSON_STYLES.contains(style) && !"jackson3".equals(style);
                 boolean migrateValidation =
                         "true".equals(configuration.getChildValue("includeJsr303Annotations").orElse(null)) &&
                         !"true".equals(configuration.getChildValue("useJakartaValidation").orElse(null));
@@ -83,13 +87,14 @@ public class MigrateJsonschema2PojoToSpringBoot4 extends Recipe {
     @RequiredArgsConstructor
     private static class MigrateConfiguration<P> extends XmlVisitor<P> {
         private final Xml.Tag scope;
+        private final boolean useJackson3;
 
         @Override
         public Xml visitTag(Xml.Tag tag, P p) {
             Xml.Tag t = (Xml.Tag) super.visitTag(tag, p);
             if (scope.isScope(tag)) {
                 String style = t.getChildValue("annotationStyle").orElse("jackson2");
-                if (JACKSON_STYLES.contains(style)) {
+                if (useJackson3 && JACKSON_STYLES.contains(style)) {
                     t = AddOrUpdateChild.addOrUpdateChild(t,
                             Xml.Tag.build("<annotationStyle>jackson3</annotationStyle>"),
                             getCursor().getParentOrThrow());
