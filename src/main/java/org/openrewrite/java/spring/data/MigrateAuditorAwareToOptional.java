@@ -76,6 +76,12 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         }
 
         @Override
+        public J.Lambda visitLambda(J.Lambda lambda, ExecutionContext ctx) {
+            // A `return` in a nested lambda belongs to the lambda, not to `getCurrentAuditor`
+            return lambda;
+        }
+
+        @Override
         public J.Return visitReturn(J.Return return_, ExecutionContext ctx) {
             Expression expression = return_.getExpression();
             if (expression == null) {
