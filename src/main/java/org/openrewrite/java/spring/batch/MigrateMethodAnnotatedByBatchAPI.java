@@ -21,6 +21,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -36,6 +37,7 @@ import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
@@ -53,18 +55,21 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
         }
     };
 
+    private static final List<AnnotationMatcher> ANNOTATION_MATCHERS = annotatedMethods.stream()
+            .map(annotation -> new AnnotationMatcher("@" + annotation))
+            .collect(toList());
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaIsoVisitor<ExecutionContext> visitor = new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                Optional<J.Annotation> methodAnnotation = method.getLeadingAnnotations().stream()
-                        .filter(annotation -> Objects.nonNull(annotation.getType()))
-                        .filter(annotation -> annotatedMethods.contains(annotation.getType().toString()))
-                        .findFirst();
+                boolean annotated = method.getLeadingAnnotations().stream()
+                        .anyMatch(annotation -> ANNOTATION_MATCHERS.stream()
+                                .anyMatch(matcher -> matcher.matches(annotation)));
 
-                if (methodAnnotation.isPresent()) {
+                if (annotated) {
                     method = super.visitMethodDeclaration(method, ctx);
                     doAfterVisit(new RefineMethod(method));
                     return method;
