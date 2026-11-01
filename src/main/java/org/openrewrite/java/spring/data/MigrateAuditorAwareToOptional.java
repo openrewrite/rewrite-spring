@@ -60,7 +60,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             TypeTree returnType = method.getReturnTypeExpression();
             if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType()) ||
-                    returnType == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
+                    returnType == null || returnType.getType() == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
                 return method;
             }
             // `java.util.Optional<T>` around the declared type, which the parser makes a parameterized type of
