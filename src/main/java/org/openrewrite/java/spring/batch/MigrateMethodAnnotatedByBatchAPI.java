@@ -119,18 +119,24 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .getParameters().get(0).withPrefix(Space.EMPTY);
             vdd = vdd.withTypeExpression(TypeTree.build("org.springframework.batch.item.Chunk")).withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
 
-            J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
-                    .imports("org.springframework.batch.item.Chunk", "java.util.List")
-                    .imports(namedTypes)
-                    .build()
-                    .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
+            String body = ";";
+            if (method.getBody() != null) {
+                J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
+                        .contextSensitive()
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
+                        .imports("org.springframework.batch.item.Chunk", "java.util.List")
+                        .imports(namedTypes)
+                        .build()
+                        .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
 
 
-            methodDeclaration = methodDeclaration.withParameters(singletonList(vdd))
-                    .withMethodType(method.getMethodType()
-                            .withParameterTypes(singletonList(vdd.getType())));
+                if (method.getMethodType() != null) {
+                    methodDeclaration = methodDeclaration.withParameters(singletonList(vdd))
+                            .withMethodType(method.getMethodType()
+                                    .withParameterTypes(singletonList(vdd.getType())));
+                }
+                body = methodDeclaration.getBody().print(getCursor());
+            }
 
 
             maybeAddImport("org.springframework.batch.item.Chunk");
@@ -147,7 +153,6 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .map(p -> p == parameter ? chunkParameter : p.withPrefix(Space.EMPTY).print(getCursor()))
                     .collect(joining(", "));
             String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
-            String body = method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor());
             return JavaTemplate.builder(String.format("%s\n %s void %s(%s)%s %s",
                             annotations, methodModifiers, method.getSimpleName(), parameters, throwz, body))
                     .contextSensitive()

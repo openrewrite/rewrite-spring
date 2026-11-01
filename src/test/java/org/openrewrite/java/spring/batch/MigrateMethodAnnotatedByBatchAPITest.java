@@ -111,4 +111,50 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
         );
     }
 
+    @Test
+    void migrateNoBodyAnnotatedMethods() {
+        //language=java
+        rewriteRun(
+            java(
+             """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+             import org.springframework.batch.core.annotation.AfterWrite;
+             import org.springframework.batch.core.annotation.OnWriteError;
+             
+             public class ProfileUpdateWriter {
+             
+                 @BeforeWrite
+                 public void beforeWrite(List<? extends List<String>> items);
+             
+                 @AfterWrite
+                 public void afterWrite(List<? extends List<String>> items);
+             
+                 @OnWriteError
+                 public void onWriteError(Exception e, List<?  extends List<String>> items);
+             }
+             """,
+              """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+             import org.springframework.batch.core.annotation.AfterWrite;
+             import org.springframework.batch.core.annotation.OnWriteError;
+             import org.springframework.batch.item.Chunk;
+             
+             public class ProfileUpdateWriter {
+             
+                 @BeforeWrite
+                 public void beforeWrite(Chunk<? extends List<String>> _chunk);
+             
+                 @AfterWrite
+                 public void afterWrite(Chunk<? extends List<String>> _chunk);
+             
+                 @OnWriteError
+                 public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk);
+             }
+             """
+            )
+        );
+    }
+
 }
