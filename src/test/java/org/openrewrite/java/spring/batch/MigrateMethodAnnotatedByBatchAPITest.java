@@ -37,38 +37,57 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
 
     @DocumentExample
     @Test
-    void fixMethodArguments() {
+    void migrateAllWriteAnnotatedMethods() {
         //language=java
         rewriteRun(
           java(
             """
-              import java.util.List;
-              import org.springframework.batch.core.annotation.BeforeWrite;
-
-              public class ProfileUpdateWriter {
-
-                  @BeforeWrite
-                  public void write(List<? extends List<String>> items) throws Exception {
-                      for (List<String> subList : items) {
-                      }
-                  }
-
-              }
-              """,
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+             import org.springframework.batch.core.annotation.AfterWrite;
+             import org.springframework.batch.core.annotation.OnWriteError;
+             
+             public class ProfileUpdateWriter {
+             
+                 @BeforeWrite
+                 public void beforeWrite(List<? extends List<String>> items) throws Exception {
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             
+                 @AfterWrite
+                 public void afterWrite(List<? extends List<String>> items) throws Exception {
+                     for (List<String> subList : items) {
+                         System.out.println(subList);
+                     }
+                 }
+             }
+             """,
             """
               import java.util.List;
               import org.springframework.batch.core.annotation.BeforeWrite;
+              import org.springframework.batch.core.annotation.AfterWrite;
+              import org.springframework.batch.core.annotation.OnWriteError;
               import org.springframework.batch.item.Chunk;
 
               public class ProfileUpdateWriter {
 
                   @BeforeWrite
-                  public void write(Chunk<? extends List<String>> _chunk) throws Exception {
+                  public void beforeWrite(Chunk<? extends List<String>> _chunk) throws Exception {
                       List<? extends List<String>> items = _chunk.getItems();
                       for (List<String> subList : items) {
+                          System.out.println(subList);
                       }
                   }
-
+             
+                  @AfterWrite
+                  public void afterWrite(Chunk<? extends List<String>> _chunk) throws Exception {
+                      List<? extends List<String>> items = _chunk.getItems();
+                      for (List<String> subList : items) {
+                          System.out.println(subList);
+                      }
+                  }
               }
               """
           )
