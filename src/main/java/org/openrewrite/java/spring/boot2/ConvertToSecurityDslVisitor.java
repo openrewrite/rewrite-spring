@@ -216,11 +216,23 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 singletonList("arg0");
         List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType) :
                 singletonList(customizerArgType);
-        return Optional.of(methodType.withReturnType(methodType.getDeclaringType())
+        return Optional.of(methodType.withReturnType(builderType(m, methodType))
                 .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
                 .withParameterNames(paramNames)
                 .withParameterTypes(paramTypes)
         );
+    }
+
+    /**
+     * The lambda DSL methods return the builder they are called on, which for methods inherited from a generic
+     * builder like `AbstractConfiguredSecurityBuilder<O, B>` is the subtype `B` rather than the declaring type.
+     */
+    private JavaType builderType(J.MethodInvocation m, JavaType.Method methodType) {
+        Expression select = m.getSelect();
+        if (select != null && TypeUtils.isAssignableTo(securityFqn, select.getType())) {
+            return requireNonNull(select.getType());
+        }
+        return methodType.getDeclaringType();
     }
 
     private boolean keepArg(String methodName) {
