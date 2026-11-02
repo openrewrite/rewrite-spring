@@ -74,6 +74,7 @@ recipeList:
       newVersion: 3.x
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
+  - org.openrewrite.java.spring.boot2.PreserveWebjarsLocatorTransitiveDependencies
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.webjars
       oldArtifactId: webjars-locator
@@ -283,3 +284,31 @@ recipeList:
       artifactId: "*"
       newVersion: 2.0.1
       overrideManagedVersion: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.PreserveWebjarsLocatorTransitiveDependencies
+displayName: Keep the libraries `webjars-locator` brought in transitively
+description: >-
+  `webjars-locator` brings in `commons-lang3`, `commons-text` and `jackson-databind`; `webjars-locator-core`, which
+  replaces it, does not. Add those libraries directly to modules that use them, before the swap removes them.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.webjars
+      artifactIdPattern: webjars-locator
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.apache.commons
+      artifactId: commons-lang3
+      version: 3.x
+      onlyIfUsing: org.apache.commons.lang3..*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.apache.commons
+      artifactId: commons-text
+      version: 1.x
+      onlyIfUsing: org.apache.commons.text..*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: com.fasterxml.jackson.core
+      artifactId: jackson-databind
+      version: 2.x
+      onlyIfUsing: com.fasterxml.jackson..*
