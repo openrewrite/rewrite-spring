@@ -17,7 +17,6 @@ package org.openrewrite.java.spring.cloud2024;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.SetSystemProperty;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -31,9 +30,7 @@ class AddExplicitGradleSpringSecurityRsaVersionTest implements RewriteTest {
         spec.recipe(new AddExplicitGradleSpringSecurityRsaVersion()).beforeRecipe(withToolingApi());
     }
 
-    // Gradle 8.14's embedded Kotlin compiler fails to parse four-part JDK versions such as 25.0.4.1
     @Test
-    @SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "9.8.2")
     void kotlinPlatform() {
         rewriteRun(
           buildGradleKts(
