@@ -100,7 +100,7 @@ Most of this is mechanical, so fix it directly:
 
 ## 6. Metadata
 - **Display name:** sentence case, with correct product names ("Spring Boot").
-- **Description:** backticks around types and properties; states what changes and what doesn't; ends with a period; doesn't over-claim.
+- **Description:** backticks around types and properties; states what changes and what doesn't; ends with a period; doesn't over-claim. For a composite, one generic statement of the overall effect is enough: don't list or describe what the included recipes do, and delete a stale clause rather than rewrite it into a longer one.
 - **YAML:** no options set to their default value; `description: >-` for long descriptions.
 - **Comments:** keep only a non-obvious "why". No javadoc that repeats the description.
 - **PR description:** link the issue and the upstream migration guide or commit, so a reviewer doesn't have to dig.
