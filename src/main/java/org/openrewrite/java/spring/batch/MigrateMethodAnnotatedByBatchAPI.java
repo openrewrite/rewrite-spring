@@ -21,9 +21,11 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.VariableNameUtils;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.internal.NamedTypes;
 import org.openrewrite.java.tree.J;
@@ -34,8 +36,10 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
 
-import static java.util.Collections.singletonList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.openrewrite.java.VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER;
 
 public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
@@ -53,18 +57,21 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
         }
     };
 
+    private static final List<AnnotationMatcher> ANNOTATION_MATCHERS = annotatedMethods.stream()
+            .map(annotation -> new AnnotationMatcher("@" + annotation))
+            .collect(toList());
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaIsoVisitor<ExecutionContext> visitor = new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                Optional<J.Annotation> methodAnnotation = method.getLeadingAnnotations().stream()
-                        .filter(annotation -> Objects.nonNull(annotation.getType()))
-                        .filter(annotation -> annotatedMethods.contains(annotation.getType().toString()))
-                        .findFirst();
+                boolean annotated = method.getLeadingAnnotations().stream()
+                        .anyMatch(annotation -> ANNOTATION_MATCHERS.stream()
+                                .anyMatch(matcher -> matcher.matches(annotation)));
 
-                if (methodAnnotation.isPresent()) {
+                if (annotated) {
                     method = super.visitMethodDeclaration(method, ctx);
                     doAfterVisit(new RefineMethod(method));
                     return method;
@@ -95,63 +102,52 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                 return super.visitMethodDeclaration(method, ctx);
             }
             J.VariableDeclarations parameter = parameterOptional.get();
-            String chunkTypeParameter = null;
-            if (parameter.getTypeExpression() instanceof J.ParameterizedType) {
-                if (((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() != null) {
-                    chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
-                } else {
-                    chunkTypeParameter = "?";
-                }
-            }
-            String chunkType = chunkTypeParameter == null ? "" : "<" + chunkTypeParameter + ">";
-            String paramName = parameter.getVariables().get(0).getSimpleName();
-            // the templates print parts of the method, such as its type argument, annotations and body
             String[] namedTypes = NamedTypes.in(method);
-
-
-            J.VariableDeclarations vdd = JavaTemplate.builder("Chunk" + chunkType + " _chunk")
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
-                    .imports("org.springframework.batch.item.Chunk")
-                    .imports(namedTypes)
-                    .build()
-                    .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
-                    .getParameters().get(0).withPrefix(Space.EMPTY);
-            vdd = vdd.withTypeExpression(TypeTree.build("org.springframework.batch.item.Chunk")).withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
-
-            J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
-                    .imports("org.springframework.batch.item.Chunk", "java.util.List")
-                    .imports(namedTypes)
-                    .build()
-                    .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
-
-
-            methodDeclaration = methodDeclaration.withParameters(singletonList(vdd))
-                    .withMethodType(method.getMethodType()
-                            .withParameterTypes(singletonList(vdd.getType())));
-
-
+            String chunkName = VariableNameUtils.generateVariableName("chunk", getCursor(), INCREMENT_NUMBER);
             maybeAddImport("org.springframework.batch.item.Chunk");
             maybeAddImport("java.util.List");
-            String annotations = method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse("");
-            String methodModifiers = method.getModifiers().stream()
-                    .map(J.Modifier::toString)
-                    .collect(joining(" "));
-            String parameterModifiers = parameter.getModifiers().stream()
-                    .map(J.Modifier::toString)
-                    .collect(joining(" "));
-            String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
-            String body = method.getBody() == null ? "" : methodDeclaration.getBody().print(getCursor());
-            return JavaTemplate.builder(String.format("%s\n %s void write(%s Chunk" + chunkType + " %s)%s %s", annotations, methodModifiers, parameterModifiers, "_chunk", throwz, body))
+
+            // To convert List<T> items -> Chunk<T> chunk
+            J.Identifier chunk = TypeTree.<J.Identifier>build("Chunk")
+                    .withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
+            TypeTree listType = parameter.getTypeExpression();
+            J.VariableDeclarations chunkParam = parameter
+                    .withTypeExpression(listType instanceof J.ParameterizedType
+                            ? ((J.ParameterizedType) listType).withClazz(chunk)
+                            : chunk.withPrefix(listType == null ? Space.EMPTY : listType.getPrefix()))
+                    .withVariables(parameter.getVariables().stream()
+                            .map(v -> v.withName(v.getName().withSimpleName(chunkName)))
+                            .collect(toList()));
+
+            List<Object> parameters = method.getParameters().stream()
+                    .map(p -> (p == parameter ? chunkParam : p).withPrefix(Space.EMPTY))
+                    .collect(toList());
+            J.MethodDeclaration migrated = template(parameters.stream()
+                    .map(p -> "#{}")
+                    .collect(joining(", ")), namedTypes, ctx)
+                    .apply(getCursor(), method.getCoordinates().replaceParameters(), parameters.toArray());
+
+            // For first statement of body List<T> items = chunk.getItems();
+            // Ignore for no body case -> void foo(...);
+            if (migrated.getBody() != null) {
+                J.VariableDeclarations localVariable = parameter
+                        .withLeadingAnnotations(emptyList())
+                        .withModifiers(emptyList())
+                        .withPrefix(Space.EMPTY);
+                migrated = template("#{} = " + chunkName + ".getItems();", namedTypes, ctx)
+                        .apply(updateCursor(migrated), migrated.getBody().getCoordinates().firstStatement(), localVariable);
+            }
+            return autoFormat(migrated, ctx, getCursor().getParentOrThrow());
+        }
+
+        private static JavaTemplate template(String code, String[] namedTypes, ExecutionContext ctx) {
+            return JavaTemplate.builder(code)
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk", "java.util.List")
                     .imports(namedTypes)
-                    .build()
-                    .apply(getCursor(), method.getCoordinates().replace());
+                    .build();
         }
     }
 }
