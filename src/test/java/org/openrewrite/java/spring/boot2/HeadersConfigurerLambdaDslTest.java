@@ -340,4 +340,34 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
         );
     }
 
+    @Test
+    void noArgConfigurerInLambdaCreatedByHttpSecurityLambdaDsl() {
+        rewriteRun(
+          spec -> spec.recipes(new HttpSecurityLambdaDsl(), new HeadersConfigurerLambdaDsl()),
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfiguration {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.headers().httpStrictTransportSecurity();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              import static org.springframework.security.config.Customizer.withDefaults;
+
+              class SecurityConfiguration {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.headers(headers -> headers.httpStrictTransportSecurity(withDefaults()));
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }
