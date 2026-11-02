@@ -82,7 +82,6 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         }
                         String firstParameterType = TypeUtils.toString(requireNonNull(mi.getMethodType()).getParameterTypes().get(0));
                         return JavaTemplate.builder("#{any(" + firstParameterType + ")}, #{any(" + PLATFORM_TRANSACTION_MANAGER + ")}")
-                                .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx,
                                         "spring-batch-core-5.1", "spring-batch-infrastructure-5.1", "spring-tx-5"))
                                 .build()
