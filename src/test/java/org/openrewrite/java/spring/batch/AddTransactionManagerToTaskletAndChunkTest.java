@@ -94,7 +94,7 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
               }
               """,
             spec -> spec.afterRecipe(cu -> {
-                J.MethodDeclaration myStep = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(1);
+                var myStep = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().get(1);
                 JavaType.Method type = requireNonNull(myStep.getMethodType());
                 assertThat(type.getParameterNames()).containsExactly("myTasklet", "transactionManager");
                 assertThat(type.getParameterTypes()).map(TypeUtils::toString).containsExactly(
