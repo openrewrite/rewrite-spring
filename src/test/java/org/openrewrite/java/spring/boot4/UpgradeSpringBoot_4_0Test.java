@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -80,7 +81,9 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
         );
     }
 
+    // Gradle 8.14's embedded Kotlin compiler fails to parse four-part JDK versions such as 25.0.4.1
     @Test
+    @SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "9.8.2")
     void upgradeKotlinPluginInKotlinDsl() {
         rewriteRun(
           buildGradleKts(
