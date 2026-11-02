@@ -47,7 +47,8 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
     @Getter
     final String description = "Spring Batch 5.0 requires a `PlatformTransactionManager` as the second argument to " +
             "`StepBuilder.tasklet(Tasklet)` and `StepBuilder.chunk(int)` / `StepBuilder.chunk(CompletionPolicy)`. " +
-            "This recipe adds the `transactionManager` argument and injects it as a method parameter if needed.";
+            "This recipe passes a `PlatformTransactionManager` parameter or field that is in scope, " +
+            "and otherwise adds a `transactionManager` method parameter.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -69,7 +70,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         if (methodCursor == null) {
                             return mi;
                         }
-                        J.Identifier transactionManager = transactionManagerParameter(methodCursor);
+                        J.Identifier transactionManager = transactionManagerInScope(methodCursor);
                         if (transactionManager == null) {
                             J.MethodDeclaration md = methodCursor.getValue();
                             if (md.isConstructor() || md.getMethodType() == null) {
@@ -143,11 +144,19 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
         return false;
     }
 
-    private static J.@Nullable Identifier transactionManagerParameter(Cursor methodCursor) {
+    private static J.@Nullable Identifier transactionManagerInScope(Cursor methodCursor) {
         J.MethodDeclaration md = methodCursor.getValue();
         for (Statement parameter : md.getParameters()) {
             if (parameter instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) parameter)) {
                 return ((J.VariableDeclarations) parameter).getVariables().get(0).getName();
+            }
+        }
+        J.Block classBody = methodCursor.getParentTreeCursor().getValue();
+        boolean staticMethod = md.hasModifier(J.Modifier.Type.Static);
+        for (Statement statement : classBody.getStatements()) {
+            if (statement instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) statement) &&
+                    (!staticMethod || ((J.VariableDeclarations) statement).hasModifier(J.Modifier.Type.Static))) {
+                return ((J.VariableDeclarations) statement).getVariables().get(0).getName();
             }
         }
         return null;
