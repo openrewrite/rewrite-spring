@@ -225,6 +225,9 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.Email
+      newFullyQualifiedTypeName: javax.validation.constraints.Email
   - org.openrewrite.java.spring.boot2.MaybeAddJavaxValidationApi
 ---
 type: specs.openrewrite.org/v1beta/recipe
