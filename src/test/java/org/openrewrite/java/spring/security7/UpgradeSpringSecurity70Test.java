@@ -78,4 +78,40 @@ class UpgradeSpringSecurity70Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void widenSupplierParameterOfRenamedOverride() {
+        rewriteRun(
+          java(
+            """
+              import java.util.function.Supplier;
+              import org.springframework.security.authorization.AuthorizationDecision;
+              import org.springframework.security.authorization.AuthorizationManager;
+              import org.springframework.security.core.Authentication;
+
+              class CustomAuthorizationManager implements AuthorizationManager<Object> {
+                  @Override
+                  public AuthorizationDecision check(Supplier<Authentication> authentication, Object object) {
+                      Authentication current = authentication.get();
+                      return new AuthorizationDecision(current.isAuthenticated());
+                  }
+              }
+              """,
+            """
+              import java.util.function.Supplier;
+              import org.springframework.security.authorization.AuthorizationDecision;
+              import org.springframework.security.authorization.AuthorizationManager;
+              import org.springframework.security.core.Authentication;
+
+              class CustomAuthorizationManager implements AuthorizationManager<Object> {
+                  @Override
+                  public AuthorizationDecision authorize(Supplier<? extends Authentication> authentication, Object object) {
+                      Authentication current = authentication.get();
+                      return new AuthorizationDecision(current.isAuthenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
 }

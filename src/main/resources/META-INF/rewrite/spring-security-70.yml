@@ -33,6 +33,7 @@ recipeList:
       artifactId: "*"
       newVersion: 7.0.x
   - org.openrewrite.java.spring.security7.SecurityConfigurerRemoveThrowsException
+  - org.openrewrite.java.spring.security7.WidenAuthorizationManagerSupplierParameter
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: "org.springframework.security.authorization.AuthorizationManager check(..)"
       newMethodName: authorize
