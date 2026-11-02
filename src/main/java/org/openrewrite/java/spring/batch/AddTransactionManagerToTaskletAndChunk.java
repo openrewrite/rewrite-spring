@@ -31,6 +31,7 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
+import static org.openrewrite.Tree.randomId;
 
 public class AddTransactionManagerToTaskletAndChunk extends Recipe {
 
@@ -80,7 +81,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                                 return mi;
                             }
                             methodCursor.putMessage(MSG_ADD_PARAMETER, true);
-                            transactionManager = new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(),
+                            transactionManager = new J.Identifier(randomId(), Space.EMPTY, Markers.EMPTY, emptyList(),
                                     "transactionManager", JavaType.ShallowClass.build(PLATFORM_TRANSACTION_MANAGER), null);
                         }
                         String firstParameterType = TypeUtils.toString(requireNonNull(mi.getMethodType()).getParameterTypes().get(0));
@@ -89,7 +90,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                                         "spring-batch-core-5.1", "spring-batch-infrastructure-5.1", "spring-tx-5"))
                                 .build()
                                 .apply(updateCursor(mi), mi.getCoordinates().replaceArguments(),
-                                        mi.getArguments().get(0), transactionManager.withId(Tree.randomId()));
+                                        mi.getArguments().get(0), transactionManager.withId(randomId()));
                     }
 
                     @Override
