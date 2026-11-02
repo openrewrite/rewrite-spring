@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -84,7 +85,9 @@ class UpgradeSpringFramework_6_0Test implements RewriteTest {
         );
     }
 
+    // Spring Boot 2 and dependency management 1.0 plugins use the `Upload` task, which Gradle 9 removed
     @Test
+    @SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "8.14.5")
     void upgradesDependencyManagementPluginInGradle() {
         rewriteRun(
           //language=groovy
