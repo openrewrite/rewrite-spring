@@ -25,6 +25,7 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.VariableNameUtils;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.internal.NamedTypes;
 import org.openrewrite.java.tree.J;
@@ -38,6 +39,7 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.openrewrite.java.VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER;
 
 public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
 
@@ -101,8 +103,11 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             }
             J.VariableDeclarations parameter = parameterOptional.get();
             String[] namedTypes = NamedTypes.in(method);
+            String chunkName = VariableNameUtils.generateVariableName("chunk", getCursor(), INCREMENT_NUMBER);
+            maybeAddImport("org.springframework.batch.item.Chunk");
+            maybeAddImport("java.util.List");
 
-            // To convert List<T> items -> Chunk<T> _chunk
+            // To convert List<T> items -> Chunk<T> chunk
             J.Identifier chunk = TypeTree.<J.Identifier>build("Chunk")
                     .withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
             TypeTree listType = parameter.getTypeExpression();
@@ -111,7 +116,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                             ? ((J.ParameterizedType) listType).withClazz(chunk)
                             : chunk.withPrefix(listType == null ? Space.EMPTY : listType.getPrefix()))
                     .withVariables(parameter.getVariables().stream()
-                            .map(v -> v.withName(v.getName().withSimpleName("_chunk")))
+                            .map(v -> v.withName(v.getName().withSimpleName(chunkName)))
                             .collect(toList()));
 
             List<Object> parameters = method.getParameters().stream()
@@ -122,19 +127,16 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .collect(joining(", ")), namedTypes, ctx)
                     .apply(getCursor(), method.getCoordinates().replaceParameters(), parameters.toArray());
 
-            // For first statement of body List<T> items = _chunk.getItems();
+            // For first statement of body List<T> items = chunk.getItems();
             // Ignore for no body case -> void foo(...);
             if (migrated.getBody() != null) {
                 J.VariableDeclarations localVariable = parameter
                         .withLeadingAnnotations(emptyList())
                         .withModifiers(emptyList())
                         .withPrefix(Space.EMPTY);
-                migrated = template("#{} = _chunk.getItems();", namedTypes, ctx)
+                migrated = template("#{} = " + chunkName + ".getItems();", namedTypes, ctx)
                         .apply(updateCursor(migrated), migrated.getBody().getCoordinates().firstStatement(), localVariable);
             }
-
-            maybeAddImport("org.springframework.batch.item.Chunk");
-            maybeAddImport("java.util.List");
             return autoFormat(migrated, ctx, getCursor().getParentOrThrow());
         }
 

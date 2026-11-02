@@ -82,24 +82,24 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
              public class ProfileUpdateWriter {
              
                  @BeforeWrite
-                 public void beforeWrite(Chunk<? extends List<String>> _chunk) throws Exception {
-                     List<? extends List<String>> items = _chunk.getItems();
+                 public void beforeWrite(Chunk<? extends List<String>> chunk) throws Exception {
+                     List<? extends List<String>> items = chunk.getItems();
                      for (List<String> subList : items) {
                          System.out.println(subList);
                      }
                  }
              
                  @AfterWrite
-                 public void afterWrite(Chunk<? extends List<String>> _chunk) throws Exception {
-                     List<? extends List<String>> items = _chunk.getItems();
+                 public void afterWrite(Chunk<? extends List<String>> chunk) throws Exception {
+                     List<? extends List<String>> items = chunk.getItems();
                      for (List<String> subList : items) {
                          System.out.println(subList);
                      }
                  }
              
                  @OnWriteError
-                 public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk) throws Exception {
-                     List<? extends List<String>> items = _chunk.getItems();
+                 public void onWriteError(Exception e, Chunk<? extends List<String>> chunk) throws Exception {
+                     List<? extends List<String>> items = chunk.getItems();
                      System.out.println("ItemWriteListener - onWriteError: " + e);
                      for (List<String> subList : items) {
                          System.out.println(subList);
@@ -137,10 +137,47 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
              public class ProfileUpdateWriter {
              
                  @OnWriteError
-                 public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk) throws Exception {
-                     List<? extends List<String>> items = _chunk.getItems();
+                 public void onWriteError(Exception e, Chunk<? extends List<String>> chunk) throws Exception {
+                     List<? extends List<String>> items = chunk.getItems();
                      System.out.println("ItemWriteListener - onWriteError items size: " + items.size());
                      System.out.println("ItemWriteListener - onWriteError: " + e);
+                 }
+             }
+             """
+          )
+        );
+    }
+
+    @Test
+    void avoidChunkNameClash() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+
+             public class ProfileUpdateWriter {
+
+                 @BeforeWrite
+                 public void beforeWrite(List<String> items) {
+                     String chunk = "size: " + items.size();
+                     System.out.println(chunk);
+                 }
+             }
+             """,
+             """
+             import java.util.List;
+             import org.springframework.batch.core.annotation.BeforeWrite;
+             import org.springframework.batch.item.Chunk;
+
+             public class ProfileUpdateWriter {
+
+                 @BeforeWrite
+                 public void beforeWrite(Chunk<String> chunk1) {
+                     List<String> items = chunk1.getItems();
+                     String chunk = "size: " + items.size();
+                     System.out.println(chunk);
                  }
              }
              """
@@ -181,13 +218,13 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
              public class ProfileUpdateWriter {
              
                  @BeforeWrite
-                 public void beforeWrite(Chunk<? extends List<String>> _chunk);
+                 public void beforeWrite(Chunk<? extends List<String>> chunk);
              
                  @AfterWrite
-                 public void afterWrite(Chunk<? extends List<String>> _chunk);
+                 public void afterWrite(Chunk<? extends List<String>> chunk);
              
                  @OnWriteError
-                 public void onWriteError(Exception e, Chunk<? extends List<String>> _chunk);
+                 public void onWriteError(Exception e, Chunk<? extends List<String>> chunk);
              }
              """
           )
@@ -210,16 +247,16 @@ class MigrateMethodAnnotatedByBatchAPITest implements RewriteTest {
              public class ProfileUpdateWriter {
              
                  @BeforeWrite
-                 public void beforeWrite(Chunk<? extends List<String>> _chunk) throws Exception {
-                     List<? extends List<String>> items = _chunk.getItems();
+                 public void beforeWrite(Chunk<? extends List<String>> chunk) throws Exception {
+                     List<? extends List<String>> items = chunk.getItems();
                      for (List<String> subList : items) {
                          System.out.println(subList);
                      }
                  }
              
                  @AfterWrite
-                 public void afterWrite(Chunk<? extends List<String>> _chunk) throws Exception {
-                     List<? extends List<String>> items = _chunk.getItems();
+                 public void afterWrite(Chunk<? extends List<String>> chunk) throws Exception {
+                     List<? extends List<String>> items = chunk.getItems();
                      for (List<String> subList : items) {
                          System.out.println(subList);
                      }
