@@ -35,7 +35,7 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
 
-import static java.util.Collections.singletonList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -100,76 +100,55 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                 return super.visitMethodDeclaration(method, ctx);
             }
             J.VariableDeclarations parameter = parameterOptional.get();
-            String chunkTypeParameter = null;
-            if (parameter.getTypeExpression() instanceof J.ParameterizedType) {
-                if (((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters() != null) {
-                    chunkTypeParameter = ((J.ParameterizedType) parameter.getTypeExpression()).getTypeParameters().get(0).toString();
-                } else {
-                    chunkTypeParameter = "?";
-                }
-            }
-            String chunkType = chunkTypeParameter == null ? "" : "<" + chunkTypeParameter + ">";
-            String paramName = parameter.getVariables().get(0).getSimpleName();
             // the templates print parts of the method, such as its type argument, annotations and body
             String[] namedTypes = NamedTypes.in(method);
 
 
-            J.VariableDeclarations vdd = JavaTemplate.builder("Chunk" + chunkType + " _chunk")
-                    .contextSensitive()
-                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
-                    .imports("org.springframework.batch.item.Chunk")
-                    .imports(namedTypes)
-                    .build()
-                    .<J.MethodDeclaration>apply(getCursor(), method.getCoordinates().replaceParameters())
-                    .getParameters().get(0).withPrefix(Space.EMPTY);
-            vdd = vdd.withTypeExpression(TypeTree.build("org.springframework.batch.item.Chunk")).withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
+            // To convert List<T> items -> Chunk<T> _chunk
+            J.Identifier chunk = TypeTree.<J.Identifier>build("Chunk")
+                    .withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
+            TypeTree listType = parameter.getTypeExpression();
+            J.VariableDeclarations chunkParam = parameter
+                    .withTypeExpression(listType instanceof J.ParameterizedType
+                            ? ((J.ParameterizedType) listType).withClazz(chunk)
+                            : chunk.withPrefix(listType == null ? Space.EMPTY : listType.getPrefix()))
+                    .withVariables(parameter.getVariables().stream()
+                            .map(v -> v.withName(v.getName().withSimpleName("_chunk")))
+                            .collect(toList()));
 
-            String body = ";";
-            if (method.getBody() != null) {
-                J.MethodDeclaration methodDeclaration = JavaTemplate.builder("List" + chunkType + " #{} = _chunk.getItems();")
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.1.+"))
-                        .imports("org.springframework.batch.item.Chunk", "java.util.List")
-                        .imports(namedTypes)
-                        .build()
-                        .apply(getCursor(), method.getBody().getCoordinates().firstStatement(), paramName);
-
-
-                if (method.getMethodType() != null) {
-                    methodDeclaration = methodDeclaration.withParameters(singletonList(vdd))
-                            .withMethodType(method.getMethodType()
-                                    .withParameterTypes(singletonList(vdd.getType())));
-                }
-                body = methodDeclaration.getBody().print(getCursor());
-            }
-
-
-            maybeAddImport("org.springframework.batch.item.Chunk");
-            maybeAddImport("java.util.List");
-            String annotations = method.getLeadingAnnotations().stream().map(a -> a.print(getCursor())).reduce((a1, a2) -> a1 + "\n" + a2).orElse("");
-            String methodModifiers = method.getModifiers().stream()
-                    .map(J.Modifier::toString)
-                    .collect(joining(" "));
-            String parameterModifiers = parameter.getModifiers().stream()
-                    .map(J.Modifier::toString)
-                    .collect(joining(" "));
-            String chunkParameter = parameterModifiers + " Chunk" + chunkType + " _chunk";
             List<Object> parameters = method.getParameters().stream()
-                    .<Object>map(p -> p == parameter ? chunkParameter : p.withPrefix(Space.EMPTY))
+                    .map(p -> (p == parameter ? chunkParam : p).withPrefix(Space.EMPTY))
                     .collect(toList());
-            String parameterTemplate = parameters.stream()
+            J.MethodDeclaration m = JavaTemplate.builder(parameters.stream()
                     .map(p -> "#{}")
-                    .collect(joining(", "));
-            String throwz = Optional.ofNullable(method.getThrows()).flatMap(throwsList -> throwsList.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).map(e -> " throws " + e)).orElse("");
-            return JavaTemplate.builder(String.format("%s\n %s void %s(%s)%s %s",
-                            annotations, methodModifiers, method.getSimpleName(), parameterTemplate, throwz, body))
+                    .collect(joining(", ")))
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk", "java.util.List")
                     .imports(namedTypes)
                     .build()
-                    .apply(getCursor(), method.getCoordinates().replace(), parameters.toArray());
+                    .apply(getCursor(), method.getCoordinates().replaceParameters(), parameters.toArray());
+
+            // For first statement of body List<T> items = _chunk.getItems();
+            if (m.getBody() != null) {
+               J.VariableDeclarations localVariable = parameter
+                       .withLeadingAnnotations(Collections.emptyList())
+                       .withModifiers(emptyList())
+                       .withPrefix(Space.EMPTY);
+               m = JavaTemplate.builder("#{} = _chunk.getItems();")
+                       .contextSensitive()
+                       .javaParser(JavaParser.fromJavaVersion()
+                               .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
+                       .imports("org.springframework.batch.item.Chunk", "java.util.List")
+                       .imports(namedTypes)
+                       .build()
+                       .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), localVariable);
+            }
+
+            maybeAddImport("org.springframework.batch.item.Chunk");
+            maybeAddImport("java.util.List");
+            return  autoFormat(m, ctx, getCursor().getParentOrThrow());
         }
     }
 }
