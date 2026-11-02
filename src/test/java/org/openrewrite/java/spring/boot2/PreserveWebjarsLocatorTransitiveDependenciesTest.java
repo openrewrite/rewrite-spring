@@ -21,6 +21,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainJava;
@@ -78,13 +79,11 @@ class PreserveWebjarsLocatorTransitiveDependenciesTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(pom -> {
-                  org.assertj.core.api.Assertions.assertThat(pom)
-                    .contains("<artifactId>commons-lang3</artifactId>")
-                    .doesNotContain("<artifactId>jackson-databind</artifactId>")
-                    .doesNotContain("<artifactId>commons-text</artifactId>");
-                  return pom;
-              })
+              spec -> spec.after(pom -> assertThat(pom)
+                .contains("<artifactId>commons-lang3</artifactId>")
+                .doesNotContain("<artifactId>jackson-databind</artifactId>")
+                .doesNotContain("<artifactId>commons-text</artifactId>")
+                .actual())
             )
           )
         );
