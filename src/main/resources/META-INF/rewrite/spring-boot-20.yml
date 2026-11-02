@@ -39,6 +39,9 @@ recipeList:
       fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricFilterAutoConfiguration
   - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
       fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricRepositoryAutoConfiguration
+  # Rename the Boot 1.x Redis and Spring Session artifacts before the parent upgrade, so that the
+  # versions Boot 1.x managed for them are not retained as pins in a new dependencyManagement
+  - org.openrewrite.java.spring.boot2.MigrateSpringSessionAndStarterRedisBoot1
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
@@ -107,6 +110,28 @@ recipeList:
   - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
   - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateSpringSessionAndStarterRedisBoot1
+displayName: Migrate `spring-session` and `spring-boot-starter-redis` from Boot 1.x
+description: >-
+  Spring Boot 2.0 removed `spring-boot-starter-redis` in favor of `spring-boot-starter-data-redis`, and Spring Session 2.0
+  split the single `spring-session` jar into `spring-session-core` and one module per store. Rename `spring-session` to
+  `spring-session-data-redis` only in modules that use Redis, since `spring-session` 1.x also contained the JDBC,
+  Hazelcast, MongoDB and GemFire stores.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-*redis
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.session
+      oldArtifactId: spring-session
+      newArtifactId: spring-session-data-redis
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-redis
+      newArtifactId: spring-boot-starter-data-redis
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1

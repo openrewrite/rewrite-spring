@@ -30,9 +30,9 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeTree;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
@@ -89,7 +89,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             Optional<J.VariableDeclarations> parameterOptional = method.getParameters().stream()
                     .filter(J.VariableDeclarations.class::isInstance)
                     .map(parameter -> ((J.VariableDeclarations) parameter))
-                    .filter(parameter -> parameter.getType().isAssignableFrom(Pattern.compile("java.util.List")))
+                    .filter(parameter -> TypeUtils.isAssignableTo("java.util.List", parameter.getType()))
                     .findFirst();
             if (!parameterOptional.isPresent()) {
                 return super.visitMethodDeclaration(method, ctx);

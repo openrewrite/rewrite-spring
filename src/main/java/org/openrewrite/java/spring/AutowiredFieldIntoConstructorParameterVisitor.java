@@ -97,10 +97,14 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 }
             }
             if (expr instanceof J.Identifier) {
+                J.Identifier identifier = (J.Identifier) expr;
+                if (c.getMethodType() == null) {
+                    // Without types assume a matching name is the field, rather than assign it a second time
+                    return fieldName.equals(identifier.getSimpleName());
+                }
                 JavaType.Variable fieldType = c.getMethodType().getDeclaringType().getMembers().stream().filter(v -> fieldName.equals(v.getName())).findFirst().orElse(null);
                 if (fieldType != null) {
-                    J.Identifier identifier = (J.Identifier) expr;
-                    return fieldType.equals(identifier.getFieldType());
+                    return TypeUtils.isOfType(fieldType, identifier.getFieldType());
                 }
             }
             return false;

@@ -60,7 +60,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             TypeTree returnType = method.getReturnTypeExpression();
             if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType()) ||
-                    returnType == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
+                    returnType == null || returnType.getType() == null || isOptional.matches(returnType.getType())) {
                 return method;
             }
             // `java.util.Optional<T>` around the declared type, which the parser makes a parameterized type of
@@ -73,6 +73,12 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
             maybeAddImport("java.util.Optional");
             return md;
+        }
+
+        @Override
+        public J.Lambda visitLambda(J.Lambda lambda, ExecutionContext ctx) {
+            // A `return` in a nested lambda belongs to the lambda, not to `getCurrentAuditor`
+            return lambda;
         }
 
         @Override
