@@ -22,9 +22,11 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 public class AddTransactionManagerToTaskletAndChunk extends Recipe {
@@ -37,7 +39,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
     private static final MethodMatcher CHUNK_POLICY_MATCHER = new MethodMatcher(STEP_BUILDER + " chunk(org.springframework.batch.repeat.CompletionPolicy)");
     private static final MethodMatcher TRANSACTION_MANAGER_MATCHER = new MethodMatcher("org.springframework.batch.core.step.builder.* transactionManager(..)");
 
-    private static final String MSG_NEW_PARAMETER = "newTransactionManagerParameter";
+    private static final String MSG_ADD_PARAMETER = "addTransactionManagerParameter";
 
     @Getter
     final String displayName = "Add `PlatformTransactionManager` to `tasklet()` and `chunk()` calls";
@@ -63,11 +65,22 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         if (!taskletOrChunk || chainConfiguresTransactionManager(getCursor())) {
                             return mi;
                         }
-                        J.Identifier transactionManager = transactionManagerArgument(ctx);
-                        if (transactionManager == null) {
+                        Cursor methodCursor = enclosingMethod(getCursor());
+                        if (methodCursor == null) {
                             return mi;
                         }
-                        return JavaTemplate.builder("#{any()}, #{any(" + PLATFORM_TRANSACTION_MANAGER + ")}")
+                        J.Identifier transactionManager = transactionManagerParameter(methodCursor);
+                        if (transactionManager == null) {
+                            J.MethodDeclaration md = methodCursor.getValue();
+                            if (md.isConstructor() || md.getMethodType() == null) {
+                                return mi;
+                            }
+                            methodCursor.putMessage(MSG_ADD_PARAMETER, true);
+                            transactionManager = new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(),
+                                    "transactionManager", JavaType.ShallowClass.build(PLATFORM_TRANSACTION_MANAGER), null);
+                        }
+                        String firstParameterType = TypeUtils.toString(requireNonNull(mi.getMethodType()).getParameterTypes().get(0));
+                        return JavaTemplate.builder("#{any(" + firstParameterType + ")}, #{any(" + PLATFORM_TRANSACTION_MANAGER + ")}")
                                 .contextSensitive()
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx,
                                         "spring-batch-core-5.1", "spring-batch-infrastructure-5.1", "spring-tx-5"))
@@ -79,34 +92,16 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                        J.VariableDeclarations parameter = getCursor().getMessage(MSG_NEW_PARAMETER);
-                        return parameter == null ? md : withParameter(md, parameter);
-                    }
-
-                    private J.@Nullable Identifier transactionManagerArgument(ExecutionContext ctx) {
-                        Cursor methodCursor = enclosingMethod(getCursor());
-                        if (methodCursor == null) {
-                            return null;
+                        if (getCursor().getMessage(MSG_ADD_PARAMETER) == null) {
+                            return md;
                         }
-                        J.MethodDeclaration md = methodCursor.getValue();
-                        J.VariableDeclarations parameter = transactionManagerParameter(md);
-                        if (parameter == null) {
-                            if (md.isConstructor() || md.getMethodType() == null) {
-                                return null;
-                            }
-                            parameter = methodCursor.computeMessageIfAbsent(MSG_NEW_PARAMETER, k ->
-                                    (J.VariableDeclarations) JavaTemplate.builder("PlatformTransactionManager transactionManager")
-                                            .imports(PLATFORM_TRANSACTION_MANAGER)
-                                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-tx-5"))
-                                            .build()
-                                            .<J.MethodDeclaration>apply(methodCursor, md.getCoordinates().replaceParameters())
-                                            .getParameters().get(0));
-                        }
-                        return parameter.getVariables().get(0).getName();
-                    }
-
-                    private J.MethodDeclaration withParameter(J.MethodDeclaration md, J.VariableDeclarations parameter) {
                         maybeAddImport(PLATFORM_TRANSACTION_MANAGER);
+                        J.VariableDeclarations parameter = (J.VariableDeclarations) JavaTemplate.builder("PlatformTransactionManager transactionManager")
+                                .imports(PLATFORM_TRANSACTION_MANAGER)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-tx-5"))
+                                .build()
+                                .<J.MethodDeclaration>apply(updateCursor(md), md.getCoordinates().replaceParameters())
+                                .getParameters().get(0);
                         List<Statement> parameters = ListUtils.filter(md.getParameters(), p -> !(p instanceof J.Empty));
                         JavaType.Method methodType = requireNonNull(md.getMethodType());
                         JavaType.Method newMethodType = methodType
@@ -123,31 +118,42 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
 
     private static @Nullable Cursor enclosingMethod(Cursor cursor) {
         Cursor method = cursor.dropParentUntil(it -> it instanceof J.MethodDeclaration || it == Cursor.ROOT_VALUE);
-        if (!(method.getValue() instanceof J.MethodDeclaration)) {
-            return null;
+        while (method.getValue() instanceof J.MethodDeclaration) {
+            Cursor classBody = method.getParentTreeCursor();
+            boolean localOrAnonymous = classBody.getParentTreeCursor().getValue() instanceof J.NewClass ||
+                    classBody.firstEnclosing(J.MethodDeclaration.class) != null;
+            if (!localOrAnonymous) {
+                return method;
+            }
+            method = method.dropParentUntil(it -> it instanceof J.MethodDeclaration || it == Cursor.ROOT_VALUE);
         }
-        Cursor classBody = method.getParentTreeCursor();
-        boolean localOrAnonymous = classBody.getParentTreeCursor().getValue() instanceof J.NewClass ||
-                classBody.firstEnclosing(J.MethodDeclaration.class) != null;
-        return localOrAnonymous ? enclosingMethod(method) : method;
+        return null;
     }
 
     private static boolean chainConfiguresTransactionManager(Cursor cursor) {
         Cursor parent = cursor.getParentTreeCursor();
-        J.MethodInvocation chained = parent.getValue() instanceof J.MethodInvocation ? parent.getValue() : null;
-        if (chained == null || chained.getSelect() != cursor.getValue()) {
-            return false;
+        while (parent.getValue() instanceof J.MethodInvocation &&
+                ((J.MethodInvocation) parent.getValue()).getSelect() == cursor.getValue()) {
+            if (TRANSACTION_MANAGER_MATCHER.matches((J.MethodInvocation) parent.getValue())) {
+                return true;
+            }
+            cursor = parent;
+            parent = parent.getParentTreeCursor();
         }
-        return TRANSACTION_MANAGER_MATCHER.matches(chained) || chainConfiguresTransactionManager(parent);
+        return false;
     }
 
-    private static J.@Nullable VariableDeclarations transactionManagerParameter(J.MethodDeclaration md) {
+    private static J.@Nullable Identifier transactionManagerParameter(Cursor methodCursor) {
+        J.MethodDeclaration md = methodCursor.getValue();
         for (Statement parameter : md.getParameters()) {
-            if (parameter instanceof J.VariableDeclarations &&
-                    TypeUtils.isAssignableTo(PLATFORM_TRANSACTION_MANAGER, ((J.VariableDeclarations) parameter).getType())) {
-                return (J.VariableDeclarations) parameter;
+            if (parameter instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) parameter)) {
+                return ((J.VariableDeclarations) parameter).getVariables().get(0).getName();
             }
         }
         return null;
+    }
+
+    private static boolean isTransactionManager(J.VariableDeclarations variable) {
+        return TypeUtils.isAssignableTo(PLATFORM_TRANSACTION_MANAGER, variable.getType());
     }
 }
