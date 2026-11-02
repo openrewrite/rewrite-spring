@@ -32,6 +32,7 @@ class ConvertAutoConfigurationExcludeToExcludeNameTest implements RewriteTest {
         spec.recipe(new ConvertAutoConfigurationExcludeToExcludeName(
                         "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration"))
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-5",
             "spring-boot-2.2",
             "spring-security-core-5.1",
             "spring-security-web-5.1",
