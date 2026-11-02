@@ -150,7 +150,7 @@ class SpringConfigFilesTest implements RewriteTest {
     void changesFilesNamedByPropertySourceAnnotations() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion()
-            .classpathFromResources(new InMemoryExecutionContext(), "spring-context-6", "spring-test-6")),
+            .classpathFromResources(new InMemoryExecutionContext(), "spring-beans-6", "spring-context-6", "spring-core-6", "spring-test-6")),
           //language=java
           java(
             """
