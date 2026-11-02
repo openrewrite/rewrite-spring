@@ -132,7 +132,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", emptyList()),
                 body,
-                JavaType.Primitive.Void
+                // type the lambda as the `Customizer` it is passed as, so that a later visit (e.g. of a nested
+                // configurer's no-arg call in its body) sees it as a void lambda whose result is unused
+                new JavaType.Parameterized(null, CUSTOMIZER_SHALLOW_TYPE, singletonList(paramType))
         );
     }
 
@@ -326,6 +328,11 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         JavaType.FullyQualified functionalInterface = TypeUtils.asFullyQualified(lambda.getType());
         if (functionalInterface == null) {
             return false;
+        }
+        if (FQN_CUSTOMIZER.equals(functionalInterface.getFullyQualifiedName())) {
+            // `Customizer.customize(T)` returns void; checked by name as lambdas created by this visitor
+            // carry a shallow `Customizer` type without its methods
+            return true;
         }
         for (JavaType.Method method : functionalInterface.getMethods()) {
             if (method.hasFlags(Flag.Abstract)) {

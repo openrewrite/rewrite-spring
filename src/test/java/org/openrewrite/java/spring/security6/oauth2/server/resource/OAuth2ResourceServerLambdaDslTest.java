@@ -21,6 +21,7 @@ import org.junitpioneer.jupiter.Issue;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -91,6 +92,49 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
                                               .jwkSetUri(""))
                                       .opaqueToken(token -> token
                                               .introspectionUri("")));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noArgConfigurerInLambdaCreatedByHttpSecurityLambdaDsl() {
+        rewriteRun(
+          spec -> spec.recipes(new HttpSecurityLambdaDsl(), new OAuth2ResourceServerLambdaDsl()),
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfiguration {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests()
+                          .anyRequest().authenticated()
+                          .and()
+                          .oauth2ResourceServer().jwt();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              import static org.springframework.security.config.Customizer.withDefaults;
+
+              class SecurityConfiguration {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests(requests -> requests
+                              .anyRequest().authenticated())
+                              .oauth2ResourceServer(server -> server.jwt(withDefaults()));
+                      return http.build();
                   }
               }
               """
