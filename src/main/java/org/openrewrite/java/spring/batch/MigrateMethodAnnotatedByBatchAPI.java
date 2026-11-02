@@ -100,9 +100,7 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                 return super.visitMethodDeclaration(method, ctx);
             }
             J.VariableDeclarations parameter = parameterOptional.get();
-            // the templates print parts of the method, such as its type argument, annotations and body
             String[] namedTypes = NamedTypes.in(method);
-
 
             // To convert List<T> items -> Chunk<T> _chunk
             J.Identifier chunk = TypeTree.<J.Identifier>build("Chunk")
@@ -119,36 +117,35 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
             List<Object> parameters = method.getParameters().stream()
                     .map(p -> (p == parameter ? chunkParam : p).withPrefix(Space.EMPTY))
                     .collect(toList());
-            J.MethodDeclaration m = JavaTemplate.builder(parameters.stream()
+            J.MethodDeclaration migrated = template(parameters.stream()
                     .map(p -> "#{}")
-                    .collect(joining(", ")))
+                    .collect(joining(", ")), namedTypes, ctx)
+                    .apply(getCursor(), method.getCoordinates().replaceParameters(), parameters.toArray());
+
+            // For first statement of body List<T> items = _chunk.getItems();
+            // Ignore for no body case -> void foo(...);
+            if (migrated.getBody() != null) {
+                J.VariableDeclarations localVariable = parameter
+                        .withLeadingAnnotations(emptyList())
+                        .withModifiers(emptyList())
+                        .withPrefix(Space.EMPTY);
+                migrated = template("#{} = _chunk.getItems();", namedTypes, ctx)
+                        .apply(updateCursor(migrated), migrated.getBody().getCoordinates().firstStatement(), localVariable);
+            }
+
+            maybeAddImport("org.springframework.batch.item.Chunk");
+            maybeAddImport("java.util.List");
+            return autoFormat(migrated, ctx, getCursor().getParentOrThrow());
+        }
+
+        private static JavaTemplate template(String code, String[] namedTypes, ExecutionContext ctx) {
+            return JavaTemplate.builder(code)
                     .contextSensitive()
                     .javaParser(JavaParser.fromJavaVersion()
                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                     .imports("org.springframework.batch.item.Chunk", "java.util.List")
                     .imports(namedTypes)
-                    .build()
-                    .apply(getCursor(), method.getCoordinates().replaceParameters(), parameters.toArray());
-
-            // For first statement of body List<T> items = _chunk.getItems();
-            if (m.getBody() != null) {
-               J.VariableDeclarations localVariable = parameter
-                       .withLeadingAnnotations(Collections.emptyList())
-                       .withModifiers(emptyList())
-                       .withPrefix(Space.EMPTY);
-               m = JavaTemplate.builder("#{} = _chunk.getItems();")
-                       .contextSensitive()
-                       .javaParser(JavaParser.fromJavaVersion()
-                               .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
-                       .imports("org.springframework.batch.item.Chunk", "java.util.List")
-                       .imports(namedTypes)
-                       .build()
-                       .apply(updateCursor(m), m.getBody().getCoordinates().firstStatement(), localVariable);
-            }
-
-            maybeAddImport("org.springframework.batch.item.Chunk");
-            maybeAddImport("java.util.List");
-            return  autoFormat(m, ctx, getCursor().getParentOrThrow());
+                    .build();
         }
     }
 }
