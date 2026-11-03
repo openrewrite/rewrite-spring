@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.framework;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -25,6 +26,10 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -48,11 +53,12 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
         return Preconditions.check(
                 new UsesType<>(RESPONSE_ENTITY_EXCEPTION_HANDLER_FQ, true),
                 new JavaIsoVisitor<ExecutionContext>() {
+                    private final Set<UUID> migratedMethods = new HashSet<>();
 
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration m = method;
-                        if (HANDLER_METHOD.matches(m.getMethodType())) {
+                        if (HANDLER_METHOD.matches(m.getMethodType()) && overridesHandlerMethod(m.getMethodType())) {
                             JavaType javaTypeHttpStatusCode = JavaType.buildType(HTTP_STATUS_CODE_FQ);
                             //noinspection DataFlowIssue
                             JavaType.Method met = m.getMethodType().withParameterTypes(ListUtils.map(m.getMethodType().getParameterTypes(),
@@ -62,6 +68,7 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                                 return m;
                             }
 
+                            migratedMethods.add(m.getId());
                             m = m.withMethodType(met);
                             m = m.withParameters(ListUtils.map(m.getParameters(), var -> {
                                 if (var instanceof J.VariableDeclarations) {
@@ -90,11 +97,23 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                         return super.visitMethodDeclaration(m, ctx);
                     }
 
+                    /**
+                     * Only methods that override one of `ResponseEntityExceptionHandler` take its new signature;
+                     * a subclass's own helpers keep theirs, as the code calling them still passes an `HttpStatus`.
+                     */
+                    private boolean overridesHandlerMethod(JavaType.@Nullable Method methodType) {
+                        return methodType != null && TypeUtils.findOverriddenMethod(methodType)
+                                .filter(overridden -> TypeUtils.isOfClassType(overridden.getDeclaringType(), RESPONSE_ENTITY_EXCEPTION_HANDLER_FQ))
+                                .isPresent();
+                    }
+
                     @Override
                     public J.Identifier visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
                         J.Identifier ident = super.visitIdentifier(identifier, ctx);
                         J.MethodDeclaration methodScope = getCursor().firstEnclosing(J.MethodDeclaration.class);
-                        if (methodScope != null) {
+                        Object parent = getCursor().getParentTreeCursor().getValue();
+                        boolean isMethodName = parent instanceof J.MethodInvocation && ((J.MethodInvocation) parent).getName() == identifier;
+                        if (methodScope != null && !isMethodName && migratedMethods.contains(methodScope.getId())) {
                             for (Statement stmt : methodScope.getParameters()) {
                                 if (stmt instanceof J.VariableDeclarations) {
                                     J.VariableDeclarations vd = (J.VariableDeclarations) stmt;
