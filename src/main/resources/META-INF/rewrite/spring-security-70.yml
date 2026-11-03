@@ -47,6 +47,10 @@ recipeList:
       owningType: org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames
       constantName: PASSWORD
       literalValue: '"password"'
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.security.authorization.event.AuthorizationEvent getAuthorizationDecision()
+      newMethodName: getAuthorizationResult
+      matchOverrides: true
   - org.openrewrite.java.spring.security7.MigrateOpenSaml4ToOpenSaml5
 
 ---

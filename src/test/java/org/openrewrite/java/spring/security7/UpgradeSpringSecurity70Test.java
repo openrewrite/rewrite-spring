@@ -157,4 +157,46 @@ class UpgradeSpringSecurity70Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void authorizationEventGetAuthorizationResult() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.security.authorization.event;
+              public class AuthorizationEvent {
+                  public Object getAuthorizationDecision() { return null; }
+                  public Object getAuthorizationResult() { return null; }
+              }
+              """,
+            //language=java
+            """
+              package org.springframework.security.authorization.event;
+              public class AuthorizationDeniedEvent<T> extends AuthorizationEvent {
+              }
+              """
+          )),
+          java(
+            """
+              import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
+
+              class AuthorizationEvents {
+                  String onFailure(AuthorizationDeniedEvent<?> deniedEvent) {
+                      return deniedEvent.getAuthorizationDecision().toString();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
+
+              class AuthorizationEvents {
+                  String onFailure(AuthorizationDeniedEvent<?> deniedEvent) {
+                      return deniedEvent.getAuthorizationResult().toString();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
