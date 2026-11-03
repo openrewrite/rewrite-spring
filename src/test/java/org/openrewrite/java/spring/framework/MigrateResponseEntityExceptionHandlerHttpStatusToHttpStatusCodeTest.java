@@ -246,4 +246,28 @@ class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCodeTest implem
         );
     }
 
+    @Test
+    void leaveOwnHelperMethodsAlone() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.http.HttpStatus;
+              import org.springframework.http.ResponseEntity;
+              import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+              class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
+
+                  private ResponseEntity<Object> error(Exception ex, HttpStatus status) {
+                      return ResponseEntity.status(status).body(reason(status));
+                  }
+
+                  private static String reason(HttpStatus status) {
+                      return status.getReasonPhrase();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
