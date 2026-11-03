@@ -38,6 +38,15 @@ recipeList:
       methodPattern: "org.springframework.security.authorization.AuthorizationManager check(..)"
       newMethodName: authorize
       matchOverrides: true
+  # The password grant was removed, and with it the `OAuth2ParameterNames` constants only it used
+  - org.openrewrite.java.ReplaceConstant:
+      owningType: org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames
+      constantName: USERNAME
+      literalValue: '"username"'
+  - org.openrewrite.java.ReplaceConstant:
+      owningType: org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames
+      constantName: PASSWORD
+      literalValue: '"password"'
   - org.openrewrite.java.spring.security7.MigrateOpenSaml4ToOpenSaml5
 
 ---

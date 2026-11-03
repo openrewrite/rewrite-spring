@@ -114,4 +114,47 @@ class UpgradeSpringSecurity70Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void inlinePasswordGrantParameterNames() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.security.oauth2.core.endpoint;
+              public final class OAuth2ParameterNames {
+                  public static final String GRANT_TYPE = "grant_type";
+                  public static final String USERNAME = "username";
+                  public static final String PASSWORD = "password";
+              }
+              """
+          )),
+          java(
+            """
+              import java.util.Map;
+
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.GRANT_TYPE;
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.PASSWORD;
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.USERNAME;
+
+              class KeycloakAuthClient {
+                  Map<String, String> form(String user, String secret) {
+                      return Map.of(GRANT_TYPE, PASSWORD, USERNAME, user, PASSWORD, secret);
+                  }
+              }
+              """,
+            """
+              import java.util.Map;
+
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.GRANT_TYPE;
+
+              class KeycloakAuthClient {
+                  Map<String, String> form(String user, String secret) {
+                      return Map.of(GRANT_TYPE, "password", "username", user, "password", secret);
+                  }
+              }
+              """
+          )
+        );
+    }
 }
