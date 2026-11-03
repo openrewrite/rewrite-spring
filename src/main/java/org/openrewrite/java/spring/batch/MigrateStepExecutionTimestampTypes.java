@@ -20,7 +20,6 @@ import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.RemoveImport;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -28,7 +27,6 @@ import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -74,35 +72,6 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
-                    public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                        J.CompilationUnit c = super.visitCompilationUnit(cu, ctx);
-                        if (c != cu) {
-                            boolean dateStillUsed = new JavaIsoVisitor<AtomicBoolean>() {
-                                @Override
-                                public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations vd, AtomicBoolean found) {
-                                    if (TypeUtils.isOfClassType(vd.getType(), "java.util.Date")) {
-                                        found.set(true);
-                                    }
-                                    return vd;
-                                }
-
-                                @Override
-                                public J.NewClass visitNewClass(J.NewClass newClass, AtomicBoolean found) {
-                                    if (TypeUtils.isOfClassType(newClass.getType(), "java.util.Date")) {
-                                        found.set(true);
-                                    }
-                                    return super.visitNewClass(newClass, found);
-                                }
-                            }.reduce(c, new AtomicBoolean(false)).get();
-
-                            if (!dateStillUsed) {
-                                doAfterVisit(new RemoveImport<>("java.util.Date", true));
-                            }
-                        }
-                        return c;
-                    }
-
-                    @Override
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
                         J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, ctx);
                         if (!TypeUtils.isOfClassType(vd.getType(), "java.util.Date")) {
@@ -113,6 +82,7 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
                                 .anyMatch(v -> isTimestampMethod((J.MethodInvocation) v.getInitializer()));
 
                         if (hasTimestampInit && vd.getTypeExpression() != null) {
+                            maybeRemoveImport("java.util.Date");
                             maybeAddImport("java.time.LocalDateTime");
                             J.Identifier typeExpr = new J.Identifier(
                                     Tree.randomId(),
@@ -128,7 +98,7 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
                                     J.MethodInvocation mi = (J.MethodInvocation) v.getInitializer();
                                     if (isTimestampMethod(mi) && mi.getMethodType() != null) {
                                         mi = mi.withMethodType(mi.getMethodType().withReturnType(LOCAL_DATE_TIME_TYPE));
-                                        J.Identifier name = v.getName();
+                                        J.Identifier name = v.getName().withType(LOCAL_DATE_TIME_TYPE);
                                         if (name.getFieldType() != null) {
                                             name = name.withFieldType(name.getFieldType().withType(LOCAL_DATE_TIME_TYPE));
                                         }

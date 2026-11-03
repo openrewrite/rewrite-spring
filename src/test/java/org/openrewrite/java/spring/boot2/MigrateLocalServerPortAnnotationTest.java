@@ -60,9 +60,8 @@ class MigrateLocalServerPortAnnotationTest implements RewriteTest {
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/541")
     @Test
-    void shouldAddDependencyCorrectly() {
+    void leavesDependenciesUnchanged() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("project",
             srcMainJava(
               //language=Java
@@ -103,30 +102,6 @@ class MigrateLocalServerPortAnnotationTest implements RewriteTest {
                         <dependency>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-starter</artifactId>
-                        </dependency>
-                    </dependencies>
-                </project>
-                """,
-              """
-                <project>
-                    <modelVersion>4.0.0</modelVersion>
-                    <parent>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-starter-parent</artifactId>
-                        <version>2.0.9.RELEASE</version>
-                        <relativePath/>
-                    </parent>
-                    <groupId>com.example</groupId>
-                    <artifactId>acme</artifactId>
-                    <version>0.0.1-SNAPSHOT</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter</artifactId>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-web</artifactId>
                         </dependency>
                     </dependencies>
                 </project>

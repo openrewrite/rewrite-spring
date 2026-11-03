@@ -29,7 +29,7 @@ class RemoveEnableBatchProcessingTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new RemoveEnableBatchProcessing())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-boot-autoconfigure-2.7"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-batch-core-4", "spring-beans-5", "spring-boot-autoconfigure-2.7"));
     }
 
     @DocumentExample
@@ -51,6 +51,24 @@ class RemoveEnableBatchProcessingTest implements RewriteTest {
               import org.springframework.boot.autoconfigure.SpringBootApplication;
 
               @SpringBootApplication
+              public class Application {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepAnnotationWithAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication
+              @EnableBatchProcessing(modular = true)
               public class Application {
               }
               """

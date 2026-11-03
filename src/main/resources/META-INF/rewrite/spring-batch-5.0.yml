@@ -29,7 +29,6 @@ recipeList:
       groupId: org.springframework.batch
       artifactId: "*"
       newVersion: 5.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.batch.ListenerSupportClassToInterface
   - org.openrewrite.java.spring.batch.MigrateJobBuilderFactory
   - org.openrewrite.java.spring.batch.MigrateStepBuilderFactory

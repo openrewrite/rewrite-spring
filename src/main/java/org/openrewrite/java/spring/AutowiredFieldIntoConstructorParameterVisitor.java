@@ -23,6 +23,7 @@ import org.openrewrite.Tree;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.service.AnnotationService;
+import org.openrewrite.java.spring.internal.NamedTypes;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
@@ -96,10 +97,14 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 }
             }
             if (expr instanceof J.Identifier) {
+                J.Identifier identifier = (J.Identifier) expr;
+                if (c.getMethodType() == null) {
+                    // Without types assume a matching name is the field, rather than assign it a second time
+                    return fieldName.equals(identifier.getSimpleName());
+                }
                 JavaType.Variable fieldType = c.getMethodType().getDeclaringType().getMembers().stream().filter(v -> fieldName.equals(v.getName())).findFirst().orElse(null);
                 if (fieldType != null) {
-                    J.Identifier identifier = (J.Identifier) expr;
-                    return fieldType.equals(identifier.getFieldType());
+                    return TypeUtils.isOfType(fieldType, identifier.getFieldType());
                 }
             }
             return false;
@@ -176,6 +181,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                             template.imports(fq.getFullyQualifiedName());
                             maybeAddImport(fq);
                         }
+                        // the type's arguments are printed too, and can name other types
+                        template.imports(NamedTypes.in(type));
                         Optional<Statement> firstMethod = block.getStatements().stream().filter(MethodDeclaration.class::isInstance).findFirst();
 
                         Block applied = firstMethod
@@ -222,6 +229,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
 
                 md = JavaTemplate.builder(paramsStr)
                         .contextSensitive()
+                        // the existing parameters and the field's type are printed into the template
+                        .imports(NamedTypes.in(ListUtils.concat(params, type).toArray(new J[0])))
                         .build()
                         .apply(
                                 getCursor(),

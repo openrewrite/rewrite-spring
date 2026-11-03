@@ -74,7 +74,3 @@ recipeList:
       methodPattern: org.springframework.data.jpa.repository.JpaRepository getById(..)
       newMethodName: getReferenceById
       matchOverrides: true
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: org.springframework.data.jpa.repository.JpaRepository getOne(..)
-      newMethodName: getReferenceById
-      matchOverrides: true

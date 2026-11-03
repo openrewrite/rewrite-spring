@@ -23,6 +23,10 @@ import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.spring.util.MemberReferenceToMethodInvocation;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
+
+import static java.util.Collections.singletonList;
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
 
 public class MigrateAuditorAwareToOptional extends Recipe {
 
@@ -56,15 +60,25 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             TypeTree returnType = method.getReturnTypeExpression();
             if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType()) ||
-                    returnType == null || returnType.getType().toString().matches("java.util.Optional<.*>")) {
+                    returnType == null || returnType.getType() == null || isOptional.matches(returnType.getType())) {
                 return method;
             }
-            Space space = returnType.getPrefix();
-            returnType = TypeTree.build("java.util.Optional<" + returnType.getType() + ">");
-            J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx).withReturnTypeExpression(returnType.withPrefix(space));
+            // `java.util.Optional<T>` around the declared type, which the parser makes a parameterized type of
+            J.ParameterizedType optional = new J.ParameterizedType(Tree.randomId(), returnType.getPrefix(), Markers.EMPTY,
+                    TypeTree.build("java.util.Optional"),
+                    JContainer.build(singletonList(JRightPadded.build(returnType.withPrefix(Space.EMPTY)))),
+                    new JavaType.Parameterized(null, JavaType.ShallowClass.build("java.util.Optional"),
+                            singletonList(returnType.getType())));
+            J.MethodDeclaration md = withReturnTypeExpression(super.visitMethodDeclaration(method, ctx), optional);
             doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(md));
             maybeAddImport("java.util.Optional");
             return md;
+        }
+
+        @Override
+        public J.Lambda visitLambda(J.Lambda lambda, ExecutionContext ctx) {
+            // A `return` in a nested lambda belongs to the lambda, not to `getCurrentAuditor`
+            return lambda;
         }
 
         @Override

@@ -78,4 +78,125 @@ class UpgradeSpringSecurity70Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void widenSupplierParameterOfRenamedOverride() {
+        rewriteRun(
+          java(
+            """
+              import java.util.function.Supplier;
+              import org.springframework.security.authorization.AuthorizationDecision;
+              import org.springframework.security.authorization.AuthorizationManager;
+              import org.springframework.security.core.Authentication;
+
+              class CustomAuthorizationManager implements AuthorizationManager<Object> {
+                  @Override
+                  public AuthorizationDecision check(Supplier<Authentication> authentication, Object object) {
+                      Authentication current = authentication.get();
+                      return new AuthorizationDecision(current.isAuthenticated());
+                  }
+              }
+              """,
+            """
+              import java.util.function.Supplier;
+              import org.springframework.security.authorization.AuthorizationDecision;
+              import org.springframework.security.authorization.AuthorizationManager;
+              import org.springframework.security.core.Authentication;
+
+              class CustomAuthorizationManager implements AuthorizationManager<Object> {
+                  @Override
+                  public AuthorizationDecision authorize(Supplier<? extends Authentication> authentication, Object object) {
+                      Authentication current = authentication.get();
+                      return new AuthorizationDecision(current.isAuthenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inlinePasswordGrantParameterNames() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.security.oauth2.core.endpoint;
+              public final class OAuth2ParameterNames {
+                  public static final String GRANT_TYPE = "grant_type";
+                  public static final String USERNAME = "username";
+                  public static final String PASSWORD = "password";
+              }
+              """
+          )),
+          java(
+            """
+              import java.util.Map;
+
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.GRANT_TYPE;
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.PASSWORD;
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.USERNAME;
+
+              class KeycloakAuthClient {
+                  Map<String, String> form(String user, String secret) {
+                      return Map.of(GRANT_TYPE, PASSWORD, USERNAME, user, PASSWORD, secret);
+                  }
+              }
+              """,
+            """
+              import java.util.Map;
+
+              import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.GRANT_TYPE;
+
+              class KeycloakAuthClient {
+                  Map<String, String> form(String user, String secret) {
+                      return Map.of(GRANT_TYPE, "password", "username", user, "password", secret);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void authorizationEventGetAuthorizationResult() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.security.authorization.event;
+              public class AuthorizationEvent {
+                  public Object getAuthorizationDecision() { return null; }
+                  public Object getAuthorizationResult() { return null; }
+              }
+              """,
+            //language=java
+            """
+              package org.springframework.security.authorization.event;
+              public class AuthorizationDeniedEvent<T> extends AuthorizationEvent {
+              }
+              """
+          )),
+          java(
+            """
+              import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
+
+              class AuthorizationEvents {
+                  String onFailure(AuthorizationDeniedEvent<?> deniedEvent) {
+                      return deniedEvent.getAuthorizationDecision().toString();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.authorization.event.AuthorizationDeniedEvent;
+
+              class AuthorizationEvents {
+                  String onFailure(AuthorizationDeniedEvent<?> deniedEvent) {
+                      return deniedEvent.getAuthorizationResult().toString();
+                  }
+              }
+              """
+          )
+        );
+    }
 }

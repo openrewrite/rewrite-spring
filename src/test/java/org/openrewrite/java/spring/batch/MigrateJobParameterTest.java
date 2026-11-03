@@ -121,7 +121,7 @@ class MigrateJobParameterTest implements RewriteTest {
 
                   public void foo1() throws Exception {
                       String from = UUID.randomUUID().toString();
-                      Map<String,JobParameter<?>> parameters = new HashMap<>();
+                      Map<String, JobParameter<?>> parameters = new HashMap<>();
                       parameters.put("sellerId", new JobParameter<>(from, String.class));
                       parameters.put("smtpHost", new JobParameter<>("localhost", String.class));
 
@@ -166,7 +166,7 @@ class MigrateJobParameterTest implements RewriteTest {
               public class Foo {
 
                   public void foo1() throws Exception {
-                      final Map<String,JobParameter<?>> paramMap = new HashMap<>() {{
+                      final Map<String, JobParameter<?>> paramMap = new HashMap<>() {{
                                   put("Target", new JobParameter<>("JOB_NAME", String.class));
                       }};
                   }
@@ -209,8 +209,8 @@ class MigrateJobParameterTest implements RewriteTest {
               import java.util.UUID;
               public class Foo {
 
-                  public Map<String,JobParameter<?>> foo1(String carrier, String dirLocation) {
-                      Map<String,JobParameter<?>> parameters = new HashMap<>();
+                  public Map<String, JobParameter<?>> foo1(String carrier, String dirLocation) {
+                      Map<String, JobParameter<?>> parameters = new HashMap<>();
                       parameters.put("ARG_CARRIER", new JobParameter<>(carrier, String.class));
                       parameters.put("ARG_DIRECTORY_LOCATION", new JobParameter<>(dirLocation, String.class));
                       return parameters;

@@ -134,9 +134,7 @@ public class ImplicitWebAnnotationNames extends Recipe {
         }
 
         private boolean maybeRemoveArg(J.VariableDeclarations.NamedVariable namedVariable, J.Literal assignValue) {
-            Object value = assignValue.getValue();
-            assert value != null;
-            return namedVariable.getSimpleName().equals(value);
+            return namedVariable.getSimpleName().equals(assignValue.getValue());
         }
     }
 }

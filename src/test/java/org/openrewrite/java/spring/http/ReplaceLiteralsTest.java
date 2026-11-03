@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.http;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -30,7 +31,7 @@ class ReplaceLiteralsTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec
           .recipeFromResources("org.openrewrite.java.spring.boot3.ReplaceStringLiteralsWithConstants")
-          .parser(JavaParser.fromJavaVersion().classpath("spring-web"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2"));
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/325")

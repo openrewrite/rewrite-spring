@@ -1,0 +1,227 @@
+/*
+ * Copyright 2024 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.java.spring.batch;
+
+import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
+import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeSpec;
+import org.openrewrite.test.RewriteTest;
+
+import static org.openrewrite.java.Assertions.java;
+
+class ListenerSupportClassToInterfaceTest implements RewriteTest {
+
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec
+          .recipeFromResource("/META-INF/rewrite/spring-batch-5.0.yml", "org.openrewrite.java.spring.batch.ListenerSupportClassToInterface")
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-batch-core-4",
+            "spring-batch-infrastructure-4",
+            "spring-boot-2.7",
+            "spring-beans-5.+",
+            "spring-core-5.+",
+            "spring-context-5.+"));
+    }
+
+    @DocumentExample
+    @Test
+    void replaceChunkListenerSupport() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.listener.ChunkListenerSupport;
+
+              public class MyClass extends ChunkListenerSupport {
+
+              }
+              """,
+            """
+              import org.springframework.batch.core.ChunkListener;
+
+              public class MyClass implements ChunkListener {
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replaceJobExecutionListenerSupport() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+
+              public class MyClass extends JobExecutionListenerSupport {
+
+              }
+              """,
+            """
+              import org.springframework.batch.core.JobExecutionListener;
+
+              public class MyClass implements JobExecutionListener {
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replaceStepExecutionListenerSupport() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.listener.StepExecutionListenerSupport;
+
+              public class MyClass extends StepExecutionListenerSupport {
+
+              }
+              """,
+            """
+              import org.springframework.batch.core.StepExecutionListener;
+
+              public class MyClass implements StepExecutionListener {
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replaceRepeatListenerSupport() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.repeat.listener.RepeatListenerSupport;
+
+              public class MyClass extends RepeatListenerSupport {
+
+              }
+              """,
+            """
+              import org.springframework.batch.repeat.RepeatListener;
+
+              public class MyClass implements RepeatListener {
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replaceSkipListenerSupport() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.listener.SkipListenerSupport;
+
+              public class MyClass extends SkipListenerSupport {
+
+              }
+              """,
+            """
+              import org.springframework.batch.core.SkipListener;
+
+              public class MyClass implements SkipListener {
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void superCallInExpressionCallsInterfaceDefaultMethod() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.ExitStatus;
+              import org.springframework.batch.core.StepExecution;
+              import org.springframework.batch.core.listener.StepExecutionListenerSupport;
+
+              class MyListener extends StepExecutionListenerSupport {
+                  @Override
+                  public ExitStatus afterStep(StepExecution stepExecution) {
+                      return super.afterStep(stepExecution);
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.ExitStatus;
+              import org.springframework.batch.core.StepExecution;
+              import org.springframework.batch.core.StepExecutionListener;
+
+              class MyListener implements StepExecutionListener {
+                  @Override
+                  public ExitStatus afterStep(StepExecution stepExecution) {
+                      return StepExecutionListener.super.afterStep(stepExecution);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void removeOnlySuperCallStatements() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.JobExecution;
+              import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+
+              class MyListener extends JobExecutionListenerSupport {
+                  private final JobExecutionListenerSupport delegate = new JobExecutionListenerSupport();
+
+                  @Override
+                  public void afterJob(JobExecution jobExecution) {
+                      super.afterJob(jobExecution);
+                      delegate.afterJob(jobExecution);
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.JobExecution;
+              import org.springframework.batch.core.JobExecutionListener;
+              import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+
+              class MyListener implements JobExecutionListener {
+                  private final JobExecutionListenerSupport delegate = new JobExecutionListenerSupport();
+
+                  @Override
+                  public void afterJob(JobExecution jobExecution) {
+                      delegate.afterJob(jobExecution);
+                  }
+              }
+              """
+          )
+        );
+    }
+}

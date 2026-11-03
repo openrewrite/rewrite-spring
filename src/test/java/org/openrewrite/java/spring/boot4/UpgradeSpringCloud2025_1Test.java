@@ -16,12 +16,16 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeSpringCloud2025_1Test implements RewriteTest {
@@ -75,7 +79,6 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
     @Test
     void migrateSpringCloudStarterParentToBootParentWithBom() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("project",
             pomXml(
               //language=xml
@@ -165,4 +168,77 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
           )
         );
     }
+    @ParameterizedTest
+    @CsvSource({"2024,2024.0", "2025,2025.0", "2025_1,2025.1"})
+    void retainsRemovedRsaVersionInMaven(String cloudVersion, String releaseVersion) {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.cloud" + cloudVersion.substring(0, 4) + ".UpgradeSpringCloud_" + cloudVersion),
+          mavenProject("project",
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>example</artifactId>
+                    <version>1.0</version>
+                    <dependencyManagement>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.cloud</groupId>
+                                <artifactId>spring-cloud-dependencies</artifactId>
+                                <version>2023.0.2</version>
+                                <type>pom</type>
+                                <scope>import</scope>
+                            </dependency>
+                        </dependencies>
+                    </dependencyManagement>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-context</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.springframework.security</groupId>
+                            <artifactId>spring-security-rsa</artifactId>
+                            <scope>test</scope>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .containsPattern("<artifactId>spring-cloud-dependencies</artifactId>\\s*<version>" + releaseVersion.replace(".", "\\.") + "\\.\\d+</version>")
+                .containsPattern("<artifactId>spring-security-rsa</artifactId>\\s*(?:<scope>test</scope>\\s*)?<version>1\\.1\\.3</version>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({"2024,2024.0", "2025,2025.0", "2025_1,2025.1"})
+    void retainsRemovedRsaVersionInGradle(String cloudVersion, String releaseVersion) {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.cloud" + cloudVersion.substring(0, 4) + ".UpgradeSpringCloud_" + cloudVersion)
+            .beforeRecipe(withToolingApi()),
+          buildGradle(
+            """
+              plugins {
+                  id 'java-library'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  implementation platform('org.springframework.cloud:spring-cloud-dependencies:2023.0.2')
+                  implementation 'org.springframework.security:spring-security-rsa'
+              }
+              """,
+            spec -> spec.after(actual -> assertThat(actual)
+              .containsPattern("spring-cloud-dependencies:" + releaseVersion.replace(".", "\\.") + "\\.\\d+")
+              .contains("org.springframework.security:spring-security-rsa:1.1.3")
+              .actual())
+          )
+        );
+    }
+
 }

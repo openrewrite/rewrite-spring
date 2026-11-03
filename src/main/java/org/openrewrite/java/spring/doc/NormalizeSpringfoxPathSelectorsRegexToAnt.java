@@ -65,6 +65,16 @@ public class NormalizeSpringfoxPathSelectorsRegexToAnt extends Recipe {
                 if (ant == null) {
                     return mi;
                 }
+                if (mi.getSelect() == null) {
+                    // Statically imported `regex(..)`: keep that style
+                    maybeRemoveImport("springfox.documentation.builders.PathSelectors.regex");
+                    maybeAddImport("springfox.documentation.builders.PathSelectors", "ant");
+                    return JavaTemplate.builder("ant(\"" + ant + "\")")
+                            .staticImports("springfox.documentation.builders.PathSelectors.ant")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "springfox-spi", "springfox-core", "springfox-spring-web"))
+                            .build()
+                            .apply(getCursor(), mi.getCoordinates().replace());
+                }
                 return JavaTemplate.builder("PathSelectors.ant(\"" + ant + "\")")
                         .imports("springfox.documentation.builders.PathSelectors")
                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "springfox-spi", "springfox-core", "springfox-spring-web"))

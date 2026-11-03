@@ -50,7 +50,7 @@ public class MigrateDatabaseCredentialsForToolYaml extends Recipe {
         return Preconditions.check(new YamlVisitor<ExecutionContext>() {
             @Override
             public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
-                if (FindProperty.find(documents, "spring." + tool + ".username", true).isEmpty() &&
+                if (FindProperty.find(documents, "spring." + tool + ".user", true).isEmpty() &&
                         FindProperty.find(documents, "spring." + tool + ".password", true).isEmpty()) {
                     doAfterVisit(new FindProperty("spring." + tool + ".url", true, null).getVisitor());
                 }
@@ -59,7 +59,7 @@ public class MigrateDatabaseCredentialsForToolYaml extends Recipe {
         }, new YamlVisitor<ExecutionContext>() {
             @Override
             public Yaml visitDocuments(Yaml.Documents documents, ExecutionContext ctx) {
-                doAfterVisit(new MergeYaml("$.spring." + tool, "username: ${spring.datasource.username}", true, null, null, null, null, null).getVisitor());
+                doAfterVisit(new MergeYaml("$.spring." + tool, "user: ${spring.datasource.username}", true, null, null, null, null, null).getVisitor());
                 doAfterVisit(new MergeYaml("$.spring." + tool, "password: ${spring.datasource.password}", true, null, null, null, null, null).getVisitor());
                 doAfterVisit(new CoalesceProperties(null, null).getVisitor());
                 return documents;

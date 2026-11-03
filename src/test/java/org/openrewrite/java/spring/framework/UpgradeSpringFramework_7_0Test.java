@@ -29,7 +29,7 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.framework.UpgradeSpringFramework_7_0")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-test-6.+"));
     }
 
     @DocumentExample
@@ -53,6 +53,133 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
               class A {
                   int status() {
                       return UNPROCESSABLE_CONTENT.value();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesPayloadTooLarge() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.HttpStatus;
+
+              class A {
+                  HttpStatus status() {
+                      return HttpStatus.PAYLOAD_TOO_LARGE;
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.HttpStatus;
+
+              class A {
+                  HttpStatus status() {
+                      return HttpStatus.CONTENT_TOO_LARGE;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void renamesStatusResultMatchers() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.test.web.servlet.ResultMatcher;
+              import org.springframework.test.web.servlet.result.StatusResultMatchers;
+
+              class A {
+                  ResultMatcher tooLarge(StatusResultMatchers status) {
+                      return status.isPayloadTooLarge();
+                  }
+
+                  ResultMatcher unprocessable(StatusResultMatchers status) {
+                      return status.isUnprocessableEntity();
+                  }
+              }
+              """,
+            """
+              import org.springframework.test.web.servlet.ResultMatcher;
+              import org.springframework.test.web.servlet.result.StatusResultMatchers;
+
+              class A {
+                  ResultMatcher tooLarge(StatusResultMatchers status) {
+                      return status.isContentTooLarge();
+                  }
+
+                  ResultMatcher unprocessable(StatusResultMatchers status) {
+                      return status.isUnprocessableContent();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void syncBodyToBodyValue() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.web.reactive.function.server;
+              public interface ServerResponse {
+                  static BodyBuilder ok() { return null; }
+                  interface BodyBuilder {
+                      Object syncBody(Object body);
+                      Object bodyValue(Object body);
+                  }
+              }
+              """,
+            //language=java
+            """
+              package org.springframework.web.reactive.function.client;
+              public interface WebClient {
+                  RequestBodyUriSpec post();
+                  interface RequestBodySpec {
+                      RequestBodySpec syncBody(Object body);
+                      RequestBodySpec bodyValue(Object body);
+                  }
+                  interface RequestBodyUriSpec extends RequestBodySpec {
+                  }
+              }
+              """
+          )),
+          //language=java
+          java(
+            """
+              import org.springframework.web.reactive.function.client.WebClient;
+              import org.springframework.web.reactive.function.server.ServerResponse;
+
+              class OrderHandler {
+                  Object order(Object order) {
+                      return ServerResponse.ok().syncBody(order);
+                  }
+
+                  Object send(WebClient client, Object order) {
+                      return client.post().syncBody(order);
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.reactive.function.client.WebClient;
+              import org.springframework.web.reactive.function.server.ServerResponse;
+
+              class OrderHandler {
+                  Object order(Object order) {
+                      return ServerResponse.ok().bodyValue(order);
+                  }
+
+                  Object send(WebClient client, Object order) {
+                      return client.post().bodyValue(order);
                   }
               }
               """

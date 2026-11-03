@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -46,8 +47,7 @@ public class JaxRsRequestMapping implements Trait<J.Annotation> {
 
     public String getHttpMethod() {
         J.Annotation annotation = getCursor().getValue();
-        JavaType.FullyQualified type = TypeUtils.asFullyQualified(annotation.getType());
-        assert type != null;
+        JavaType.FullyQualified type = requireNonNull(TypeUtils.asFullyQualified(annotation.getType()));
         return type.getClassName();
     }
 

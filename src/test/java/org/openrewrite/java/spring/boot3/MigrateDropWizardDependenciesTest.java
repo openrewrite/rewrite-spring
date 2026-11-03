@@ -36,15 +36,17 @@ class MigrateDropWizardDependenciesTest implements RewriteTest {
 
     @Test
     void migrateDropWizardDependenciesPackageNames() {
-        java(
-          """
-            import com.codahale.metrics.servlet.InstrumentedFilter;
-            import com.codahale.metrics.servlets.MetricsServlet;
-            """,
-          """
-            import io.dropwizard.metrics.servlet.InstrumentedFilter;
-            import io.dropwizard.metrics.servlets.MetricsServlet;
+        rewriteRun(
+          java(
             """
+              import com.codahale.metrics.servlet.InstrumentedFilter;
+              import com.codahale.metrics.servlets.MetricsServlet;
+              """,
+            """
+              import io.dropwizard.metrics.servlet.InstrumentedFilter;
+              import io.dropwizard.metrics.servlets.MetricsServlet;
+              """
+          )
         );
     }
 }

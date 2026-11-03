@@ -347,4 +347,70 @@ class HttpSecurityLambdaDslTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void doNotConvertWhenReturned() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
+
+              class SecurityConfig {
+                  FormLoginConfigurer<HttpSecurity> formLogin(HttpSecurity http) throws Exception {
+                      return http.formLogin().loginPage("/login");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotConvertWhenAssigned() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      HeadersConfigurer<HttpSecurity> headers = http.headers();
+                      headers.frameOptions().sameOrigin();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void convertWhenReturnedChainEndsWithAnd() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfig {
+                  HttpSecurity configure(HttpSecurity http) throws Exception {
+                      return http.formLogin().loginPage("/login").and();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfig {
+                  HttpSecurity configure(HttpSecurity http) throws Exception {
+                      return http.formLogin(login -> login.loginPage("/login"));
+                  }
+              }
+              """
+          )
+        );
+    }
 }

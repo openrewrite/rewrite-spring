@@ -37,9 +37,9 @@ import java.util.regex.Pattern;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class ChangeSpringPropertyValue extends Recipe {
+public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles> {
 
-    String displayName = "Change the value of a spring application property";
+    String displayName = "Change the value of a Spring application property";
 
     String description = "Change Spring application property values existing in either Properties or YAML files, " +
             "and in `@Value`, `@ConditionalOnProperty`, `@SpringBootTest`, or `@TestPropertySource` annotations.";
@@ -82,14 +82,24 @@ public class ChangeSpringPropertyValue extends Recipe {
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
+        return new SpringConfigFiles();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(SpringConfigFiles acc) {
+        return acc.getScanner();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
         Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
         Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
         TreeVisitor<?, ExecutionContext> propertiesVisitor = Preconditions.check(
-                new IsPossibleSpringConfigFile(), changeProperties.getVisitor());
+                new IsPossibleSpringConfigFile(acc), changeProperties.getVisitor());
         TreeVisitor<?, ExecutionContext> yamlVisitor = Preconditions.check(
-                new IsPossibleSpringConfigFile(), changeYaml.getVisitor());
+                new IsPossibleSpringConfigFile(acc), changeYaml.getVisitor());
         TreeVisitor<?, ExecutionContext> javaVisitor = Preconditions.check(Preconditions.or(
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
                 new UsesType<>("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty", false),
@@ -168,6 +178,7 @@ public class ChangeSpringPropertyValue extends Recipe {
             boolean changed = false;
             StringBuilder newValue = new StringBuilder();
             int lastEnd = 0;
+            int sourceFrom = 0;
 
             while (matcher.find()) {
                 String key = matcher.group(1);
@@ -180,10 +191,16 @@ public class ChangeSpringPropertyValue extends Recipe {
                         newValue.append("${").append(key).append(":").append(computedNewValue).append("}");
                         lastEnd = matcher.end();
 
-                        // Also update valueSource by replacing the old default with new default
-                        // This preserves all other escaping (e.g., \$ in Kotlin)
+                        // Edit valueSource in place to keep its escaping, such as `\$` in Kotlin
                         if (valueSource != null) {
-                            valueSource = valueSource.replace(defaultValue, computedNewValue);
+                            String oldPlaceholder = "{" + key + ":" + defaultValue + "}";
+                            int at = valueSource.indexOf(oldPlaceholder, sourceFrom);
+                            if (at < 0) {
+                                return literal;
+                            }
+                            String newPlaceholder = "{" + key + ":" + computedNewValue + "}";
+                            valueSource = valueSource.substring(0, at) + newPlaceholder + valueSource.substring(at + oldPlaceholder.length());
+                            sourceFrom = at + newPlaceholder.length();
                         }
 
                         changed = true;

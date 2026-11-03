@@ -135,7 +135,7 @@ public class AddConfigurationAnnotationIfBeansPresent extends ScanningRecipe<Set
 
                 boolean isStatic = false;
                 for (J.Modifier m : classDecl.getModifiers()) {
-                    if (m.getType() == J.Modifier.Type.Abstract) {
+                    if (m.getType() == J.Modifier.Type.Abstract || m.getType() == J.Modifier.Type.Final) {
                         return false;
                     }
                     if (m.getType() == J.Modifier.Type.Static) {
@@ -156,16 +156,19 @@ public class AddConfigurationAnnotationIfBeansPresent extends ScanningRecipe<Set
                     return false;
                 }
 
-                // No '@Configuration' present. Check if any methods have '@Bean' annotation
+                // Every instance bean method must be overridable for a proxied configuration.
+                boolean hasBeanMethod = false;
                 for (Statement s : classDecl.getBody().getStatements()) {
-                    if (s instanceof J.MethodDeclaration) {
-                        if (isBeanMethod((J.MethodDeclaration) s)) {
-                            return true;
+                    if (s instanceof J.MethodDeclaration && isBeanMethod((J.MethodDeclaration) s)) {
+                        J.MethodDeclaration method = (J.MethodDeclaration) s;
+                        if (method.hasModifier(J.Modifier.Type.Private) || method.hasModifier(J.Modifier.Type.Final)) {
+                            return false;
                         }
+                        hasBeanMethod = true;
                     }
                 }
 
-                return false;
+                return hasBeanMethod;
             }
 
 

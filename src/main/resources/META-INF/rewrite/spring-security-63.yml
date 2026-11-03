@@ -32,9 +32,7 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 6.3.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: spring-security-oauth2-authorization-server
       newVersion: 1.3.x
-      overrideManagedVersion: false

@@ -18,7 +18,6 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.openrewrite.*;
-import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.properties.PropertiesIsoVisitor;
 import org.openrewrite.properties.tree.Properties;
 
@@ -36,17 +35,8 @@ public class PropertiesToKebabCaseProperties extends Recipe {
             @Override
             public Properties.Entry visitEntry(Properties.Entry entry, ExecutionContext ctx) {
                 Properties.Entry e = super.visitEntry(entry, ctx);
-                String key = e.getKey();
-                if ((key.startsWith("spring.") && key.contains(".properties.")) ||
-                        key.startsWith("logging.level.") ||
-                        key.startsWith("management.metrics.tags.") ||
-                        key.startsWith("management.metrics.enable.") ||
-                        key.startsWith("management.metrics.distribution.") ||
-                        key.startsWith("spring.flyway.placeholders.")) {
-                    return e;
-                }
-                String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
-                if (!key.equals(asKebabCase)) {
+                String asKebabCase = KebabCasePropertyKeys.toKebabCase("", e.getKey());
+                if (!e.getKey().equals(asKebabCase)) {
                     return e.withKey(asKebabCase);
                 }
                 return e;

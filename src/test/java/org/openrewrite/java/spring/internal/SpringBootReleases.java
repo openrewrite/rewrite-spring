@@ -18,8 +18,17 @@ package org.openrewrite.java.spring.internal;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.ipc.http.HttpSender;
 import org.openrewrite.ipc.http.HttpUrlConnectionSender;
+import org.openrewrite.maven.MavenDownloadingException;
+import org.openrewrite.maven.MavenExecutionContextView;
+import org.openrewrite.maven.MavenSettings;
+import org.openrewrite.maven.internal.MavenPomDownloader;
+import org.openrewrite.maven.tree.GroupArtifact;
+import org.openrewrite.maven.tree.MavenMetadata;
+import org.openrewrite.maven.tree.MavenRepository;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -102,44 +111,36 @@ class SpringBootReleases {
         }
     }
 
+    /**
+     * A context with the Maven settings on disk, so rewrite-maven downloads through the mirror and with the
+     * credentials they configure, as CI's do, and from Maven Central where there are none.
+     */
+    private static ExecutionContext newExecutionContext() {
+        InMemoryExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
+        MavenExecutionContextView.view(ctx).setMavenSettings(MavenSettings.readMavenSettingsFromDisk(ctx));
+        return ctx;
+    }
+
     private Set<String> allReleases() {
         if (availableReleases == null) {
-            HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
-            HttpSender.Request request = HttpSender.Request
-              .build(repositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
-              .withMethod(HttpSender.Method.GET)
-              .build();
-
             Set<String> releases = new HashSet<>();
 
-            try (HttpSender.Response response = httpSender.send(request)) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response);
-                }
-
-                byte[] responseBody = response.getBodyAsBytes();
-                if (responseBody.length > 0) {
-                    Matcher releaseMatcher = Pattern.compile("href=\"([^\"]+[.RELEASE]*)/\"")
-                      .matcher(new String(responseBody));
-
-                    while (releaseMatcher.find()) {
-                        String release = releaseMatcher.group(1);
-                        if ("..".equals(release)) {
-                            continue;
-                        }
-                        if ((release.contains("-RC") || release.contains("-M")) && !includeReleaseCandidates) {
-                            continue;
-                        }
-                        releases.add(release);
+            try {
+                MavenMetadata metadata = new MavenPomDownloader(newExecutionContext())
+                  .downloadMetadata(new GroupArtifact("org.springframework.boot", "spring-boot-starter-parent"), null, List.of(MavenRepository.MAVEN_CENTRAL));
+                for (String release : metadata.getVersioning().getVersions()) {
+                    if ((release.contains("-RC") || release.contains("-M")) && !includeReleaseCandidates) {
+                        continue;
                     }
+                    releases.add(release);
                 }
-
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            } catch (MavenDownloadingException e) {
+                throw new IllegalStateException("Could not read the releases of spring-boot-starter-parent", e);
             }
 
             if (includeReleaseCandidates) {
-                request = HttpSender.Request
+                HttpUrlConnectionSender httpSender = new HttpUrlConnectionSender();
+                HttpSender.Request request = HttpSender.Request
                   .build(milestoneRepositoryUrl + "/org/springframework/boot/spring-boot-starter-parent", httpSender)
                   .withMethod(HttpSender.Method.GET)
                   .build();

@@ -263,7 +263,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
-    void addSuccessFailureCallbackWithTernaryArguments() {
+    void leaveFileUnchangedWhenSuccessFailureCallbackCannotBeConverted() {
         //language=java
         rewriteRun(
           java(
@@ -276,20 +276,9 @@ class ListenableToCompletableFutureTest implements RewriteTest {
                       future.addCallback(
                           successCallback != null ? result -> successCallback.onSuccess(result) : null,
                           failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
-                  }
-              }
-              """,
-            """
-              import org.springframework.util.concurrent.SuccessCallback;
-              import org.springframework.util.concurrent.FailureCallback;
-
-              import java.util.concurrent.CompletableFuture;
-
-              class A {
-                  void test(CompletableFuture<String> future, SuccessCallback<String> successCallback, FailureCallback failureCallback) {
-                      future.whenComplete(
-                          successCallback != null ? result -> successCallback.onSuccess(result) : null,
-                          failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
+                      future.addCallback(
+                          System.out::println,
+                          ex -> System.err.println(ex.getMessage()));
                   }
               }
               """
