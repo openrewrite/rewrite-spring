@@ -69,7 +69,7 @@ recipeList:
       newPropertyKey: spring.datasource.tomcat.jmx-enabled
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.jackson.joda-date-time-format
-      newPropertyKey: dateFormat
+      newPropertyKey: spring.jackson.date-format
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.rabbitmq.listener.simple.transaction-size
       newPropertyKey: spring.rabbitmq.listener.simple.batch-size

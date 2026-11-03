@@ -72,122 +72,117 @@ class MigrateToWebServerFactoryCustomizerTest implements RewriteTest {
     @Test
     void migrateToWebServerFactoryAndChangeTomcat() {
         //language=java
-        java(
-          """
-            import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-            import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-            import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-
-            public class CustomContainer implements EmbeddedServletContainerCustomizer {
-                @Override
-                public void customize(ConfigurableEmbeddedServletContainer container) {
-                    if (container instanceof TomcatEmbeddedServletContainerFactory) {
-                        TomcatEmbeddedServletContainerFactory tomcatContainer =\s
-                          (TomcatEmbeddedServletContainerFactory) container;
-                        tomcatContainer.setPort(8080);
-                        tomcatContainer.setContextPath("");
-                    }
-                }
-            }
-            """,
-          """
-            import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-            import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-            import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
-
-            public class CustomContainer implements EmbeddedServletContainerCustomizer {
-                @Override
-                public void customize(ConfigurableEmbeddedServletContainer container) {
-                    if (container instanceof TomcatServletWebServerFactory) {
-                        TomcatServletWebServerFactory tomcatContainer =
-                          (TomcatServletWebServerFactory) container;
-                        tomcatContainer.setPort(8080);
-                        tomcatContainer.setContextPath("");
-                    }
-                }
-            }
+        rewriteRun(
+          java(
             """
+              import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+              import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+              import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+
+              public class CustomContainer implements EmbeddedServletContainerCustomizer {
+                  @Override
+                  public void customize(ConfigurableEmbeddedServletContainer container) {
+                      if (container instanceof TomcatEmbeddedServletContainerFactory) {
+                          TomcatEmbeddedServletContainerFactory tomcatContainer = (TomcatEmbeddedServletContainerFactory) container;
+                          tomcatContainer.setPort(8080);
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+              import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+              import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+
+              public class CustomContainer implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+                  @Override
+                  public void customize(ConfigurableServletWebServerFactory container) {
+                      if (container instanceof TomcatServletWebServerFactory) {
+                          TomcatServletWebServerFactory tomcatContainer = (TomcatServletWebServerFactory) container;
+                          tomcatContainer.setPort(8080);
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateToWebServerFactoryAndChangeJetty() {
         //language=java
-        java(
-          """
-            import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-            import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-            import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory;
-
-            public class CustomContainer implements EmbeddedServletContainerCustomizer {
-                @Override
-                public void customize(ConfigurableEmbeddedServletContainer container) {
-                    if (container instanceof JettyEmbeddedServletContainerFactory) {
-                        JettyEmbeddedServletContainerFactory jettyContainer =\s
-                          (JettyEmbeddedServletContainerFactory) container;
-                        jettyContainer.setPort(8080);
-                        jettyContainer.setContextPath("");
-                    }
-                }
-            }
-            """,
-          """
-            import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
-            import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-            import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
-
-            public class CustomContainer implements EmbeddedServletContainerCustomizer {
-                @Override
-                public void customize(ConfigurableEmbeddedServletContainer container) {
-                    if (container instanceof JettyServletWebServerFactory) {
-                        JettyServletWebServerFactory jettyContainer =
-                          (JettyServletWebServerFactory) container;
-                        jettyContainer.setPort(8080);
-                        jettyContainer.setContextPath("");
-                    }
-                }
-            }
+        rewriteRun(
+          java(
             """
+              import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+              import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+              import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory;
+
+              public class CustomContainer implements EmbeddedServletContainerCustomizer {
+                  @Override
+                  public void customize(ConfigurableEmbeddedServletContainer container) {
+                      if (container instanceof JettyEmbeddedServletContainerFactory) {
+                          JettyEmbeddedServletContainerFactory jettyContainer = (JettyEmbeddedServletContainerFactory) container;
+                          jettyContainer.setPort(8080);
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
+              import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+              import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+
+              public class CustomContainer implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+                  @Override
+                  public void customize(ConfigurableServletWebServerFactory container) {
+                      if (container instanceof JettyServletWebServerFactory) {
+                          JettyServletWebServerFactory jettyContainer = (JettyServletWebServerFactory) container;
+                          jettyContainer.setPort(8080);
+                      }
+                  }
+              }
+              """
+          )
         );
     }
 
     @Test
     void migrateToWebServerFactoryAndChangeUndertow() {
         //language=java
-        java(
-          """
-            import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-            import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-            import org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory;
-
-            public class CustomContainer implements EmbeddedServletContainerCustomizer {
-                @Override
-                public void customize(ConfigurableEmbeddedServletContainer container) {
-                    if (container instanceof UndertowEmbeddedServletContainerFactory) {
-                        UndertowEmbeddedServletContainerFactory undertowContainer = (UndertowEmbeddedServletContainerFactory) container;
-                        undertowContainer.setPort(8080);
-                        undertowContainer.setContextPath("");
-                    }
-                }
-            }
-            """,
-          """
-            import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
-            import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-            import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
-
-            public class CustomContainer implements EmbeddedServletContainerCustomizer {
-                @Override
-                public void customize(ConfigurableEmbeddedServletContainer container) {
-                    if (container instanceof UndertowServletWebServerFactory) {
-                        UndertowServletWebServerFactory undertowContainer = (UndertowServletWebServerFactory) container;
-                        undertowContainer.setPort(8080);
-                        undertowContainer.setContextPath("");
-                    }
-                }
-            }
+        rewriteRun(
+          java(
             """
+              import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+              import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+              import org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory;
+
+              public class CustomContainer implements EmbeddedServletContainerCustomizer {
+                  @Override
+                  public void customize(ConfigurableEmbeddedServletContainer container) {
+                      if (container instanceof UndertowEmbeddedServletContainerFactory) {
+                          UndertowEmbeddedServletContainerFactory undertowContainer = (UndertowEmbeddedServletContainerFactory) container;
+                          undertowContainer.setPort(8080);
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
+              import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+              import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+
+              public class CustomContainer implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+                  @Override
+                  public void customize(ConfigurableServletWebServerFactory container) {
+                      if (container instanceof UndertowServletWebServerFactory) {
+                          UndertowServletWebServerFactory undertowContainer = (UndertowServletWebServerFactory) container;
+                          undertowContainer.setPort(8080);
+                      }
+                  }
+              }
+              """
+          )
         );
     }
-
 }

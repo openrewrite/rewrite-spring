@@ -31,7 +31,7 @@ recipeList:
       oldPropertyKey: management.metrics.export.prometheus.pushgateway.base-url
       newPropertyKey: management.prometheus.metrics.export.pushgateway.address
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
-      oldPropertyKey: management.promethus.metrics.export.pushgateway.base-url
+      oldPropertyKey: management.prometheus.metrics.export.pushgateway.base-url
       newPropertyKey: management.prometheus.metrics.export.pushgateway.address
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.codec.log-request-details

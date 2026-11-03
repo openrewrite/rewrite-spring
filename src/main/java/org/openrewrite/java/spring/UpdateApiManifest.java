@@ -28,6 +28,7 @@ import org.openrewrite.text.PlainTextVisitor;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -97,16 +99,17 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                 .withSourcePath(Paths.get("META-INF/api-manifest.txt"));
     }
 
-    private String getArg(J.Annotation annotation, String key, String defaultValue) {
+    private String getPath(J.Annotation annotation) {
+        return getArg(annotation, "", "value", "path");
+    }
+
+    private String getArg(J.Annotation annotation, String defaultValue, String... keys) {
         if (annotation.getArguments() != null) {
+            List<String> keyNames = Arrays.asList(keys);
             for (Expression argument : annotation.getArguments()) {
-                if (argument instanceof J.Literal) {
-                    //noinspection ConstantConditions
-                    return (String) ((J.Literal) argument).getValue();
-                }
                 if (argument instanceof J.Assignment) {
                     J.Assignment arg = (J.Assignment) argument;
-                    if (((J.Identifier) arg.getVariable()).getSimpleName().equals(key)) {
+                    if (keyNames.contains(((J.Identifier) arg.getVariable()).getSimpleName())) {
                         if (arg.getAssignment() instanceof J.FieldAccess) {
                             return ((J.FieldAccess) arg.getAssignment()).getSimpleName();
                         }
@@ -118,6 +121,9 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                             return (String) ((J.Literal) arg.getAssignment()).getValue();
                         }
                     }
+                } else if (argument instanceof J.Literal && keyNames.contains("value")) {
+                    //noinspection ConstantConditions
+                    return (String) ((J.Literal) argument).getValue();
                 }
             }
         }
@@ -143,17 +149,16 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                                         .map(classDecl -> ((J.ClassDeclaration) classDecl).getAllAnnotations().stream()
                                                 .filter(this::hasRequestMapping)
                                                 .findAny()
-                                                .map(classMapping -> getArg(classMapping, "value", ""))
+                                                .map(UpdateApiManifest.this::getPath)
                                                 .orElse(null))
                                         .filter(Objects::nonNull)
                                         .collect(joining("/")) +
-                                        getArg(mapping, "value", "");
+                                        getPath(mapping);
                         path = path.replace("//", "/");
 
-                        JavaType.FullyQualified type = TypeUtils.asFullyQualified(mapping.getType());
-                        assert type != null;
+                        JavaType.FullyQualified type = requireNonNull(TypeUtils.asFullyQualified(mapping.getType()));
                         String httpMethod = type.getClassName().startsWith("Request") ?
-                                getArg(mapping, "method", "GET") :
+                                getArg(mapping, "GET", "method") :
                                 type.getClassName().replace("Mapping", "").toUpperCase();
                         apis.add(httpMethod + " " + path);
                     });

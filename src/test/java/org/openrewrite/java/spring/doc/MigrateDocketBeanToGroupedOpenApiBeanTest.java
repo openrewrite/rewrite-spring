@@ -18,10 +18,15 @@ package org.openrewrite.java.spring.doc;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.gradle.marker.GradlePluginDescriptor;
+import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.List;
+
+import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
@@ -115,6 +120,72 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                 """,
               spec -> spec.path("application.properties")
             )
+          ),
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                class ApplicationConfiguration {
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .select()
+                                .apis(RequestHandlerSelectors.any())
+                                .paths(PathSelectors.any())
+                                .build()
+                                .pathMapping("/");
+                    }
+                }
+                """,
+              """
+                package org.project.example;
+
+                class ApplicationConfiguration {
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void rewriteSingleDocketToApplicationYmlOutsideSourceSet() {
+        rewriteRun(
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'org.springframework.boot' version '3.3.4'
+              }
+              """,
+            spec -> spec.markers(GradleProject.builder()
+              .plugins(List.of(new GradlePluginDescriptor(
+                "org.springframework.boot.gradle.plugin.SpringBootPlugin", "org.springframework.boot")))
+              .build())
+          ),
+          //language=yaml
+          yaml(
+            """
+              spring.application.name: main
+              """,
+            """
+              spring.application.name: main
+              springdoc:
+                api-docs:
+                  path: /v3/api-docs
+                swagger-ui:
+                  path: /swagger-ui.html
+                paths-to-match: /**
+              """,
+            spec -> spec.path("config/application.yml")
           ),
           srcMainJava(
             //language=java

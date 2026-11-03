@@ -43,6 +43,7 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-core:4.+")
     parserClasspath("org.springframework:spring-core:5.+")
     parserClasspath("org.springframework:spring-core:6.+")
+    parserClasspath("org.springframework:spring-core:7.+")
 
     parserClasspath("org.springframework:spring-test:6.+")
 
@@ -66,6 +67,7 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:6.0.+")
 
     parserClasspath("org.springframework:spring-tx:5.+")
 
@@ -220,7 +222,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite:rewrite-test")
@@ -228,14 +229,11 @@ dependencies {
     testImplementation("org.junit-pioneer:junit-pioneer:2.0.0")
 
     // for generating properties migration configurations
-    testImplementation("io.github.classgraph:classgraph:latest.release")
+    testImplementation("io.github.classgraph:classgraph:4.+")
     testImplementation("org.openrewrite:rewrite-java-21")
     testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
-
-    // Needed for `org.openrewrite.java.spring.http.ReplaceLiteralsTest` to read constant values
-    testRuntimeOnly("org.springframework:spring-web:6.+")
 }
 
 tasks {
@@ -244,7 +242,7 @@ tasks {
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
         forkEvery = 0
     }
-    val generatePropertyMigrationRecipes by registering(JavaExec::class) {
+    val generatePropertyMigrationRecipes = register<JavaExec>("generatePropertyMigrationRecipes") {
         group = "generate"
         description = "Generate Spring Boot property migration recipes."
         mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"

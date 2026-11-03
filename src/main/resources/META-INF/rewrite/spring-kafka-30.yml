@@ -52,7 +52,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers
-displayName: Migrates Spring Kafka deprecated error handlers
+displayName: Migrate deprecated Spring Kafka error handlers
 description: >-
   Migrate error handlers deprecated in Spring Kafka `2.8.x` to their replacements.
 tags:

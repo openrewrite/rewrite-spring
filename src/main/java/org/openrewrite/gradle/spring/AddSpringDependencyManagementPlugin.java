@@ -73,9 +73,7 @@ public class AddSpringDependencyManagementPlugin extends Recipe {
     }
 
     private static boolean usesDependencyManagementDsl(JavaSourceFile cu) {
-        AtomicBoolean found = new AtomicBoolean(false);
-        new UsesDependencyManagementDslVisitor().visit(cu, found);
-        return found.get();
+        return new UsesDependencyManagementDslVisitor().reduce(cu, new AtomicBoolean(false)).get();
     }
 
     private static class UsesDependencyManagementDslVisitor extends GroovyIsoVisitor<AtomicBoolean> {

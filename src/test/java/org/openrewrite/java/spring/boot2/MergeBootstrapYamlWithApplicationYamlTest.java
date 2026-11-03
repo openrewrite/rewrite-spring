@@ -167,9 +167,6 @@ class MergeBootstrapYamlWithApplicationYamlTest implements RewriteTest {
               """
                 spring.application.name: main
                 """,
-              """
-                spring.application.name: main
-                """,
               spec -> spec.path("application.yaml")
             )
           )

@@ -222,4 +222,29 @@ class RelocateWebServerClassesTest implements RewriteTest {
           )
         );
     }
+    @Test
+    void movesServletFactoryInterfaces() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+              import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+
+              class Customizer {
+                  ConfigurableServletWebServerFactory configurable;
+                  ServletWebServerFactory factory;
+              }
+              """,
+            """
+              import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
+              import org.springframework.boot.web.server.servlet.ServletWebServerFactory;
+
+              class Customizer {
+                  ConfigurableServletWebServerFactory configurable;
+                  ServletWebServerFactory factory;
+              }
+              """
+          )
+        );
+    }
 }

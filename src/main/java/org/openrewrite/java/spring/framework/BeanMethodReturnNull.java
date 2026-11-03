@@ -29,6 +29,8 @@ import org.openrewrite.java.tree.*;
 
 import java.util.List;
 
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
+
 public class BeanMethodReturnNull extends Recipe {
     private static final String BEAN_ANNOTATION_FQN = "org.springframework.context.annotation.Bean";
     private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@" + BEAN_ANNOTATION_FQN);
@@ -57,7 +59,7 @@ public class BeanMethodReturnNull extends Recipe {
                     }
 
                     // Change the return type to `Object`
-                    md = md.withReturnTypeExpression(TypeTree.build("Object")
+                    md = withReturnTypeExpression(md, TypeTree.build("Object")
                             .withType(JavaType.buildType("java.lang.Object"))
                             .withPrefix(md.getReturnTypeExpression().getPrefix()));
 

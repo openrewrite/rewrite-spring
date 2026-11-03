@@ -73,7 +73,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     @Override
     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation initialMethod, P executionContext) {
         J.MethodInvocation method = super.visitMethodInvocation(initialMethod, executionContext);
-        if (isApplicableMethod(method)) {
+        if (isApplicableMethod(method) && !isResultOfConvertedChainUsed()) {
             J.MethodInvocation m = method;
             method = createDesiredReplacement(method)
                     .map(newMethodType -> {
@@ -82,12 +82,12 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                         String paramName = keepArg ? "configurer" : generateParamNameFromMethodName(m.getSimpleName());
                         return m
                                 .withMethodType(newMethodType)
-                                .withName(m.getName().withSimpleName(newMethodType.getName()))
+                                .withName(m.getName().withSimpleName(newMethodType.getName()).withType(newMethodType))
                                 .withArguments(ListUtils.concat(
                                                 keepArg ? m.getArguments().get(0) : null,
                                                 singletonList(chain.isEmpty() ?
                                                         createDefaultsCall() :
-                                                        createLambdaParam(paramName, newMethodType.getParameterTypes().get(keepArg ? 1 : 0), chain))
+                                                        createLambdaParam(paramName, requireNonNull(m.getMethodType()).getReturnType(), chain))
                                         )
                                 );
                     })
@@ -100,8 +100,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                     .withComments(method.getComments());
         }
         // Auto-format the top invocation call if anything has changed down the tree
-        Cursor grandParent = getCursor().getParent(2);
-        if (initialMethod != method && (grandParent == null || !(grandParent.getValue() instanceof J.MethodInvocation))) {
+        if (initialMethod != method && nextCallInChain(getCursor()) == null) {
             method = autoFormat(method, executionContext);
         }
         return method;
@@ -119,18 +118,29 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private J.Lambda createLambdaParam(String paramName, JavaType paramType, List<J.MethodInvocation> chain) {
-        J.Identifier param = createIdentifier(paramName, paramType);
-        J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(paramName, paramType), chain);
+        // like the parser, declare the parameter of `name -> ...` as a variable with no type expression
+        J.MethodDeclaration enclosingMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
+        JavaType.Variable variableType = new JavaType.Variable(null, 0, paramName,
+                enclosingMethod == null ? null : enclosingMethod.getMethodType(), paramType, null);
+        J.VariableDeclarations param = new J.VariableDeclarations(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
+                emptyList(), emptyList(), null, null,
+                singletonList(new JRightPadded<>(new J.VariableDeclarations.NamedVariable(Tree.randomId(), Space.EMPTY,
+                        Markers.EMPTY, createIdentifier(variableType), emptyList(), null, variableType),
+                        Space.EMPTY, Markers.EMPTY)));
+        J.MethodInvocation body = unfoldMethodInvocationChain(createIdentifier(variableType), chain);
         return new J.Lambda(Tree.randomId(), Space.EMPTY, Markers.EMPTY,
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", emptyList()),
                 body,
-                JavaType.Primitive.Void
+                // type the lambda as the `Customizer` it is passed as, so that a later visit (e.g. of a nested
+                // configurer's no-arg call in its body) sees it as a void lambda whose result is unused
+                new JavaType.Parameterized(null, CUSTOMIZER_SHALLOW_TYPE, singletonList(paramType))
         );
     }
 
-    private J.Identifier createIdentifier(String name, JavaType type) {
-        return new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), name, type, null);
+    private J.Identifier createIdentifier(JavaType.Variable variableType) {
+        return new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), variableType.getName(),
+                variableType.getType(), variableType);
     }
 
     private J.MethodInvocation unfoldMethodInvocationChain(J.Identifier core, List<J.MethodInvocation> chain) {
@@ -159,8 +169,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
             select = invocation;
         }
         // Check if top-level invocation to remove the prefix as the prefix is space before the root call, i.e. before httpSecurity identifier. We don't want to have inside the lambda
-        assert invocation != null;
-        if (invocation.getMarkers().getMarkers().stream().filter(Markup.Info.class::isInstance).map(Markup.Info.class::cast).anyMatch(marker -> MSG_TOP_INVOCATION.equals(marker.getMessage()))) {
+        if (requireNonNull(invocation).getMarkers().getMarkers().stream().filter(Markup.Info.class::isInstance).map(Markup.Info.class::cast).anyMatch(marker -> MSG_TOP_INVOCATION.equals(marker.getMessage()))) {
             invocation = invocation
                     .withMarkers(invocation.getMarkers().removeByType(Markup.Info.class))
                     .withPrefix(Space.EMPTY);
@@ -207,11 +216,23 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 singletonList("arg0");
         List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType) :
                 singletonList(customizerArgType);
-        return Optional.of(methodType.withReturnType(methodType.getDeclaringType())
+        return Optional.of(methodType.withReturnType(builderType(m, methodType))
                 .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
                 .withParameterNames(paramNames)
                 .withParameterTypes(paramTypes)
         );
+    }
+
+    /**
+     * The lambda DSL methods return the builder they are called on, which for methods inherited from a generic
+     * builder like `AbstractConfiguredSecurityBuilder<O, B>` is the subtype `B` rather than the declaring type.
+     */
+    private JavaType builderType(J.MethodInvocation m, JavaType.Method methodType) {
+        Expression select = m.getSelect();
+        if (select != null && TypeUtils.isAssignableTo(securityFqn, select.getType())) {
+            return requireNonNull(select.getType());
+        }
+        return methodType.getDeclaringType();
     }
 
     private boolean keepArg(String methodName) {
@@ -245,13 +266,19 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         if (c == null) {
             return false;
         }
-
-        if (!(c.getValue() instanceof J.MethodInvocation)) {
-            return false;
-        }
-
         J.MethodInvocation inv = c.getValue();
         return !isAndMethod(inv) && !isDisableMethod(inv);
+    }
+
+    private static @Nullable Cursor nextCallInChain(Cursor call) {
+        Cursor parent = call.getParentTreeCursor();
+        if (parent.getValue() instanceof J.MethodInvocation) {
+            Expression select = ((J.MethodInvocation) parent.getValue()).getSelect();
+            if (select != null && select.isScope(call.getValue())) {
+                return parent;
+            }
+        }
+        return null;
     }
 
     private List<J.MethodInvocation> computeAndMarkChain() {
@@ -261,31 +288,70 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         createDesiredReplacementForArg(initialMethodInvocation).ifPresent(methodType ->
                 chain.add(initialMethodInvocation.withName(
                         initialMethodInvocation.getName().withType(methodType).withSimpleName(methodType.getName()))));
-        cursor = cursor.getParent(2);
-        for (; isApplicableCallCursor(cursor); cursor = cursor.getParent(2)) {
+        cursor = nextCallInChain(cursor);
+        for (; isApplicableCallCursor(cursor); cursor = nextCallInChain(cursor)) {
             cursor.putMessage(MSG_FLATTEN_CHAIN, true);
             chain.add(cursor.getValue());
         }
-        if (cursor != null && cursor.getValue() instanceof J.MethodInvocation) {
+        if (cursor != null) {
             if (isAndMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
-                cursor = cursor.getParent(2);
+                cursor = nextCallInChain(cursor);
             } else if (isDisableMethod(cursor.getValue())) {
                 cursor.putMessage(MSG_FLATTEN_CHAIN, true);
                 chain.add(cursor.getValue());
-                cursor = cursor.getParent(2);
+                cursor = nextCallInChain(cursor);
             }
         }
-        if (cursor == null || chain.isEmpty()) {
+        if (chain.isEmpty()) {
             return emptyList();
         }
-        if (!(cursor.getValue() instanceof J.MethodInvocation)) {
+        if (cursor == null) {
             // top invocation is at the end of the chain - mark it. We'd need to strip off prefix from this invocation later
             J.MethodInvocation topInvocation = chain.remove(chain.size() - 1);
             // removed above, now add it back with the marker
             chain.add(topInvocation.withMarkers(topInvocation.getMarkers().addIfAbsent(new Markup.Info(Tree.randomId(), MSG_TOP_INVOCATION, null))));
         }
         return chain;
+    }
+
+    /**
+     * Converting a configurer call plus the calls chained after it into the lambda form changes the type of the
+     * resulting expression from the configurer to the security builder, unless the chain is terminated by an
+     * `and()` or `disable()` call that already returned the builder. That is only safe when the value of the
+     * expression is not used, so a call whose result is returned, assigned or passed on is left unchanged.
+     */
+    private boolean isResultOfConvertedChainUsed() {
+        Cursor topOfChain = getCursor();
+        Cursor next = nextCallInChain(topOfChain);
+        for (; isApplicableCallCursor(next); next = nextCallInChain(next)) {
+            topOfChain = next;
+        }
+        if (next != null) {
+            // terminated by `and()` or `disable()`, so the converted expression still evaluates to the builder
+            return false;
+        }
+        Object enclosing = topOfChain.getParentTreeCursor().getValue();
+        return !(enclosing instanceof J.Block ||
+                 enclosing instanceof J.Lambda && isVoidLambda((J.Lambda) enclosing));
+    }
+
+    private static boolean isVoidLambda(J.Lambda lambda) {
+        JavaType.FullyQualified functionalInterface = TypeUtils.asFullyQualified(lambda.getType());
+        if (functionalInterface == null) {
+            return false;
+        }
+        if (FQN_CUSTOMIZER.equals(functionalInterface.getFullyQualifiedName())) {
+            // `Customizer.customize(T)` returns void; checked by name as lambdas created by this visitor
+            // carry a shallow `Customizer` type without its methods
+            return true;
+        }
+        for (JavaType.Method method : functionalInterface.getMethods()) {
+            if (method.hasFlags(Flag.Abstract)) {
+                return method.getReturnType() == JavaType.Primitive.Void;
+            }
+        }
+        return false;
     }
 
     private boolean isAndMethod(J.MethodInvocation method) {

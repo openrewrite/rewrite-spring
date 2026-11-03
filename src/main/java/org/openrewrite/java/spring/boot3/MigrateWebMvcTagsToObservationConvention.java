@@ -16,11 +16,13 @@
 package org.openrewrite.java.spring.boot3;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -30,7 +32,9 @@ import org.openrewrite.java.search.FindImplementations;
 import org.openrewrite.java.tree.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.nCopies;
 
@@ -77,6 +81,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         J.MethodDeclaration getTagsMethod = null;
+                        Statement droppedLastStatement = null;
                         List<Statement> getTagsBodyStatements = new ArrayList<>();
                         for (Statement stmt : classDecl.getBody().getStatements()) {
                             if (stmt instanceof J.MethodDeclaration) {
@@ -86,10 +91,11 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     if (getTagsMethod.getBody() != null) {
                                         getTagsBodyStatements.addAll(getTagsMethod.getBody().getStatements().subList(0, getTagsMethod.getBody().getStatements().size() - 1));
                                         Statement ret = getTagsMethod.getBody().getStatements().get(getTagsMethod.getBody().getStatements().size() - 1);
-                                        if (ret instanceof J.Return && ((J.Return) ret).getExpression() instanceof J.MethodInvocation) {
-                                            if (TAGS_OF_ANY.matches(((J.Return) ret).getExpression())) {
-                                                getTagsBodyStatements.add((Statement) ((J.Return) ret).getExpression());
-                                            }
+                                        if (ret instanceof J.Return && ((J.Return) ret).getExpression() instanceof J.MethodInvocation &&
+                                            TAGS_OF_ANY.matches(((J.Return) ret).getExpression())) {
+                                            getTagsBodyStatements.add((Statement) ((J.Return) ret).getExpression());
+                                        } else {
+                                            droppedLastStatement = ret;
                                         }
                                         break;
                                     }
@@ -137,12 +143,33 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         maybeRemoveImport(TAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGS_FQ);
                         maybeRemoveImport(WEBMVCTAGSPROVIDER_FQ);
+                        if (droppedLastStatement != null) {
+                            maybeRemoveImportsOf(droppedLastStatement);
+                        }
                         maybeAddImport(DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         maybeAddImport(KEYVALUE_FQ);
                         maybeAddImport(KEYVALUES_FQ);
                         maybeAddImport(SERVERREQUESTOBSERVATIONCONVENTION_FQ);
                         updateCursor(newClassDeclaration);
                         return (J.ClassDeclaration) super.visitClassDeclaration(newClassDeclaration, ctx);
+                    }
+
+                    private void maybeRemoveImportsOf(J dropped) {
+                        Set<String> referenced = new JavaIsoVisitor<Set<String>>() {
+                            @Override
+                            public @Nullable JavaType visitType(@Nullable JavaType javaType, Set<String> names) {
+                                if (javaType instanceof JavaType.FullyQualified) {
+                                    names.add(((JavaType.FullyQualified) javaType).getFullyQualifiedName());
+                                } else if (javaType instanceof JavaType.Method && ((JavaType.Method) javaType).hasFlags(Flag.Static)) {
+                                    JavaType.Method method = (JavaType.Method) javaType;
+                                    names.add(method.getDeclaringType().getFullyQualifiedName() + "." + method.getName());
+                                }
+                                return javaType;
+                            }
+                        }.reduce(dropped, new HashSet<>());
+                        for (String name : referenced) {
+                            maybeRemoveImport(name);
+                        }
                     }
 
                     @Override
@@ -236,13 +263,8 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     return getMultiKeyValueStatement(ctx, coords, args, returnIdentifier);
                                 }
                                 if (TAGS_AND_TAG_ARRAY.matches(init) || TAGS_OF_TAG_ARRAY.matches(init)) {
-                                    List<Expression> validArgs = ListUtils.map(init.getArguments(), expression -> {
-                                        if (expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))) {
-                                            //noinspection DataFlowIssue
-                                            return null;
-                                        }
-                                        return expression;
-                                    });
+                                    List<Expression> validArgs = ListUtils.filter(init.getArguments(), expression ->
+                                            !(expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))));
                                     if (validArgs.isEmpty()) {
                                         //noinspection DataFlowIssue
                                         return null;

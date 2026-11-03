@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot3;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -25,26 +26,20 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Javadoc;
 import org.openrewrite.java.tree.TypeUtils;
-import org.openrewrite.marker.Markers;
+import org.openrewrite.trait.Comments;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.openrewrite.Tree.randomId;
 
-/**
- * @author Alex Boyko
- */
 public class RemoveConstructorBindingAnnotation extends Recipe {
 
     private static final String ANNOTATION_CONSTRUCTOR_BINDING = "org.springframework.boot.context.properties.ConstructorBinding";
     private static final String ANNOTATION_CONFIG_PROPERTIES = "org.springframework.boot.context.properties.ConfigurationProperties";
+    private static final String MOVE_CONSTRUCTOR_BINDING_TODO = " TODO: Remove ConstructorBinding on class level and move it to the appropriate constructor.";
 
     @Getter
     final String displayName = "Remove Unnecessary `@ConstructorBinding`";
@@ -88,47 +83,19 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
                 }
 
                 if (c.getLeadingAnnotations().stream().anyMatch(a -> TypeUtils.isOfClassType(a.getType(), ANNOTATION_CONFIG_PROPERTIES))) {
+                    String todoSuffix = "\n" + c.getPrefix().getIndent();
                     c = c.withLeadingAnnotations(ListUtils.map(c.getLeadingAnnotations(), anno -> {
                         if (TypeUtils.isOfClassType(anno.getType(), ANNOTATION_CONSTRUCTOR_BINDING)) {
                             if (constructors.size() <= 1) {
                                 maybeRemoveImport(ANNOTATION_CONSTRUCTOR_BINDING);
                                 return null;
                             }
-                            return anno.withComments(maybeAddJavaDoc(anno.getComments(), anno.getPrefix().getIndent()));
+                            return Comments.of(new Cursor(getCursor(), anno)).comment(MOVE_CONSTRUCTOR_BINDING_TODO, Comments.Placement.BEFORE, todoSuffix);
                         }
                         return anno;
                     }));
                 }
                 return c;
-            }
-
-            /**
-             * Adds the target Javadoc if it does not exist in the list of comments.
-             * Generates a properly structured Javadoc to enable autoformatting features
-             * like {@link org.openrewrite.xml.format.NormalizeLineBreaks}.
-             */
-            private List<Comment> maybeAddJavaDoc(List<Comment> comments, String indent) {
-                String message = "You need to remove ConstructorBinding on class level and move it to appropriate";
-                if (comments.isEmpty() || comments.stream()
-                        .filter(org.openrewrite.java.tree.Javadoc.DocComment.class::isInstance)
-                        .map(org.openrewrite.java.tree.Javadoc.DocComment.class::cast)
-                        .flatMap(o -> o.getBody().stream().filter(org.openrewrite.java.tree.Javadoc.Text.class::isInstance))
-                        .noneMatch(o -> o.print(getCursor()).equals(message))) {
-
-                    List<Javadoc> javadoc = new ArrayList<>();
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " * ", Markers.EMPTY));
-                    javadoc.add(new Javadoc.Text(randomId(), Markers.EMPTY, "TODO:"));
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " * ", Markers.EMPTY));
-                    javadoc.add(new Javadoc.Text(randomId(), Markers.EMPTY, message));
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " * ", Markers.EMPTY));
-                    javadoc.add(new Javadoc.Text(randomId(), Markers.EMPTY, "constructor."));
-                    javadoc.add(new Javadoc.LineBreak(randomId(), "\n" + indent + " ", Markers.EMPTY));
-
-                    List<Comment> newComments = new ArrayList<>(comments);
-                    newComments.add(new Javadoc.DocComment(randomId(), Markers.EMPTY, javadoc, "\n" + indent));
-                    return newComments;
-                }
-                return comments;
             }
 
             /**
