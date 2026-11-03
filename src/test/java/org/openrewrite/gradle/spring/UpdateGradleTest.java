@@ -16,6 +16,7 @@
 package org.openrewrite.gradle.spring;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.FileAttributes;
 import org.openrewrite.Tree;
@@ -33,6 +34,8 @@ import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.test.SourceSpecs.other;
 import static org.openrewrite.test.SourceSpecs.text;
 
+// Spring Boot 2 and dependency management 1.0 plugins use the `Upload` task, which Gradle 9 removed
+@SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "8.14.5")
 class UpdateGradleTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {

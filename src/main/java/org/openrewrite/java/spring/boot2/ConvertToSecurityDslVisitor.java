@@ -132,7 +132,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 new J.Lambda.Parameters(Tree.randomId(), Space.EMPTY, Markers.EMPTY, false, singletonList(new JRightPadded<>(param, Space.EMPTY, Markers.EMPTY))),
                 Space.build(" ", emptyList()),
                 body,
-                JavaType.Primitive.Void
+                // type the lambda as the `Customizer` it is passed as, so that a later visit (e.g. of a nested
+                // configurer's no-arg call in its body) sees it as a void lambda whose result is unused
+                new JavaType.Parameterized(null, CUSTOMIZER_SHALLOW_TYPE, singletonList(paramType))
         );
     }
 
@@ -214,11 +216,23 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                 singletonList("arg0");
         List<JavaType> paramTypes = keepArg ? ListUtils.concat(methodType.getParameterTypes(), customizerArgType) :
                 singletonList(customizerArgType);
-        return Optional.of(methodType.withReturnType(methodType.getDeclaringType())
+        return Optional.of(methodType.withReturnType(builderType(m, methodType))
                 .withName(methodRenames.getOrDefault(methodType.getName(), methodType.getName()))
                 .withParameterNames(paramNames)
                 .withParameterTypes(paramTypes)
         );
+    }
+
+    /**
+     * The lambda DSL methods return the builder they are called on, which for methods inherited from a generic
+     * builder like `AbstractConfiguredSecurityBuilder<O, B>` is the subtype `B` rather than the declaring type.
+     */
+    private JavaType builderType(J.MethodInvocation m, JavaType.Method methodType) {
+        Expression select = m.getSelect();
+        if (select != null && TypeUtils.isAssignableTo(securityFqn, select.getType())) {
+            return requireNonNull(select.getType());
+        }
+        return methodType.getDeclaringType();
     }
 
     private boolean keepArg(String methodName) {
@@ -326,6 +340,11 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
         JavaType.FullyQualified functionalInterface = TypeUtils.asFullyQualified(lambda.getType());
         if (functionalInterface == null) {
             return false;
+        }
+        if (FQN_CUSTOMIZER.equals(functionalInterface.getFullyQualifiedName())) {
+            // `Customizer.customize(T)` returns void; checked by name as lambdas created by this visitor
+            // carry a shallow `Customizer` type without its methods
+            return true;
         }
         for (JavaType.Method method : functionalInterface.getMethods()) {
             if (method.hasFlags(Flag.Abstract)) {

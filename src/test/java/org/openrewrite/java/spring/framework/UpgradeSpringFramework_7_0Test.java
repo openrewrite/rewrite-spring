@@ -123,4 +123,67 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void syncBodyToBodyValue() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().dependsOn(
+            //language=java
+            """
+              package org.springframework.web.reactive.function.server;
+              public interface ServerResponse {
+                  static BodyBuilder ok() { return null; }
+                  interface BodyBuilder {
+                      Object syncBody(Object body);
+                      Object bodyValue(Object body);
+                  }
+              }
+              """,
+            //language=java
+            """
+              package org.springframework.web.reactive.function.client;
+              public interface WebClient {
+                  RequestBodyUriSpec post();
+                  interface RequestBodySpec {
+                      RequestBodySpec syncBody(Object body);
+                      RequestBodySpec bodyValue(Object body);
+                  }
+                  interface RequestBodyUriSpec extends RequestBodySpec {
+                  }
+              }
+              """
+          )),
+          //language=java
+          java(
+            """
+              import org.springframework.web.reactive.function.client.WebClient;
+              import org.springframework.web.reactive.function.server.ServerResponse;
+
+              class OrderHandler {
+                  Object order(Object order) {
+                      return ServerResponse.ok().syncBody(order);
+                  }
+
+                  Object send(WebClient client, Object order) {
+                      return client.post().syncBody(order);
+                  }
+              }
+              """,
+            """
+              import org.springframework.web.reactive.function.client.WebClient;
+              import org.springframework.web.reactive.function.server.ServerResponse;
+
+              class OrderHandler {
+                  Object order(Object order) {
+                      return ServerResponse.ok().bodyValue(order);
+                  }
+
+                  Object send(WebClient client, Object order) {
+                      return client.post().bodyValue(order);
+                  }
+              }
+              """
+          )
+        );
+    }
 }

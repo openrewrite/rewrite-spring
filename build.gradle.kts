@@ -223,7 +223,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite:rewrite-test")
@@ -236,9 +235,6 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
-
-    // Needed for `org.openrewrite.java.spring.http.ReplaceLiteralsTest` to read constant values
-    testRuntimeOnly("org.springframework:spring-web:6.+")
 }
 
 tasks {
@@ -247,7 +243,7 @@ tasks {
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
         forkEvery = 0
     }
-    val generatePropertyMigrationRecipes by registering(JavaExec::class) {
+    val generatePropertyMigrationRecipes = register<JavaExec>("generatePropertyMigrationRecipes") {
         group = "generate"
         description = "Generate Spring Boot property migration recipes."
         mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"

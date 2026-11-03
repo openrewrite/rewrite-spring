@@ -98,7 +98,7 @@ public class RenameBean extends ScanningRecipe<List<RenameBean.Rename>> {
                 // handle beans named via methods
                 List<J.Annotation> allAnnotations = service(AnnotationService.class).getAllAnnotations(getCursor());
                 Expression beanNameExpression = getBeanNameExpression(allAnnotations, BEAN_METHOD_ANNOTATIONS);
-                if (beanNameExpression == null && isRelevantType(m.getMethodType().getReturnType()) && m.getSimpleName().equals(oldName)) {
+                if (beanNameExpression == null && m.getMethodType() != null && isRelevantType(m.getMethodType().getReturnType()) && m.getSimpleName().equals(oldName)) {
                     acc.add(new Rename(new ChangeMethodName(methodPattern(m), newName, true, false), emptySet()));
                 }
 
@@ -115,7 +115,7 @@ public class RenameBean extends ScanningRecipe<List<RenameBean.Rename>> {
                 Expression beanNameExpression = getBeanNameExpression(allAnnotations, BEAN_TYPE_ANNOTATIONS);
 
                 // handle bean named via class name
-                if (beanNameExpression == null && isRelevantType(cd.getType()) && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
+                if (beanNameExpression == null && cd.getType() != null && isRelevantType(cd.getType()) && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
                     String newFullyQualifiedTypeName = cd.getType().getFullyQualifiedName()
                             .replaceAll("^((.+\\.)*)[^.]+$", "$1" + StringUtils.capitalize(newName));
                     acc.add(new Rename(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false), emptySet()));
@@ -315,7 +315,8 @@ public class RenameBean extends ScanningRecipe<List<RenameBean.Rename>> {
                     Object annotationParent = getCursor().getParent().getValue();
 
                     if (annotationParent instanceof J.MethodDeclaration) {
-                        return isRelevantType(((J.MethodDeclaration) annotationParent).getMethodType().getReturnType());
+                        JavaType.Method methodType = ((J.MethodDeclaration) annotationParent).getMethodType();
+                        return methodType != null && isRelevantType(methodType.getReturnType());
                     }
                     if (annotationParent instanceof J.ClassDeclaration) {
                         return isRelevantType(((J.ClassDeclaration) annotationParent).getType());

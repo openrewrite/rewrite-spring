@@ -38,10 +38,13 @@ tags:
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
+  - org.openrewrite.java.spring.cloud2024.AddExplicitGradleSpringSecurityRsaVersion
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.cloud
       artifactId: "*"
       newVersion: 4.2.x
+      retainVersions:
+        - org.springframework.security:spring-security-rsa
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-starter-parent
@@ -50,6 +53,8 @@ recipeList:
       groupId: org.springframework.cloud
       artifactId: spring-cloud-dependencies
       newVersion: 2024.0.x
+      retainVersions:
+        - org.springframework.security:spring-security-rsa
 
   # circuitbreaker, kubernetes & task follow a different versioning scheme
   # https://docs.spring.io/spring-cloud-release/reference/2024.0/
