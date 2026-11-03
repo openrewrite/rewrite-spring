@@ -64,7 +64,11 @@ class MigrateProjectTest implements RewriteTest {
                               correlation-enabled: true
                   """,
                 """
-                  management.tracing.baggage.correlation.enabled: true
+                  management:
+                    tracing:
+                      baggage:
+                        correlation:
+                          enabled: true
                   """,
                 s -> s.path("src/main/resources/application.yml")
               )

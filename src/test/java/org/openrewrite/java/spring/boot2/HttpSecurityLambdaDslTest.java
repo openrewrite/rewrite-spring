@@ -31,8 +31,14 @@ class HttpSecurityLambdaDslTest implements RewriteTest {
         spec.recipe(new HttpSecurityLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans-5", "spring-context-5", "spring-core-5", "spring-boot-2", "spring-web-5",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-beans-5",
+              "spring-context-5",
+              "spring-core-5",
+              "spring-boot-2.7",
+              "spring-web-5.3",
+              "spring-security-core-5.8",
+              "spring-security-config-5.8",
+              "spring-security-web-5.8",
               "tomcat-embed-core-9"));
     }
 
@@ -335,6 +341,72 @@ class HttpSecurityLambdaDslTest implements RewriteTest {
                               .authorizeRequests(requests -> requests
                                       .antMatchers("/blog/**").permitAll()
                                       .anyRequest().authenticated());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotConvertWhenReturned() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
+
+              class SecurityConfig {
+                  FormLoginConfigurer<HttpSecurity> formLogin(HttpSecurity http) throws Exception {
+                      return http.formLogin().loginPage("/login");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotConvertWhenAssigned() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+
+              class SecurityConfig {
+                  void configure(HttpSecurity http) throws Exception {
+                      HeadersConfigurer<HttpSecurity> headers = http.headers();
+                      headers.frameOptions().sameOrigin();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void convertWhenReturnedChainEndsWithAnd() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfig {
+                  HttpSecurity configure(HttpSecurity http) throws Exception {
+                      return http.formLogin().loginPage("/login").and();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfig {
+                  HttpSecurity configure(HttpSecurity http) throws Exception {
+                      return http.formLogin(login -> login.loginPage("/login"));
                   }
               }
               """

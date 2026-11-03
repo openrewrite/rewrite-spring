@@ -27,11 +27,13 @@ preconditions:
 recipeList:
   - org.openrewrite.java.spring.data.UpgradeSpringData_2_7
   - org.openrewrite.java.spring.data.MigratePagingAndSortingRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.annotation.PersistenceConstructor
+      newFullyQualifiedTypeName: org.springframework.data.annotation.PersistenceCreator
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.data
       artifactId: "*"
       newVersion: 3.0.x
-      overrideManagedVersion: false
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

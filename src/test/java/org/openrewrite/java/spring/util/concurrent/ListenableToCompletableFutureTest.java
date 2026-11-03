@@ -24,14 +24,13 @@ import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
-import static org.openrewrite.test.RewriteTest.toRecipe;
 
 class ListenableToCompletableFutureTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(toRecipe(ListenableToCompletableFuture::new))
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2"));
+        spec.recipe(new ListenableToCompletableFuture())
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-core-6", "spring-kafka-2.9"));
     }
 
     @DocumentExample
@@ -264,7 +263,7 @@ class ListenableToCompletableFutureTest implements RewriteTest {
     }
 
     @Test
-    void addSuccessFailureCallbackWithTernaryArguments() {
+    void leaveFileUnchangedWhenSuccessFailureCallbackCannotBeConverted() {
         //language=java
         rewriteRun(
           java(
@@ -277,21 +276,33 @@ class ListenableToCompletableFutureTest implements RewriteTest {
                       future.addCallback(
                           successCallback != null ? result -> successCallback.onSuccess(result) : null,
                           failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
+                      future.addCallback(
+                          System.out::println,
+                          ex -> System.err.println(ex.getMessage()));
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replacesListenableFutureReturnTypeInInterface() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.util.concurrent.ListenableFuture;
+
+              public interface CustomerDao {
+                  ListenableFuture<String> findCustomerById(String id);
               }
               """,
             """
-              import org.springframework.util.concurrent.SuccessCallback;
-              import org.springframework.util.concurrent.FailureCallback;
-
               import java.util.concurrent.CompletableFuture;
 
-              class A {
-                  void test(CompletableFuture<String> future, SuccessCallback<String> successCallback, FailureCallback failureCallback) {
-                      future.whenComplete(
-                          successCallback != null ? result -> successCallback.onSuccess(result) : null,
-                          failureCallback != null ? ex -> failureCallback.onFailure(ex) : null);
-                  }
+              public interface CustomerDao {
+                  CompletableFuture<String> findCustomerById(String id);
               }
               """
           )

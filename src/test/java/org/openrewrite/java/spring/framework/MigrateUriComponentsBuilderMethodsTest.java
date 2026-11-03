@@ -35,7 +35,7 @@ class MigrateUriComponentsBuilderMethodsTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-web-6.1"))
           .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-web-6"));
+            "spring-web-6.2"));
     }
 
     @DocumentExample

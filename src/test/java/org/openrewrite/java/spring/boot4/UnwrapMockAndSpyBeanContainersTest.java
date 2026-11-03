@@ -32,9 +32,9 @@ class UnwrapMockAndSpyBeanContainersTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UnwrapMockAndSpyBeanContainers())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-test-3", "mockito-core-5"))
+            "spring-boot-test-3.2", "mockito-core-5"))
           .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-boot-test-3", "mockito-core-5"));
+            "spring-boot-test-3.2", "mockito-core-5"));
     }
 
     @DocumentExample
@@ -106,6 +106,26 @@ class UnwrapMockAndSpyBeanContainersTest implements RewriteTest {
               class SomeTest {
               }
               class Foo {}
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepsContainerWhenInnerAnnotationHasOtherAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.test.mock.mockito.MockBean;
+              import org.springframework.boot.test.mock.mockito.MockBeans;
+              import org.springframework.boot.test.mock.mockito.MockReset;
+
+              @MockBeans({@MockBean(name = "foo", classes = Foo.class), @MockBean(value = Bar.class, reset = MockReset.NONE)})
+              class SomeTest {
+              }
+              class Foo {}
+              class Bar {}
               """
           )
         );

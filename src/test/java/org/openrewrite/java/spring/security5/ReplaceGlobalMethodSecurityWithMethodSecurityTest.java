@@ -18,7 +18,6 @@ package org.openrewrite.java.spring.security5;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -30,7 +29,7 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceGlobalMethodSecurityWithMethodSecurity())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-security-config-5.8"));
     }
 
     @DocumentExample
@@ -104,14 +103,103 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     }
 
     @Test
+    void keepExplicitPrePostDisabled() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = false, securedEnabled = true)
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = false, securedEnabled = true)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepNonLiteralPrePostEnabled() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = config.PRE_POST)
+              public class config {
+                  static final boolean PRE_POST = false;
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = config.PRE_POST)
+              public class config {
+                  static final boolean PRE_POST = false;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void dropPrePostEnabledAlongsideOtherAttributes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(securedEnabled = true)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void emptyParentheses() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+
+              @EnableGlobalMethodSecurity()
+              public class config {
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
+              @EnableMethodSecurity(prePostEnabled = false)
+              public class config {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void removeUseAuthorizationManagerAttribute() {
         rewriteRun(
-          spec -> spec.recipe(
-            Environment.builder()
-              .scanRuntimeClasspath("org.openrewrite.java.spring")
-              .build()
-              .activateRecipes("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml")
-          ),
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml"),
           //language=xml
           xml(
             """

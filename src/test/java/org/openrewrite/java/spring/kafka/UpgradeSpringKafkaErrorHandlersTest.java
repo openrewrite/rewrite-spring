@@ -30,9 +30,10 @@ class UpgradeSpringKafkaErrorHandlersTest implements RewriteTest {
         spec
           .recipeFromResources("org.openrewrite.java.spring.kafka.UpgradeSpringKafka_2_8_ErrorHandlers")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "kafka-clients",
-            "spring-beans",
-            "spring-context",
+            "kafka-clients-3.2",
+            "spring-beans-5",
+            "spring-context-5",
+            "spring-core-5",
             "spring-kafka-2.8"
           ));
     }
@@ -94,6 +95,61 @@ class UpgradeSpringKafkaErrorHandlersTest implements RewriteTest {
                     MessageListenerContainer container
                   ) {
                       handler.handleRemaining(exception, records, consumer, container);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesSeekToCurrentBatchErrorHandler() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.kafka.listener.SeekToCurrentBatchErrorHandler;
+
+              class A {
+                  private final SeekToCurrentBatchErrorHandler handler = new SeekToCurrentBatchErrorHandler();
+              }
+              """,
+            """
+              import org.springframework.kafka.listener.DefaultErrorHandler;
+
+              class A {
+                  private final DefaultErrorHandler handler = new DefaultErrorHandler();
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migratesSeekToCurrentBatchErrorHandlerSetBackOffToConstructor() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.kafka.listener.SeekToCurrentBatchErrorHandler;
+              import org.springframework.util.backoff.FixedBackOff;
+
+              class A {
+                  SeekToCurrentBatchErrorHandler errorHandler() {
+                      SeekToCurrentBatchErrorHandler handler = new SeekToCurrentBatchErrorHandler();
+                      handler.setBackOff(new FixedBackOff(1000L, 3));
+                      return handler;
+                  }
+              }
+              """,
+            """
+              import org.springframework.kafka.listener.DefaultErrorHandler;
+              import org.springframework.util.backoff.FixedBackOff;
+
+              class A {
+                  DefaultErrorHandler errorHandler() {
+                      DefaultErrorHandler handler = new DefaultErrorHandler(new FixedBackOff(1000L, 3));
+                      return handler;
                   }
               }
               """

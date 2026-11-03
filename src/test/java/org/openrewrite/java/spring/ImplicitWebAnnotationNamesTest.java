@@ -17,7 +17,6 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.ExpectedToFail;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
@@ -25,7 +24,6 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
@@ -36,8 +34,8 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ImplicitWebAnnotationNames())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.+"))
-          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.3"))
+          .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-web-5.3"));
     }
 
     @DocumentExample
@@ -230,12 +228,10 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
             );
         }
 
-        @ExpectedToFail("Whitespaces in Kotlin around a TypeExpression are problematic see https://github.com/openrewrite/rewrite-kotlin/issues/477. Use a formatter to prevent these situations.")
         @Test
         void annotationNoWhitespaceBetweenAnnotationAndVariable() {
             //language=kotlin
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               kotlin(
                 """
                   import org.springframework.http.ResponseEntity

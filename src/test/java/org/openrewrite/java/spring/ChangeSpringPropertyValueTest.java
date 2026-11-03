@@ -212,6 +212,71 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         }
 
         @Test
+        void valueAnnotationKeepsSameDefaultOfOtherProperty() {
+            rewriteRun(
+              spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null))
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5")),
+              java(
+                """
+                  import org.springframework.beans.factory.annotation.Value;
+                  class A {
+                      @Value("${server.port:8080},${management.server.port:8080}")
+                      private String ports;
+                  }
+                  """,
+                """
+                  import org.springframework.beans.factory.annotation.Value;
+                  class A {
+                      @Value("${server.port:8081},${management.server.port:8080}")
+                      private String ports;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void valueAnnotationEmptyDefaultValue() {
+            rewriteRun(
+              spec -> spec.recipe(new ChangeSpringPropertyValue("server.address", "localhost", null, null, null))
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5")),
+              java(
+                """
+                  import org.springframework.beans.factory.annotation.Value;
+                  class A {
+                      @Value("${server.address:}")
+                      private String address;
+                  }
+                  """,
+                """
+                  import org.springframework.beans.factory.annotation.Value;
+                  class A {
+                      @Value("${server.address:localhost}")
+                      private String address;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void valueAnnotationEscapedDefaultValueUnchanged() {
+            rewriteRun(
+              spec -> spec.recipe(new ChangeSpringPropertyValue("app.greeting", "hello", null, null, null))
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5")),
+              java(
+                """
+                  import org.springframework.beans.factory.annotation.Value;
+                  class A {
+                      @Value("${app.greeting:say \\"hi\\"}")
+                      private String greeting;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
         void valueAnnotationNoDefaultValue() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("server.port", "8081", null, null, null))
@@ -278,7 +343,7 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void conditionalOnPropertyHavingValue() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("feature.enabled", "true", "false", null, null))
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7")),
               java(
                 """
                   import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -300,7 +365,7 @@ class ChangeSpringPropertyValueTest implements RewriteTest {
         void conditionalOnPropertyDifferentKey() {
             rewriteRun(
               spec -> spec.recipe(new ChangeSpringPropertyValue("feature.enabled", "true", "false", null, null))
-                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
+                .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7")),
               java(
                 """
                   import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

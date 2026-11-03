@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -56,7 +55,8 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
                 """
                   server:
-                    servlet.path: /tmp/my-server-path
+                    servlet:
+                      path: /tmp/my-server-path
                   """
               ))
           )
@@ -91,7 +91,10 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                 """
                   server:
                     port: 8888
-                  servlet.session.cookie.path: /tmp/my-server-path
+                  servlet:
+                    session:
+                      cookie:
+                        path: /tmp/my-server-path
                   """
               )
             )));
@@ -130,17 +133,154 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
                 """
                   spring:
-                    web.resources:
-                      chain:
-                        strategy:
-                          content:
-                            enabled: true
-                            paths:
-                              - /foo/**
-                              - /bar/**
+                    web:
+                      resources:
+                        chain:
+                          strategy:
+                            content:
+                              enabled: true
+                              paths:
+                                - /foo/**
+                                - /bar/**
                   """
               )
             )));
+    }
+
+    @Test
+    void keyThatOnlySharesPrefixIsNotChanged() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("spring.cloud.gateway.proxy", "spring.cloud.gateway.proxy-exchange.webmvc", null))
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-autoconfigure-2.7")),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.cloud.gateway.proxy.auto-forward=foo
+                  spring.cloud.gateway.proxy-timeout=5s
+                  """,
+                """
+                  spring.cloud.gateway.proxy-exchange.webmvc.auto-forward=foo
+                  spring.cloud.gateway.proxy-timeout=5s
+                  """
+              )
+            ),
+            //language=java
+            java(
+              """
+                import org.springframework.beans.factory.annotation.Value;
+                import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+                @ConditionalOnProperty(name = "spring.cloud.gateway.proxy-timeout")
+                class MyConfiguration {
+                    @Value("${spring.cloud.gateway.proxy-timeout}")
+                    private String timeout;
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1107")
+    @Test
+    void nestYamlMappings() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("org.test.property", "org.test2.property", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  org:
+                    test:
+                      property: false
+                  """,
+                """
+                  org:
+                    test2:
+                      property: false
+                  """,
+                spec -> spec.path("application.yml")
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1107")
+    @Test
+    void nestYamlMappingsWithMultipleSubproperties() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("ezpaas.oauth2.client.cps", "ezpaas.oauth2.restclient.cps", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  ezpaas:
+                    oauth2:
+                      client:
+                        cps:
+                          token-relay: false
+                          token-uri: https://localhost.com/v1
+                          client-secret: my-secret-key
+                  """,
+                """
+                  ezpaas:
+                    oauth2:
+                      restclient:
+                        cps:
+                          token-relay: false
+                          token-uri: https://localhost.com/v1
+                          client-secret: my-secret-key
+                  """,
+                spec -> spec.path("application.yml")
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/581")
+    @Test
+    void keepFlattenedYamlFlat() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeSpringPropertyKey("spring.resources", "spring.web.resources", null)),
+          mavenProject("project",
+            srcMainResources(
+              //language=yaml
+              yaml(
+                """
+                  spring.resources.chain.strategy.content.enabled: true
+                  spring.resources.chain.strategy.content.paths:
+                    - /foo/**
+                    - /bar/**
+                  """,
+                """
+                  spring.web.resources.chain.strategy.content.enabled: true
+                  spring.web.resources.chain.strategy.content.paths:
+                    - /foo/**
+                    - /bar/**
+                  """,
+                spec -> spec.path("application.yml")
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                    resources.chain.strategy.content.enabled: true
+                  """,
+                """
+                  spring:
+                    web.resources.chain.strategy.content.enabled: true
+                  """,
+                spec -> spec.path("application-dev.yml")
+              )
+            )
+          )
+        );
     }
 
     @Test
@@ -197,7 +337,8 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   """,
                 """
                   logging:
-                    file.name: foo.txt
+                    file:
+                      name: foo.txt
                   """
               ),
               yaml(
@@ -311,9 +452,11 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   spring:
                     data:
                       redis:
-                        ssl.enabled: true
+                        ssl:
+                          enabled: true
                     cassandra:
-                      ssl.enabled: true
+                      ssl:
+                        enabled: true
                   """
               )
             )
@@ -321,7 +464,6 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
-    @Disabled
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/436")
     @Test
     void loggingFileSubpropertiesYaml() {
@@ -347,6 +489,23 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                       path: ${user.home}/some-folder
                     level:
                       org: INFO
+                  """
+              ),
+              yaml(
+                """
+                  logging.file.max-history: 10
+                  logging.file.max-size: 10MB
+                  """
+              ),
+              yaml(
+                """
+                  logging:
+                    file: app.log
+                  """,
+                """
+                  logging:
+                    file:
+                      name: app.log
                   """
               )
             )
@@ -398,7 +557,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
     void changeConditionalOnPropertyAnnotation() {
         rewriteRun(
           spec -> spec.recipe(new ChangeSpringPropertyKey("foo", "bar", List.of("baz")))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7")),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -558,7 +717,10 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl", "spring.data.redis.ssl.enabled", List.of()))
-            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
+            .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-5",
+              "spring-boot-test-3.2",
+              "spring-boot-autoconfigure-2.7")),
           java(
             """
               import org.springframework.beans.factory.annotation.Value;
@@ -582,7 +744,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
           spec -> spec
             .recipe(
               new ChangeSpringPropertyKey("spring.data.redis.ssl.enabled", "some.other.key.enabled", List.of()))
-            .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2")),
+            .parser(KotlinParser.builder().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-test-3.2", "spring-boot-autoconfigure-2.7")),
           kotlin(
             """
               import org.springframework.beans.factory.annotation.Value

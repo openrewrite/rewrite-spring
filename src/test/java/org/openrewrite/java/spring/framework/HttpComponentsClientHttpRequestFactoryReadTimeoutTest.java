@@ -31,7 +31,7 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
         spec.recipe(new HttpComponentsClientHttpRequestFactoryReadTimeout())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-beans-5.3",
-            "spring-boot-3",
+            "spring-boot-3.5",
             "spring-web-5.3",
             "httpclient5",
             "httpcore5"));
@@ -407,6 +407,40 @@ class HttpComponentsClientHttpRequestFactoryReadTimeoutTest implements RewriteTe
                                   return clientHttpRequestFactory;
                               })
                               .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepBlankLineAboveComment() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class RestContextInitializer {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+
+                      clientHttpRequestFactory.setReadTimeout(30000);
+                      return clientHttpRequestFactory;
+                  }
+              }
+              """,
+            """
+              import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+              class RestContextInitializer {
+                  HttpComponentsClientHttpRequestFactory requestFactory() {
+                      HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+
+                      // Manual migration to `SocketConfig.Builder.setSoTimeout(Timeout)` necessary; see: https://docs.spring.io/spring-framework/docs/6.0.0/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html#setReadTimeout(int)
+                      clientHttpRequestFactory.setReadTimeout(30000);
+                      return clientHttpRequestFactory;
                   }
               }
               """

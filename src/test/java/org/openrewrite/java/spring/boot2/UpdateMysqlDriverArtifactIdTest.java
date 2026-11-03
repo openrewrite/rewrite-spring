@@ -17,9 +17,9 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.Issue;
-import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -35,10 +35,7 @@ import static org.openrewrite.maven.Assertions.pomXml;
 class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-          .scanRuntimeClasspath("org.openrewrite.java.spring")
-          .build()
-          .activateRecipes("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5"));
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5");
     }
 
     @Nested
@@ -187,7 +184,9 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
             );
         }
 
+        // Spring Boot 2 and dependency management 1.0 plugins use the `Upload` task, which Gradle 9 removed
         @Test
+        @SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "8.14.5")
         void doNotPinWhenNotVersioned() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
               buildGradle(

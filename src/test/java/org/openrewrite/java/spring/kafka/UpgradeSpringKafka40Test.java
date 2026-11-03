@@ -30,8 +30,8 @@ class UpgradeSpringKafka40Test implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResource("/META-INF/rewrite/spring-kafka-40.yml", "org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-kafka-2",
-            "spring-context-6",
+            "spring-kafka-2.9",
+            "spring-context-6.2",
             "spring-core-6",
             "jackson-core-2.20"
           ));

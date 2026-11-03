@@ -57,12 +57,15 @@ recipeList:
   - org.openrewrite.java.spring.doc.RemoveBeanValidatorPluginsConfiguration
   - org.openrewrite.java.RemoveAnnotation:
       annotationPattern: '@springfox.documentation.swagger2.annotations.EnableSwagger2'
+  - org.openrewrite.java.RemoveAnnotation:
+      annotationPattern: '@springfox.documentation.oas.annotations.EnableOpenApi'
+  - org.openrewrite.java.spring.doc.NormalizeSpringfoxPathSelectorsRegexToAnt
   - org.openrewrite.java.spring.doc.MigrateDocketBeanToGroupedOpenApiBean
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.springdoc.ReplaceSpringFoxDependencies
-displayName: Replace SpringFox Dependencies
+displayName: Replace SpringFox dependencies
 description: Replace SpringFox Dependencies.
 tags:
   - springfox

@@ -17,11 +17,11 @@ package org.openrewrite.java.spring.security6.oauth2.server.resource;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junitpioneer.jupiter.Issue;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl;
 import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -29,20 +29,25 @@ import org.openrewrite.test.RewriteTest;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.kotlin.Assertions.kotlin;
 
-@DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new OAuth2ResourceServerLambdaDsl())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-beans-5",
+              "spring-context-5",
+              "spring-boot-2.7",
+              "spring-web-5.3",
+              "spring-core-5",
+              "spring-security-core-5.8",
+              "spring-security-config-5.8",
+              "spring-security-web-5.8",
               "tomcat-embed"))
           .parser(KotlinParser.builder()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-beans", "spring-context", "spring-boot", "spring-web", "spring-core",
-              "spring-security-core-5", "spring-security-config-5", "spring-security-web-5",
+              "spring-beans-5", "spring-context-5", "spring-boot-2.7", "spring-web-5.3", "spring-core-5",
+              "spring-security-core-5.8", "spring-security-config-5.8", "spring-security-web-5.8",
               "tomcat-embed")
           );
     }
@@ -87,6 +92,49 @@ class OAuth2ResourceServerLambdaDslTest implements RewriteTest {
                                               .jwkSetUri(""))
                                       .opaqueToken(token -> token
                                               .introspectionUri("")));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noArgConfigurerInLambdaCreatedByHttpSecurityLambdaDsl() {
+        rewriteRun(
+          spec -> spec.recipes(new HttpSecurityLambdaDsl(), new OAuth2ResourceServerLambdaDsl()),
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfiguration {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests()
+                          .anyRequest().authenticated()
+                          .and()
+                          .oauth2ResourceServer().jwt();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              import static org.springframework.security.config.Customizer.withDefaults;
+
+              class SecurityConfiguration {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeHttpRequests(requests -> requests
+                              .anyRequest().authenticated())
+                              .oauth2ResourceServer(server -> server.jwt(withDefaults()));
+                      return http.build();
                   }
               }
               """

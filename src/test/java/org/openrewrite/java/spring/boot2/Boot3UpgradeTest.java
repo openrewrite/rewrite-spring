@@ -35,9 +35,9 @@ class Boot3UpgradeTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-context-5",
-              "spring-data-jpa-2",
-              "spring-web-5",
-              "spring-boot-2",
+              "spring-data-jpa-2.7",
+              "spring-web-5.3",
+              "spring-boot-2.7",
               "spring-core-5",
               "javax.persistence-api-2",
               "validation-api-2",

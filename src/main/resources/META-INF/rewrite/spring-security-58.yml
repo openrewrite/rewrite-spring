@@ -33,12 +33,10 @@ recipeList:
       groupId: org.springframework.security
       artifactId: "*"
       newVersion: 5.8.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: spring-security-oauth2-authorization-server
       newVersion: 0.4.x
-      overrideManagedVersion: false
   - org.openrewrite.java.spring.boot2.HttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.ServerHttpSecurityLambdaDsl
   - org.openrewrite.java.spring.boot2.HeadersConfigurerLambdaDsl
@@ -67,7 +65,6 @@ preconditions:
 recipeList:
   - org.openrewrite.java.search.FindMethods:
       methodPattern: org.springframework.security.crypto.encrypt.Encryptors queryableText(..)
-      matchOverrides: false
 ########################################################################################################################
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -86,13 +83,11 @@ recipeList:
   - org.openrewrite.xml.ChangeTagName:
       elementName: global-method-security
       newName: method-security
-      fileMatcher: null
   - org.openrewrite.xml.ChangeTagAttribute:
       elementName: method-security
       attributeName: pre-post-enabled
       newValue: null
       oldValue: true
-      fileMatcher: null
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.security5.RenameNimbusdsJsonObjectPackageName
@@ -107,9 +102,8 @@ recipeList:
   - org.openrewrite.java.ChangePackage:
       oldPackageName: com.nimbusds.jose.shaded.json
       newPackageName: net.minidev.json
-      recursive: false
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: net.minidev
       artifactId: json-smart
       version: 2.x
-      onlyIfUsing: com.nimbusds.jose
+      onlyIfUsing: com.nimbusds.jose.shaded.json.*

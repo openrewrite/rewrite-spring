@@ -45,8 +45,6 @@ recipeDependencies {
     parserClasspath("org.springframework:spring-core:6.+")
     parserClasspath("org.springframework:spring-core:7.+")
 
-    parserClasspath("org.springframework.retry:spring-retry:2.+")
-
     parserClasspath("org.springframework:spring-test:6.+")
 
     parserClasspath("org.springframework:spring-web:4.+")
@@ -69,6 +67,7 @@ recipeDependencies {
     parserClasspath("org.springframework.batch:spring-batch-core:4.+")
     parserClasspath("org.springframework.batch:spring-batch-core:5.1.+")
     parserClasspath("org.springframework.batch:spring-batch-infrastructure:5.1.+")
+    parserClasspath("org.springframework.batch:spring-batch-core:6.0.+")
 
     parserClasspath("org.springframework:spring-tx:5.+")
 
@@ -93,8 +92,8 @@ recipeDependencies {
     parserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     parserClasspath("net.minidev:json-smart:2.4.+")
 
-    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.1.+")
-    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.1.+")
+    parserClasspath("org.apache.httpcomponents.core5:httpcore5:5.3.+")
+    parserClasspath("org.apache.httpcomponents.client5:httpclient5:5.5.+")
 
     parserClasspath("jakarta.servlet:jakarta.servlet-api:6.1.+")
     parserClasspath("jakarta.validation:jakarta.validation-api:3.0.+")
@@ -108,6 +107,8 @@ recipeDependencies {
     parserClasspath("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
 
     testParserClasspath("com.fasterxml.jackson.core:jackson-core:2.20.+")
+    // 2.19 is the last release with the deprecated `PropertyNamingStrategy` inner classes we migrate away from
+    testParserClasspath("com.fasterxml.jackson.core:jackson-databind:2.19.+")
     testParserClasspath("com.nimbusds:nimbus-jose-jwt:9.13")
     testParserClasspath("io.projectreactor:reactor-core:3.6.3")
     testParserClasspath("io.springfox:springfox-core:3.+")
@@ -135,8 +136,11 @@ recipeDependencies {
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:4.3.10")
     testParserClasspath("org.springframework.batch:spring-batch-infrastructure:5.+")
     testParserClasspath("org.springframework.batch:spring-batch-test:4.3.+")
+    testParserClasspath("org.springframework.retry:spring-retry:2.+")
 
     testParserClasspath("org.springframework.kafka:spring-kafka:2.8.+")
+
+    testParserClasspath("org.springframework.security:spring-security-oauth2-jose:6.0.+")
 
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
@@ -185,7 +189,6 @@ recipeDependencies {
     testParserClasspath("org.springframework.security:spring-security-web:6.2.+")
 
     testParserClasspath("org.springframework:spring-context:6.0.+")
-    testParserClasspath("org.springframework:spring-context:6.2.+")
     testParserClasspath("org.springframework:spring-orm:5.3.+")
     testParserClasspath("org.springframework:spring-test:5.3.+")
     testParserClasspath("org.springframework:spring-tx:4.1.+")
@@ -206,7 +209,6 @@ dependencies {
     implementation("org.openrewrite:rewrite-yaml")
     implementation("org.openrewrite:rewrite-gradle")
     implementation("org.openrewrite:rewrite-maven")
-    implementation("org.openrewrite.meta:rewrite-analysis:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-java-dependencies:${rewriteVersion}")
     implementation("org.openrewrite.recipe:rewrite-static-analysis:${rewriteVersion}")
     implementation("org.openrewrite.gradle.tooling:model:${rewriteVersion}")
@@ -220,7 +222,6 @@ dependencies {
     runtimeOnly("org.openrewrite.recipe:rewrite-openapi:${rewriteVersion}")
     runtimeOnly("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
 
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.+")
     testRuntimeOnly(gradleApi())
 
     testImplementation("org.openrewrite:rewrite-test")
@@ -228,14 +229,11 @@ dependencies {
     testImplementation("org.junit-pioneer:junit-pioneer:2.0.0")
 
     // for generating properties migration configurations
-    testImplementation("io.github.classgraph:classgraph:latest.release")
+    testImplementation("io.github.classgraph:classgraph:4.+")
     testImplementation("org.openrewrite:rewrite-java-21")
     testImplementation("org.openrewrite:rewrite-kotlin")
     testImplementation("org.openrewrite.recipe:rewrite-migrate-java:$rewriteVersion")
     testImplementation("org.openrewrite.recipe:rewrite-testing-frameworks:$rewriteVersion")
-
-    // Needed for `org.openrewrite.java.spring.http.ReplaceLiteralsTest` to read constant values
-    testRuntimeOnly("org.springframework:spring-web:6.+")
 }
 
 tasks {
@@ -244,7 +242,7 @@ tasks {
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
         forkEvery = 0
     }
-    val generatePropertyMigrationRecipes by registering(JavaExec::class) {
+    val generatePropertyMigrationRecipes = register<JavaExec>("generatePropertyMigrationRecipes") {
         group = "generate"
         description = "Generate Spring Boot property migration recipes."
         mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"

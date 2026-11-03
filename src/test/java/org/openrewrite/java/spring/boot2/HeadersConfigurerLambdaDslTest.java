@@ -32,10 +32,10 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-beans-5",
               "spring-context-5",
-              "spring-boot-2",
+              "spring-boot-2.7",
               "spring-security-config-5.8.+",
               "spring-security-web-5.8.+",
-              "spring-web-5",
+              "spring-web-5.3",
               "tomcat-embed",
               "spring-core-5"
             ));
@@ -333,6 +333,36 @@ class HeadersConfigurerLambdaDslTest implements RewriteTest {
                                       .cacheControl(withDefaults())
                                       .referrerPolicy(policy -> policy
                                               .policy(ReferrerPolicy.ORIGIN)));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noArgConfigurerInLambdaCreatedByHttpSecurityLambdaDsl() {
+        rewriteRun(
+          spec -> spec.recipes(new HttpSecurityLambdaDsl(), new HeadersConfigurerLambdaDsl()),
+          //language=java
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              class SecurityConfiguration {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.headers().httpStrictTransportSecurity();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              import static org.springframework.security.config.Customizer.withDefaults;
+
+              class SecurityConfiguration {
+                  void configure(HttpSecurity http) throws Exception {
+                      http.headers(headers -> headers.httpStrictTransportSecurity(withDefaults()));
                   }
               }
               """

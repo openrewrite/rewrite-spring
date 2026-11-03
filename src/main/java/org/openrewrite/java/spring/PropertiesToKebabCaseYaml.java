@@ -18,7 +18,6 @@ package org.openrewrite.java.spring;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.openrewrite.*;
-import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.tree.Yaml;
 
@@ -45,11 +44,8 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                     public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, ExecutionContext ctx) {
                         Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
                         if (e.getKey() instanceof Yaml.Scalar) {
-                            if (isPassThroughProperty()) {
-                                return e;
-                            }
                             String key = e.getKey().getValue();
-                            String asKebabCase = NameCaseConvention.LOWER_HYPHEN.format(key);
+                            String asKebabCase = KebabCasePropertyKeys.toKebabCase(enclosingKeys(), key);
                             if (!key.equals(asKebabCase)) {
                                 return e.withKey(((Yaml.Scalar) e.getKey()).withValue(asKebabCase));
                             }
@@ -57,23 +53,15 @@ public class PropertiesToKebabCaseYaml extends Recipe {
                         return e;
                     }
 
-                    private boolean isPassThroughProperty() {
-                        List<Yaml.Mapping.Entry> propertyEntries = getCursor().getPathAsStream()
+                    private String enclosingKeys() {
+                        List<Yaml.Mapping.Entry> parents = getCursor().getParentOrThrow().getPathAsStream()
                                 .filter(Yaml.Mapping.Entry.class::isInstance)
                                 .map(Yaml.Mapping.Entry.class::cast)
                                 .collect(toList());
-                        reverse(propertyEntries);
-
-                        String prop = propertyEntries.stream()
+                        reverse(parents);
+                        return parents.stream()
                                 .map(e -> e.getKey().getValue())
                                 .collect(joining("."));
-
-                        return (prop.startsWith("spring.") && prop.contains(".properties.")) ||
-                                prop.startsWith("logging.level.") ||
-                                prop.startsWith("management.metrics.tags.") ||
-                                prop.startsWith("management.metrics.enable.") ||
-                                prop.startsWith("management.metrics.distribution.") ||
-                                prop.startsWith("spring.flyway.placeholders.");
                     }
                 });
     }

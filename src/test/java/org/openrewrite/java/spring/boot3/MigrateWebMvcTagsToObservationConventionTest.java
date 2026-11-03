@@ -308,8 +308,6 @@ class MigrateWebMvcTagsToObservationConventionTest implements RewriteTest {
               import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
               import org.springframework.http.server.observation.ServerRequestObservationContext;
 
-              import java.util.Collections;
-
               class CustomWebMvcTagsProvider extends DefaultServerRequestObservationConvention {
 
                   @Override

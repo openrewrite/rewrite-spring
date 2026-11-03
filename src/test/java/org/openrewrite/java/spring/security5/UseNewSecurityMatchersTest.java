@@ -36,7 +36,11 @@ class UseNewSecurityMatchersTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new UseNewSecurityMatchers())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-context-5.3.+", "spring-beans-5.3.+", "spring-web-5.3.+", "spring-security-web-5.7.+", "spring-security-config-5.7.+"));
+            "spring-context-5.3.+",
+            "spring-beans-5.3.+",
+            "spring-web-5.3.+",
+            "spring-security-web-5.7.+",
+            "spring-security-config-5.7.+"));
     }
 
     @DocumentExample
@@ -141,6 +145,38 @@ class UseNewSecurityMatchersTest implements RewriteTest {
                       http.securityMatcher("/**").authorizeRequests()
                               .antMatchers(HttpMethod.POST, "/verify").access("hasRole('ROLE_USER')")
                               .anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void migrateRegexMatcher() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.regexMatcher("/api/.*").authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+              import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+
+              class SecurityConfig {
+                  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                      http.securityMatcher(new RegexRequestMatcher("/api/.*", null)).authorizeRequests().anyRequest().authenticated();
                       return http.build();
                   }
               }
