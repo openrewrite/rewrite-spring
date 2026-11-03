@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot4;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -32,6 +33,51 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
           .beforeRecipe(withToolingApi());
+    }
+
+    @DocumentExample
+    @Test
+    void removeRedundantVersionAlreadyOnBoot4() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.8</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                            <version>${commons-lang3-override.version}</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("The Spring Boot parent should remain on the latest 4.0.x patch release")
+                .containsPattern("<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>4\\.0\\.\\d+</version>")
+                .describedAs("A commons-lang3 override older than the Boot 4 managed version should be removed, " +
+                             "leaving the dependency versionless")
+                .containsPattern("<artifactId>commons-lang3</artifactId>\\s*</dependency>")
+                .describedAs("The now-unused version property should also be removed")
+                .doesNotContain("commons-lang3-override.version")
+                .actual())
+            )
+          )
+        );
     }
 
     @Test
@@ -208,6 +254,229 @@ class UpgradeSpringBoot_4_0Test implements RewriteTest {
                   .containsPattern("org\\.jobrunr:jobrunr-spring-boot-4-starter:8\\.\\d+(\\.\\d+)?")
                   .actual())
             )
+          )
+        );
+    }
+
+    @Test
+    void jacksonBomVersionPropertyMigratedToJackson2Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>2.21.1</jackson-bom.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.core</groupId>
+                            <artifactId>jackson-databind</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.dataformat</groupId>
+                            <artifactId>jackson-dataformat-xml</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .contains("<groupId>tools.jackson.dataformat</groupId>")
+                .doesNotContain("<version>3")
+                .describedAs("The Spring Boot 3 jackson-bom.version override (a Jackson 2 version) should migrate to jackson-2-bom.version")
+                .contains("<jackson-2-bom.version>2.21.1</jackson-2-bom.version>")
+                .doesNotContain("<jackson-bom.version>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void jacksonDependenciesStayManagedWithoutOverrideProperty() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.fasterxml.jackson.core</groupId>
+                            <artifactId>jackson-databind</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("Jackson dependencies should stay versionless (managed by Spring Boot BOM)")
+                .contains("<groupId>tools.jackson.core</groupId>")
+                .doesNotContain("<version>3")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void jacksonBomVersionOverrideOnAlreadyBoot4ProjectLeftUntouched() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.0</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>jackson-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <jackson-bom.version>3.1.0</jackson-bom.version>
+                    </properties>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A deliberate Jackson 3 override on an already-Spring-Boot-4 project must not be renamed to jackson-2-bom.version")
+                .contains("<jackson-bom.version>3.1.0</jackson-bom.version>")
+                .doesNotContain("jackson-2-bom.version")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void removeOverrideOvertakenByBoot4Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>redundant-version-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <properties>
+                        <commons-lang3-override.version>3.18.0</commons-lang3-override.version>
+                    </properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                            <version>${commons-lang3-override.version}</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A commons-lang3 override newer than the Boot 3.5 managed version (3.17.0) but " +
+                             "older than the Boot 4 managed version (3.19.0) should be removed once on the Boot 4 BOM")
+                .contains("<artifactId>commons-lang3</artifactId>")
+                .doesNotContain("<version>${commons-lang3-override.version}</version>")
+                .describedAs("The now-unused version property should also be removed")
+                .doesNotContain("commons-lang3-override.version")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void preserveDependencyVersionNewerThanBoot4Bom() {
+        rewriteRun(
+          mavenProject("project",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.5.14</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>newer-override-app</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.google.code.gson</groupId>
+                            <artifactId>gson</artifactId>
+                            <version>2.14.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual)
+                .describedAs("A gson override newer than the Spring Boot 4 managed version must be preserved")
+                .contains("<version>2.14.0</version>")
+                .actual())
+            )
+          )
+        );
+    }
+
+    @Test
+    void leaveMicronautApplicationUnchanged() {
+        rewriteRun(
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>micronaut-app</artifactId>
+                  <version>1.0</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>io.micronaut</groupId>
+                          <artifactId>micronaut-runtime</artifactId>
+                          <version>2.4.2</version>
+                      </dependency>
+                      <dependency>
+                          <groupId>org.liquibase</groupId>
+                          <artifactId>liquibase-core</artifactId>
+                          <version>4.2.2</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
           )
         );
     }

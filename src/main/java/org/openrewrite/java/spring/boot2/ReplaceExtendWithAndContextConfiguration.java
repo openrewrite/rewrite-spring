@@ -39,10 +39,10 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     private static final String FQN_SPRING_JUNIT_CONFIG = "org.springframework.test.context.junit.jupiter.SpringJUnitConfig";
 
     @Getter
-    final String displayName = "Replace `@ExtendWith` and `@ContextConfiguration` with `@SpringJunitConfig`";
+    final String displayName = "Replace `@ExtendWith` and `@ContextConfiguration` with `@SpringJUnitConfig`";
 
     @Getter
-    final String description = "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJunitConfig`, " +
+    final String description = "Replaces `@ExtendWith(SpringRunner.class)` and `@ContextConfiguration` with `@SpringJUnitConfig`, " +
             "preserving attributes on `@ContextConfiguration`, unless `@ContextConfiguration(loader = ...)` is used.";
 
     @Getter
@@ -104,7 +104,7 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                                     newArgs.set(i, as);
                                     break;
                                 }
-                            } else {
+                            } else if (!(expression instanceof J.Empty)) {
                                 // The implicit assignment to "value"
                                 J.Assignment as = createLocationsAssignment(a, expression).withPrefix(expression.getPrefix());
                                 newArgs.set(i, as);

@@ -63,7 +63,6 @@ public class GetErrorAttributes extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
             if (MATCHER.matches(mi)) {
-                assert mi.getArguments().size() == 2;
                 Expression includeStackTraceArgument = mi.getArguments().get(1);
                 if (isLiteralTrue(includeStackTraceArgument)) {
                     String template = "#{any(org.springframework.web.context.request.WebRequest)}, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE)";
@@ -71,7 +70,10 @@ public class GetErrorAttributes extends Recipe {
                             .contextSensitive()
                             .imports(parserImports)
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
+                                    .classpathFromResources(ctx,
+                                            "spring-boot-2.7",
+                                            "spring-boot-autoconfigure-2.7",
+                                            "spring-web-5.3"))
                             .build().apply(
                                     getCursor(),
                                     mi.getCoordinates().replaceArguments(),
@@ -83,7 +85,10 @@ public class GetErrorAttributes extends Recipe {
                             .contextSensitive()
                             .imports(parserImports)
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
+                                    .classpathFromResources(ctx,
+                                            "spring-boot-2.7",
+                                            "spring-boot-autoconfigure-2.7",
+                                            "spring-web-5.3"))
                             .build()
                             .apply(
                                     getCursor(),
@@ -96,7 +101,10 @@ public class GetErrorAttributes extends Recipe {
                             .contextSensitive()
                             .imports(parserImports)
                             .javaParser(JavaParser.fromJavaVersion()
-                                    .classpathFromResources(ctx, "spring-boot-2.*", "spring-boot-autoconfigure-2.*", "spring-web-5.*"))
+                                    .classpathFromResources(ctx,
+                                            "spring-boot-2.7",
+                                            "spring-boot-autoconfigure-2.7",
+                                            "spring-web-5.3"))
                             .build()
                             .apply(
                                     getCursor(),

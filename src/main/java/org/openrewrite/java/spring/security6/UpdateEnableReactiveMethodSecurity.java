@@ -57,7 +57,7 @@ public class UpdateEnableReactiveMethodSecurity extends Recipe {
                                 annotation.getArguments() != null &&
                                 !annotation.getArguments().isEmpty()) {
                             List<Expression> args = annotation.getArguments();
-                            args = ListUtils.map(args, arg -> isUseAuthorizationManagerArgSetToTrue(arg) ? null : arg);
+                            args = ListUtils.filter(args, arg -> !isUseAuthorizationManagerArgSetToTrue(arg));
                             return autoFormat(annotation.withArguments(args), ctx);
                         }
                         return annotation;

@@ -71,7 +71,14 @@ public class FindSpringComponents extends Recipe {
                         m.getReturnTypeExpression() != null) {
 
                     m = SearchResult.found(m, "bean");
-                    recordDependencies(TypeUtils.asFullyQualified(requireNonNull(m.getReturnTypeExpression()).getType()), m, ctx);
+                    JavaType.FullyQualified beanType = TypeUtils.asFullyQualified(requireNonNull(m.getReturnTypeExpression()).getType());
+                    if (beanType != null) {
+                        springComponents.insertRow(ctx, new SpringComponents.Row(
+                                getCursor().firstEnclosingOrThrow(SourceFile.class).getSourcePath().toString(),
+                                beanType.getFullyQualifiedName()
+                        ));
+                    }
+                    recordDependencies(beanType, m, ctx);
                 }
                 return m;
             }

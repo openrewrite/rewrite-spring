@@ -18,10 +18,15 @@ package org.openrewrite.java.spring.doc;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.gradle.marker.GradlePluginDescriptor;
+import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import java.util.List;
+
+import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
@@ -32,9 +37,9 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateDocketBeanToGroupedOpenApiBean())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-core",
-            "spring-context",
-            "spring-beans",
+            "spring-core-5",
+            "spring-context-5",
+            "spring-beans-5",
             "spring-plugin-core",
             "springfox-core",
             "springfox-spring-web",
@@ -115,6 +120,72 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                 """,
               spec -> spec.path("application.properties")
             )
+          ),
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                class ApplicationConfiguration {
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .select()
+                                .apis(RequestHandlerSelectors.any())
+                                .paths(PathSelectors.any())
+                                .build()
+                                .pathMapping("/");
+                    }
+                }
+                """,
+              """
+                package org.project.example;
+
+                class ApplicationConfiguration {
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void rewriteSingleDocketToApplicationYmlOutsideSourceSet() {
+        rewriteRun(
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'org.springframework.boot' version '3.3.4'
+              }
+              """,
+            spec -> spec.markers(GradleProject.builder()
+              .plugins(List.of(new GradlePluginDescriptor(
+                "org.springframework.boot.gradle.plugin.SpringBootPlugin", "org.springframework.boot")))
+              .build())
+          ),
+          //language=yaml
+          yaml(
+            """
+              spring.application.name: main
+              """,
+            """
+              spring.application.name: main
+              springdoc:
+                api-docs:
+                  path: /v3/api-docs
+                swagger-ui:
+                  path: /swagger-ui.html
+                paths-to-match: /**
+              """,
+            spec -> spec.path("config/application.yml")
           ),
           srcMainJava(
             //language=java
@@ -566,64 +637,6 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
     }
 
     @Test
-    void ignoreMultipleDocket() {
-        rewriteRun(
-          //language=yaml
-          srcMainResources(
-            yaml(
-              """
-                spring.application.name: main
-                """,
-              spec -> spec.path("application.yaml")
-            )
-          ),
-          srcMainJava(
-            //language=java
-            java(
-              """
-                package org.project.example;
-
-                import org.springframework.context.annotation.Bean;
-                import springfox.documentation.builders.PathSelectors;
-                import springfox.documentation.builders.RequestHandlerSelectors;
-                import springfox.documentation.spi.DocumentationType;
-                import springfox.documentation.spring.web.plugins.Docket;
-
-                class ApplicationConfiguration {
-
-                    private static final String GROUPNAME = "internal";
-                    private static final String BASEPACKAGE = "com.example.api";
-                    private static final String PATH = "/api/v1/**";
-
-                    @Bean
-                    public Docket publicApi() {
-                        return new Docket(DocumentationType.SWAGGER_2)
-                                .groupName(GROUPNAME)
-                                .select()
-                                .apis(RequestHandlerSelectors.basePackage(BASEPACKAGE))
-                                .paths(PathSelectors.ant(PATH))
-                                .build()
-                                .pathMapping("/");
-                    }
-
-                    @Bean
-                    public Docket internalApi() {
-                        return new Docket(DocumentationType.SWAGGER_2)
-                                .groupName("internal")
-                                .select()
-                                .apis(RequestHandlerSelectors.basePackage(BASEPACKAGE))
-                                .paths(PathSelectors.ant(PATH))
-                                .build()
-                                .pathMapping("/");
-                    }
-                }
-                """
-            )
-          )
-        );
-    }
-
-    @Test
     void ignoreDocketWhenRequestHandlerSelectorsExternal() {
         rewriteRun(
           srcMainJava(
@@ -691,6 +704,143 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                                .paths(PathSelectors.regex(""))
                                .build()
                                .pathMapping("/");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void rewriteDocketWithAnnotationBasedSelectorsToMethodFilter() {
+        rewriteRun(
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.METHOD, ElementType.TYPE})
+                public @interface NoSwagger {
+                }
+                """
+            ),
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                class ApplicationConfiguration {
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .groupName("daas-simulator")
+                                .select()
+                                .apis(RequestHandlerSelectors.basePackage("com.example.api"))
+                                .apis(RequestHandlerSelectors.withMethodAnnotation(NoSwagger.class).negate())
+                                .apis(RequestHandlerSelectors.withClassAnnotation(NoSwagger.class).negate())
+                                .paths(PathSelectors.any())
+                                .build();
+                    }
+                }
+                """,
+              """
+                package org.project.example;
+
+                import org.springdoc.core.models.GroupedOpenApi;
+                import org.springframework.context.annotation.Bean;
+
+                class ApplicationConfiguration {
+
+                    @Bean
+                    public GroupedOpenApi publicApi() {
+                        return GroupedOpenApi.builder()
+                                .group("daas-simulator")
+                                .packagesToScan("com.example.api")
+                                .addOpenApiMethodFilter(method -> !method.isAnnotationPresent(NoSwagger.class) && !method.getDeclaringClass().isAnnotationPresent(NoSwagger.class))
+                                .build();
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void rewriteMultipleDocketsToMultipleGroupedOpenApiBeans() {
+        rewriteRun(
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spi.DocumentationType;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                class ApplicationConfiguration {
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .groupName("public")
+                                .select()
+                                .apis(RequestHandlerSelectors.basePackage("com.example.api.pub"))
+                                .paths(PathSelectors.ant("/public/**"))
+                                .build();
+                    }
+
+                    @Bean
+                    public Docket internalApi() {
+                        return new Docket(DocumentationType.SWAGGER_2)
+                                .groupName("internal")
+                                .select()
+                                .apis(RequestHandlerSelectors.basePackage("com.example.api.internal"))
+                                .paths(PathSelectors.ant("/internal/**"))
+                                .build();
+                    }
+                }
+                """,
+              """
+                package org.project.example;
+
+                import org.springdoc.core.models.GroupedOpenApi;
+                import org.springframework.context.annotation.Bean;
+
+                class ApplicationConfiguration {
+
+                    @Bean
+                    public GroupedOpenApi publicApi() {
+                        return GroupedOpenApi.builder()
+                                .group("public")
+                                .pathsToMatch("/public/**")
+                                .packagesToScan("com.example.api.pub")
+                                .build();
+                    }
+
+                    @Bean
+                    public GroupedOpenApi internalApi() {
+                        return GroupedOpenApi.builder()
+                                .group("internal")
+                                .pathsToMatch("/internal/**")
+                                .packagesToScan("com.example.api.internal")
+                                .build();
                     }
                 }
                 """

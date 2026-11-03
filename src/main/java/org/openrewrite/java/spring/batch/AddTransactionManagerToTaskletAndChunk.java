@@ -19,23 +19,31 @@ import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
-import org.openrewrite.java.*;
-import org.openrewrite.java.search.FindMethods;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.Statement;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
 
 import java.util.List;
 
-import static java.util.Collections.singletonList;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+import static org.openrewrite.Tree.randomId;
 
 public class AddTransactionManagerToTaskletAndChunk extends Recipe {
 
-    private static final String TASKLET_1ARG = "org.springframework.batch.core.step.builder.StepBuilder tasklet(org.springframework.batch.core.step.tasklet.Tasklet)";
-    private static final String CHUNK_INT = "org.springframework.batch.core.step.builder.StepBuilder chunk(int)";
-    private static final String CHUNK_POLICY = "org.springframework.batch.core.step.builder.StepBuilder chunk(org.springframework.batch.repeat.CompletionPolicy)";
+    private static final String STEP_BUILDER = "org.springframework.batch.core.step.builder.StepBuilder";
+    private static final String PLATFORM_TRANSACTION_MANAGER = "org.springframework.transaction.PlatformTransactionManager";
+
+    private static final MethodMatcher TASKLET_MATCHER = new MethodMatcher(STEP_BUILDER + " tasklet(org.springframework.batch.core.step.tasklet.Tasklet)");
+    private static final MethodMatcher CHUNK_INT_MATCHER = new MethodMatcher(STEP_BUILDER + " chunk(int)");
+    private static final MethodMatcher CHUNK_POLICY_MATCHER = new MethodMatcher(STEP_BUILDER + " chunk(org.springframework.batch.repeat.CompletionPolicy)");
+    private static final MethodMatcher TRANSACTION_MANAGER_MATCHER = new MethodMatcher("org.springframework.batch.core.step.builder.* transactionManager(..)");
+
+    private static final String MSG_ADD_PARAMETER = "addTransactionManagerParameter";
 
     @Getter
     final String displayName = "Add `PlatformTransactionManager` to `tasklet()` and `chunk()` calls";
@@ -43,118 +51,121 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
     @Getter
     final String description = "Spring Batch 5.0 requires a `PlatformTransactionManager` as the second argument to " +
             "`StepBuilder.tasklet(Tasklet)` and `StepBuilder.chunk(int)` / `StepBuilder.chunk(CompletionPolicy)`. " +
-            "This recipe adds the `transactionManager` argument and injects it as a method parameter if needed.";
+            "This recipe passes a `PlatformTransactionManager` parameter or field that is in scope, " +
+            "and otherwise adds a `transactionManager` method parameter.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 Preconditions.or(
-                        new UsesMethod<>(TASKLET_1ARG),
-                        new UsesMethod<>(CHUNK_INT),
-                        new UsesMethod<>(CHUNK_POLICY)
+                        new UsesMethod<>(TASKLET_MATCHER),
+                        new UsesMethod<>(CHUNK_INT_MATCHER),
+                        new UsesMethod<>(CHUNK_POLICY_MATCHER)
                 ),
-                new JavaVisitor<ExecutionContext>() {
+                new JavaIsoVisitor<ExecutionContext>() {
                     @Override
-                    public J visit(@Nullable Tree tree, ExecutionContext ctx) {
-                        tree = new AddTransactionManagerParameterVisitor().visit(tree, ctx);
-                        return new AddTransactionManagerArgumentVisitor().visit(tree, ctx);
+                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                        boolean taskletOrChunk = TASKLET_MATCHER.matches(mi) || CHUNK_INT_MATCHER.matches(mi) || CHUNK_POLICY_MATCHER.matches(mi);
+                        if (!taskletOrChunk || chainConfiguresTransactionManager(getCursor())) {
+                            return mi;
+                        }
+                        Cursor methodCursor = enclosingMethod(getCursor());
+                        if (methodCursor == null) {
+                            return mi;
+                        }
+                        J.Identifier transactionManager = transactionManagerInScope(methodCursor);
+                        if (transactionManager == null) {
+                            J.MethodDeclaration md = methodCursor.getValue();
+                            if (md.isConstructor() || md.getMethodType() == null) {
+                                return mi;
+                            }
+                            methodCursor.putMessage(MSG_ADD_PARAMETER, true);
+                            transactionManager = new J.Identifier(randomId(), Space.EMPTY, Markers.EMPTY, emptyList(),
+                                    "transactionManager", JavaType.ShallowClass.build(PLATFORM_TRANSACTION_MANAGER), null);
+                        }
+                        String firstParameterType = TypeUtils.toString(requireNonNull(mi.getMethodType()).getParameterTypes().get(0));
+                        return JavaTemplate.builder("#{any(" + firstParameterType + ")}, #{any(" + PLATFORM_TRANSACTION_MANAGER + ")}")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx,
+                                        "spring-batch-core-5.1", "spring-batch-infrastructure-5.1", "spring-tx-5"))
+                                .build()
+                                .apply(updateCursor(mi), mi.getCoordinates().replaceArguments(),
+                                        mi.getArguments().get(0), transactionManager.withId(randomId()));
+                    }
+
+                    @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
+                        if (getCursor().getMessage(MSG_ADD_PARAMETER) == null) {
+                            return md;
+                        }
+                        maybeAddImport(PLATFORM_TRANSACTION_MANAGER);
+                        J.VariableDeclarations parameter = (J.VariableDeclarations) JavaTemplate.builder("PlatformTransactionManager transactionManager")
+                                .imports(PLATFORM_TRANSACTION_MANAGER)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-tx-5"))
+                                .build()
+                                .<J.MethodDeclaration>apply(updateCursor(md), md.getCoordinates().replaceParameters())
+                                .getParameters().get(0);
+                        List<Statement> parameters = ListUtils.filter(md.getParameters(), p -> !(p instanceof J.Empty));
+                        JavaType.Method methodType = requireNonNull(md.getMethodType());
+                        JavaType.Method newMethodType = methodType
+                                .withParameterTypes(ListUtils.concat(methodType.getParameterTypes(), parameter.getType()))
+                                .withParameterNames(ListUtils.concat(methodType.getParameterNames(), "transactionManager"));
+                        return md.withParameters(ListUtils.concat(parameters,
+                                        parameter.withPrefix(parameters.isEmpty() ? Space.EMPTY : Space.SINGLE_SPACE)))
+                                .withMethodType(newMethodType)
+                                .withName(md.getName().withType(newMethodType));
                     }
                 }
         );
     }
 
-    private static class AddTransactionManagerParameterVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static boolean usesOneArgTaskletOrChunk(J tree) {
-            return !FindMethods.find(tree, TASKLET_1ARG).isEmpty() ||
-                    !FindMethods.find(tree, CHUNK_INT).isEmpty() ||
-                    !FindMethods.find(tree, CHUNK_POLICY).isEmpty();
-        }
-
-        @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration md, ExecutionContext ctx) {
-            if (usesOneArgTaskletOrChunk(md) &&
-                    md.getParameters().stream().noneMatch(AddTransactionManagerToTaskletAndChunk::isTransactionManagerParameter) &&
-                    !md.isConstructor()) {
-                maybeAddImport("org.springframework.transaction.PlatformTransactionManager");
-                List<Statement> params = md.getParameters();
-                boolean parametersEmpty = params.isEmpty() || params.get(0) instanceof J.Empty;
-                J.VariableDeclarations vdd = JavaTemplate.builder("PlatformTransactionManager transactionManager")
-                        .contextSensitive()
-                        .imports("org.springframework.transaction.PlatformTransactionManager")
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-tx-5.+"))
-                        .build()
-                        .<J.MethodDeclaration>apply(getCursor(), md.getCoordinates().replaceParameters())
-                        .getParameters().get(0).withPrefix(parametersEmpty ? Space.EMPTY : Space.SINGLE_SPACE);
-                if (parametersEmpty) {
-                    return md.withParameters(singletonList(vdd))
-                            .withMethodType(md.getMethodType()
-                                    .withParameterTypes(singletonList(vdd.getType())));
-                }
-                return md.withParameters(ListUtils.concat(params, vdd))
-                        .withMethodType(md.getMethodType()
-                                .withParameterTypes(ListUtils.concat(md.getMethodType().getParameterTypes(), vdd.getType())));
+    private static @Nullable Cursor enclosingMethod(Cursor cursor) {
+        Cursor method = cursor.dropParentUntil(it -> it instanceof J.MethodDeclaration || it == Cursor.ROOT_VALUE);
+        while (method.getValue() instanceof J.MethodDeclaration) {
+            Cursor classBody = method.getParentTreeCursor();
+            boolean localOrAnonymous = classBody.getParentTreeCursor().getValue() instanceof J.NewClass ||
+                    classBody.firstEnclosing(J.MethodDeclaration.class) != null;
+            if (!localOrAnonymous) {
+                return method;
             }
-            return super.visitMethodDeclaration(md, ctx);
+            method = method.dropParentUntil(it -> it instanceof J.MethodDeclaration || it == Cursor.ROOT_VALUE);
         }
+        return null;
     }
 
-    private static boolean isTransactionManagerParameter(Statement statement) {
-        return statement instanceof J.VariableDeclarations &&
-                TypeUtils.isOfClassType(((J.VariableDeclarations) statement).getType(),
-                        "org.springframework.transaction.PlatformTransactionManager");
+    private static boolean chainConfiguresTransactionManager(Cursor cursor) {
+        Cursor parent = cursor.getParentTreeCursor();
+        while (parent.getValue() instanceof J.MethodInvocation &&
+                ((J.MethodInvocation) parent.getValue()).getSelect() == cursor.getValue()) {
+            if (TRANSACTION_MANAGER_MATCHER.matches((J.MethodInvocation) parent.getValue())) {
+                return true;
+            }
+            cursor = parent;
+            parent = parent.getParentTreeCursor();
+        }
+        return false;
     }
 
-    private static class AddTransactionManagerArgumentVisitor extends JavaVisitor<ExecutionContext> {
-        private static final MethodMatcher TASKLET_MATCHER = new MethodMatcher(TASKLET_1ARG);
-        private static final MethodMatcher CHUNK_INT_MATCHER = new MethodMatcher(CHUNK_INT);
-        private static final MethodMatcher CHUNK_POLICY_MATCHER = new MethodMatcher(CHUNK_POLICY);
-
-        private String findTransactionManagerParameterName() {
-            Cursor cursor = getCursor();
-            while (cursor != null) {
-                Object value = cursor.getValue();
-                if (value instanceof J.MethodDeclaration) {
-                    J.MethodDeclaration md = (J.MethodDeclaration) value;
-                    return md.getParameters().stream()
-                            .filter(AddTransactionManagerToTaskletAndChunk::isTransactionManagerParameter)
-                            .map(p -> ((J.VariableDeclarations) p).getVariables().get(0).getSimpleName())
-                            .findFirst()
-                            .orElse("transactionManager");
-                }
-                cursor = cursor.getParent();
+    private static J.@Nullable Identifier transactionManagerInScope(Cursor methodCursor) {
+        J.MethodDeclaration md = methodCursor.getValue();
+        for (Statement parameter : md.getParameters()) {
+            if (parameter instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) parameter)) {
+                return ((J.VariableDeclarations) parameter).getVariables().get(0).getName();
             }
-            return "transactionManager";
         }
-
-        @Override
-        public J visitMethodInvocation(J.MethodInvocation mi, ExecutionContext ctx) {
-            String tmName = findTransactionManagerParameterName();
-            if (TASKLET_MATCHER.matches(mi)) {
-                return JavaTemplate.builder("#{any(org.springframework.batch.core.step.tasklet.Tasklet)}, " + tmName)
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-tx-5.+"))
-                        .build()
-                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
+        J.Block classBody = methodCursor.getParentTreeCursor().getValue();
+        boolean staticMethod = md.hasModifier(J.Modifier.Type.Static);
+        for (Statement statement : classBody.getStatements()) {
+            if (statement instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) statement) &&
+                    (!staticMethod || ((J.VariableDeclarations) statement).hasModifier(J.Modifier.Type.Static))) {
+                return ((J.VariableDeclarations) statement).getVariables().get(0).getName();
             }
-            if (CHUNK_INT_MATCHER.matches(mi)) {
-                return JavaTemplate.builder("#{any(int)}, " + tmName)
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-tx-5.+"))
-                        .build()
-                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
-            }
-            if (CHUNK_POLICY_MATCHER.matches(mi)) {
-                return JavaTemplate.builder("#{any(org.springframework.batch.repeat.CompletionPolicy)}, " + tmName)
-                        .contextSensitive()
-                        .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+", "spring-tx-5.+"))
-                        .build()
-                        .apply(getCursor(), mi.getCoordinates().replaceArguments(), mi.getArguments().get(0));
-            }
-            return super.visitMethodInvocation(mi, ctx);
         }
+        return null;
+    }
+
+    private static boolean isTransactionManager(J.VariableDeclarations variable) {
+        return TypeUtils.isAssignableTo(PLATFORM_TRANSACTION_MANAGER, variable.getType());
     }
 }

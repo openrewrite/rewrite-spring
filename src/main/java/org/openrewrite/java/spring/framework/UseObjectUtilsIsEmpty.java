@@ -20,14 +20,15 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
+
+import static java.util.Collections.emptyList;
 
 public class UseObjectUtilsIsEmpty extends Recipe {
 
@@ -58,15 +59,15 @@ public class UseObjectUtilsIsEmpty extends Recipe {
 
                 JavaType.Method methodType = mi.getMethodType();
                 if (methodType != null) {
-                    mi = mi.withMethodType(methodType.withDeclaringType(
-                            JavaType.ShallowClass.build("org.springframework.util.ObjectUtils")));
+                    // The name of a statically imported call carries the method type too
+                    JavaType.Method objectUtilsIsEmpty = methodType.withDeclaringType(
+                            JavaType.ShallowClass.build("org.springframework.util.ObjectUtils"));
+                    mi = mi.withMethodType(objectUtilsIsEmpty).withName(mi.getName().withType(objectUtilsIsEmpty));
                 }
-                if (mi.getSelect() instanceof J.Identifier) {
-                    mi = mi.withSelect(((J.Identifier) mi.getSelect())
-                            .withSimpleName("ObjectUtils")
-                            .withType(JavaType.buildType("org.springframework.util.ObjectUtils")));
-                }
-                return mi;
+                // Also qualifies a statically imported or fully qualified call with the imported `ObjectUtils`
+                return mi.withSelect(new J.Identifier(Tree.randomId(),
+                        mi.getSelect() == null ? Space.EMPTY : mi.getSelect().getPrefix(), Markers.EMPTY, emptyList(),
+                        "ObjectUtils", JavaType.buildType("org.springframework.util.ObjectUtils"), null));
             }
 
             private boolean hasCollectionLikeArgument(J.MethodInvocation mi) {

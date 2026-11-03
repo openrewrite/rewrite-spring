@@ -34,12 +34,19 @@ recipeList:
   # Migrate multi-condition @ConditionalOnBean before upgrading dependencies,
   # as the OR→AND semantics change only applies to Boot 1.x projects
   - org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1
+  # Boot 1 metrics implementations were removed when Boot 2 adopted Micrometer.
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricFilterAutoConfiguration
+  - org.openrewrite.java.spring.RemoveAutoConfigurationExclude:
+      fullyQualifiedName: org.springframework.boot.actuate.autoconfigure.MetricRepositoryAutoConfiguration
+  # Rename the Boot 1.x Redis and Spring Session artifacts before the parent upgrade, so that the
+  # versions Boot 1.x managed for them are not retained as pins in a new dependencyManagement
+  - org.openrewrite.java.spring.boot2.MigrateSpringSessionAndStarterRedisBoot1
   # Upgrade 2.0.x from 1.x
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: "*"
       newVersion: 2.0.x
-      overrideManagedVersion: false
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.boot
       artifactId: spring-boot-dependencies
@@ -65,9 +72,9 @@ recipeList:
       groupId: org.mockito
       artifactId: "*"
       newVersion: 3.x
-      overrideManagedVersion: false
   - org.openrewrite.maven.RemoveProperty:
       propertyName: thymeleaf.version
+  - org.openrewrite.java.spring.boot2.PreserveWebjarsLocatorTransitiveDependencies
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.webjars
       oldArtifactId: webjars-locator
@@ -76,6 +83,15 @@ recipeList:
       newVersion: ^0.35
   - org.openrewrite.java.spring.boot2.MigrateToWebServerFactoryCustomizer
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_0
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.thymeleaf.spring4
+      newPackageName: org.thymeleaf.spring5
+      recursive: true
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.thymeleaf
+      oldArtifactId: thymeleaf-spring4
+      newArtifactId: thymeleaf-spring5
+      newVersion: 3.0.x
   - org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
   - org.openrewrite.java.spring.boot2.MigrateHttpMessageConvertersPackageName
   - org.openrewrite.java.spring.boot2.MigrateErrorControllerPackageName
@@ -95,6 +111,28 @@ recipeList:
   - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
   - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateSpringSessionAndStarterRedisBoot1
+displayName: Migrate `spring-session` and `spring-boot-starter-redis` from Boot 1.x
+description: >-
+  Spring Boot 2.0 removed `spring-boot-starter-redis` in favor of `spring-boot-starter-data-redis`, and Spring Session 2.0
+  split the single `spring-session` jar into `spring-session-core` and one module per store. Rename `spring-session` to
+  `spring-session-data-redis` only in modules that use Redis, since `spring-session` 1.x also contained the JDBC,
+  Hazelcast, MongoDB and GemFire stores.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-starter-*redis
+recipeList:
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.session
+      oldArtifactId: spring-session
+      newArtifactId: spring-session-data-redis
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: org.springframework.boot
+      oldArtifactId: spring-boot-starter-redis
+      newArtifactId: spring-boot-starter-data-redis
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.ConditionalOnBeanAnyNestedConditionBoot1
@@ -136,8 +174,8 @@ recipeList:
       oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
       newFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UnderTowEmbeddedServletContainerFactory
-      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UnderTowServletWebServerFactory
+      oldFullyQualifiedTypeName: org.springframework.boot.context.embedded.undertow.UndertowEmbeddedServletContainerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.MigrateSpringBootServletInitializerPackageName
@@ -188,6 +226,9 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.hibernate.validator.constraints.NotEmpty
       newFullyQualifiedTypeName: javax.validation.constraints.NotEmpty
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.hibernate.validator.constraints.Email
+      newFullyQualifiedTypeName: javax.validation.constraints.Email
   - org.openrewrite.java.spring.boot2.MaybeAddJavaxValidationApi
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -243,3 +284,31 @@ recipeList:
       artifactId: "*"
       newVersion: 2.0.1
       overrideManagedVersion: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.PreserveWebjarsLocatorTransitiveDependencies
+displayName: Keep the libraries `webjars-locator` brought in transitively
+description: >-
+  `webjars-locator` brings in `commons-lang3`, `commons-text` and `jackson-databind`; `webjars-locator-core`, which
+  replaces it, does not. Add those libraries directly to modules that use them, before the swap removes them.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.webjars
+      artifactIdPattern: webjars-locator
+      onlyDirect: true
+recipeList:
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.apache.commons
+      artifactId: commons-lang3
+      version: 3.x
+      onlyIfUsing: org.apache.commons.lang3..*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.apache.commons
+      artifactId: commons-text
+      version: 1.x
+      onlyIfUsing: org.apache.commons.text..*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: com.fasterxml.jackson.core
+      artifactId: jackson-databind
+      version: 2.x
+      onlyIfUsing: com.fasterxml.jackson..*

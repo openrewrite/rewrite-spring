@@ -28,7 +28,7 @@ class MigrateClientHttpResponseGetRawStatusCodeMethodTest implements RewriteTest
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new MigrateClientHttpResponseGetRawStatusCodeMethod())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2"));
     }
 
     @DocumentExample

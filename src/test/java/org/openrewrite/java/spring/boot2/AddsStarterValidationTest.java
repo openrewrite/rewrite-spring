@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
@@ -34,11 +35,84 @@ class AddsStarterValidationTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "validation-api-2.0.1.Final"));
     }
 
+    @DocumentExample
+    @Test
+    void shouldNotAddValidationStarterIfHibernateValidatorDeclared() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              //language=Java
+              java("""
+                import javax.validation.constraints.NotNull;
+
+                class Foo {
+                    @NotNull
+                    String bar = "";
+                }
+                """),
+              //language=XML
+              pomXml("""
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <parent>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-parent</artifactId>
+                          <version>2.2.13.RELEASE</version>
+                          <relativePath/>
+                      </parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>acme</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-starter-web</artifactId>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.hibernate.validator</groupId>
+                              <artifactId>hibernate-validator</artifactId>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """,
+                """
+                  <project>
+                      <modelVersion>4.0.0</modelVersion>
+                      <parent>
+                          <groupId>org.springframework.boot</groupId>
+                          <artifactId>spring-boot-starter-parent</artifactId>
+                          <version>2.3.12.RELEASE</version>
+                          <relativePath/>
+                      </parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>acme</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                      <dependencies>
+                          <dependency>
+                              <groupId>javax.validation</groupId>
+                              <artifactId>validation-api</artifactId>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.springframework.boot</groupId>
+                              <artifactId>spring-boot-starter-web</artifactId>
+                          </dependency>
+                          <dependency>
+                              <groupId>org.hibernate.validator</groupId>
+                              <artifactId>hibernate-validator</artifactId>
+                          </dependency>
+                      </dependencies>
+                  </project>
+                  """
+              )
+            )
+          )
+        );
+    }
+
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/306")
     @Test
     void shouldAddValidationStarterIfBVIsUsed() {
         rewriteRun(
-          spec -> spec.expectedCyclesThatMakeChanges(2),
           mavenProject("project",
             srcMainJava(
               //language=Java

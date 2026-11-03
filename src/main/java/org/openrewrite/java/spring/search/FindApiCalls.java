@@ -27,12 +27,19 @@ import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.InJavaSourceSet;
 import org.openrewrite.java.spring.table.ApiCalls;
 import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.Flag;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.SearchResult;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
 public class FindApiCalls extends Recipe {
+    private static final MethodMatcher REST_TEMPLATE_CALL = new MethodMatcher("org.springframework.web.client.RestTemplate *For*(..)");
+    private static final MethodMatcher REST_TEMPLATE_EXCHANGE = new MethodMatcher("org.springframework.web.client.RestTemplate exchange(*, org.springframework.http.HttpMethod, ..)");
+    private static final MethodMatcher URI_CREATE = new MethodMatcher("java.net.URI create(String)");
+
     transient ApiCalls calls = new ApiCalls(this);
 
     String displayName = "Find HTTP API calls via `RestTemplate`";
@@ -42,29 +49,48 @@ public class FindApiCalls extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new InJavaSourceSet<>("main"), new JavaIsoVisitor<ExecutionContext>() {
-            final MethodMatcher restTemplateCall = new MethodMatcher("org.springframework.web.client.RestTemplate *For*(..)");
-            final MethodMatcher restTemplateExchange = new MethodMatcher("org.springframework.web.client.RestTemplate exchange(String, ..)");
-            final MethodMatcher webClientUri = new MethodMatcher("org.springframework.web.reactive.function.client.WebClient.UriSpec(String, ..)");
-
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                if (restTemplateCall.matches(method)) {
+                if (REST_TEMPLATE_CALL.matches(method)) {
                     String httpMethod = method.getSimpleName().substring(0, method.getSimpleName().indexOf("For")).toUpperCase();
-                    Expression uri = method.getArguments().get(0);
-                    String uriValue = uri instanceof J.Literal ?
-                            String.valueOf(((J.Literal) uri).getValue()) :
-                            uri.printTrimmed(getCursor());
-                    m = SearchResult.found(m, httpMethod + " " + uriValue);
-                    calls.insertRow(ctx, new ApiCalls.Row(
-                            getCursor().firstEnclosingOrThrow(SourceFile.class).getSourcePath().toString(),
-                            httpMethod,
-                            uriValue
-                    ));
-                } else if (restTemplateExchange.matches(method)) {
-
+                    return found(m, httpMethod, method.getArguments().get(0), ctx);
+                }
+                if (REST_TEMPLATE_EXCHANGE.matches(method)) {
+                    return found(m, httpMethod(method.getArguments().get(1)), method.getArguments().get(0), ctx);
                 }
                 return m;
+            }
+
+            private J.MethodInvocation found(J.MethodInvocation m, String httpMethod, Expression uri, ExecutionContext ctx) {
+                String uriValue = uriValue(uri);
+                calls.insertRow(ctx, new ApiCalls.Row(
+                        getCursor().firstEnclosingOrThrow(SourceFile.class).getSourcePath().toString(),
+                        httpMethod,
+                        uriValue
+                ));
+                return SearchResult.found(m, httpMethod + " " + uriValue);
+            }
+
+            private String uriValue(Expression uri) {
+                if (uri instanceof J.Literal) {
+                    return String.valueOf(((J.Literal) uri).getValue());
+                }
+                if (URI_CREATE.matches(uri)) {
+                    return uriValue(((J.MethodInvocation) uri).getArguments().get(0));
+                }
+                return uri.printTrimmed(getCursor());
+            }
+
+            private String httpMethod(Expression httpMethod) {
+                JavaType.Variable fieldType = httpMethod instanceof J.FieldAccess ?
+                        ((J.FieldAccess) httpMethod).getName().getFieldType() :
+                        httpMethod instanceof J.Identifier ? ((J.Identifier) httpMethod).getFieldType() : null;
+                if (fieldType != null && fieldType.hasFlags(Flag.Static) &&
+                        TypeUtils.isOfClassType(fieldType.getOwner(), "org.springframework.http.HttpMethod")) {
+                    return fieldType.getName();
+                }
+                return "UNKNOWN";
             }
         });
     }

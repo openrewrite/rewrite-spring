@@ -30,7 +30,12 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ReplaceDeprecatedEnvironmentTestUtils())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-core-5", "spring-context-5", "spring-boot-test-1", "spring-web-5"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-5",
+            "spring-core-5",
+            "spring-context-5",
+            "spring-boot-test-1",
+            "spring-web-5.3"));
     }
 
     @DocumentExample
@@ -463,6 +468,38 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
                       TestPropertyValues.of("key6:value6").and("key7:value7").applyTo(environment, TestPropertyValues.Type.MAP, "test");
                       environment = new StandardServletEnvironment();
                       TestPropertyValues.of("key8:value8").and("key9:value9").applyTo(environment);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void givenSameNameForDifferentEnvironmentsDoesNotChainThem() {
+        //language=java
+        rewriteRun(
+          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          java(
+            """
+              import org.springframework.web.context.support.StandardServletEnvironment;
+              import static org.springframework.boot.test.util.EnvironmentTestUtils.addEnvironment;
+
+              class MyClass {
+                  void myMethod(StandardServletEnvironment env1, StandardServletEnvironment env2) {
+                      addEnvironment("test", env1, "a=b");
+                      addEnvironment("test", env2, "c=d");
+                  }
+              }
+              """,
+            """
+              import org.springframework.boot.test.util.TestPropertyValues;
+              import org.springframework.web.context.support.StandardServletEnvironment;
+
+              class MyClass {
+                  void myMethod(StandardServletEnvironment env1, StandardServletEnvironment env2) {
+                      TestPropertyValues.of("a=b").applyTo(env1, TestPropertyValues.Type.MAP, "test");
+                      TestPropertyValues.of("c=d").applyTo(env2, TestPropertyValues.Type.MAP, "test");
                   }
               }
               """

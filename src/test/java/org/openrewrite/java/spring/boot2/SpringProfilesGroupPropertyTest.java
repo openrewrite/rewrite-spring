@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.config.Environment;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -27,10 +26,7 @@ class SpringProfilesGroupPropertyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(Environment.builder()
-          .scanRuntimeClasspath("org.openrewrite.java.spring")
-          .build()
-          .activateRecipes("org.openrewrite.java.spring.boot2.SpringBootProperties_2_4"));
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.SpringBootProperties_2_4");
     }
 
     @Test

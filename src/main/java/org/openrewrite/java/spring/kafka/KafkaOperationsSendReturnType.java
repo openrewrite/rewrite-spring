@@ -35,6 +35,6 @@ public class KafkaOperationsSendReturnType extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 new UsesType<>("org.springframework.kafka.support.SendResult", true),
-                new ListenableToCompletableFuture());
+                new ListenableToCompletableFuture().getVisitor());
     }
 }

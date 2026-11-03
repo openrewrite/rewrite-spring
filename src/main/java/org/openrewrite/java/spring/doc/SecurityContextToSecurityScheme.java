@@ -18,9 +18,8 @@ package org.openrewrite.java.spring.doc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
-import org.openrewrite.analysis.constantfold.ConstantFold;
-import org.openrewrite.analysis.util.CursorUtil;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
@@ -66,8 +65,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
                 return Preconditions.check(new UsesMethod<>(APIKEY_MATCHER), new JavaVisitor<ExecutionContext>() {
                     @Override
                     public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-                        if (APIKEY_MATCHER.matches(newClass)) {
-                            String inValue = passAsToSecuritySchemeIn(newClass.getArguments().get(2));
+                        String inValue = APIKEY_MATCHER.matches(newClass) ? passAsToSecuritySchemeIn(newClass.getArguments().get(2)) : null;
+                        if (inValue != null) {
                             maybeRemoveImport("springfox.documentation.service.ApiKey");
                             maybeAddImport("io.swagger.v3.oas.models.security.SecurityScheme");
                             return JavaTemplate.builder("new SecurityScheme()\n.type(SecurityScheme.Type.APIKEY)\n.name(#{any(String)})\n.in(" + inValue + ")")
@@ -79,20 +78,20 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return super.visitNewClass(newClass, ctx);
                     }
 
-                    private String passAsToSecuritySchemeIn(Expression passAsExpr) {
-                        return CursorUtil.findCursorForTree(getCursor(), passAsExpr)
-                                .bind(c -> ConstantFold.findConstantLiteralValue(c, String.class))
-                                .map(passAs -> {
-                                    switch (passAs) {
-                                        case "cookie":
-                                            return "SecurityScheme.In.COOKIE";
-                                        case "query":
-                                            return "SecurityScheme.In.QUERY";
-                                        default:
-                                            return "SecurityScheme.In.HEADER";
-                                    }
-                                })
-                                .orSome("SecurityScheme.In.HEADER");
+                    private @Nullable String passAsToSecuritySchemeIn(Expression passAsExpr) {
+                        if (passAsExpr instanceof J.Literal) {
+                            Object passAs = ((J.Literal) passAsExpr).getValue();
+                            if ("header".equals(passAs)) {
+                                return "SecurityScheme.In.HEADER";
+                            }
+                            if ("cookie".equals(passAs)) {
+                                return "SecurityScheme.In.COOKIE";
+                            }
+                            if ("query".equals(passAs)) {
+                                return "SecurityScheme.In.QUERY";
+                            }
+                        }
+                        return null;
                     }
                 }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
             }

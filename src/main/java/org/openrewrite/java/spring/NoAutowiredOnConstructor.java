@@ -25,6 +25,7 @@ import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.RemoveAnnotationVisitor;
 import org.openrewrite.java.search.FindAnnotations;
+import org.openrewrite.java.search.IsLikelyTest;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
@@ -42,7 +43,10 @@ public class NoAutowiredOnConstructor extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.beans.factory.annotation.Autowired", false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.and(
+                new UsesType<>("org.springframework.beans.factory.annotation.Autowired", false),
+                Preconditions.not(new IsLikelyTest().getVisitor())
+        ), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);

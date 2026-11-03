@@ -142,9 +142,9 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
 
             return !(contextOrEnvironmentToCheck instanceof J.NewClass) &&
                     SemanticallyEqual.areEqual(contextOrEnvironmentToCheck, collectedContextOrEnvironment) &&
-                    (environmentNameToCheck == null && collectedEnvironmentName == null) ||
-                    (environmentNameToCheck != null && collectedEnvironmentName != null &&
-                            SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName));
+                    ((environmentNameToCheck == null && collectedEnvironmentName == null) ||
+                            (environmentNameToCheck != null && collectedEnvironmentName != null &&
+                                    SemanticallyEqual.areEqual(environmentNameToCheck, collectedEnvironmentName)));
         }
 
         private @Nullable Expression getEnvironmentNameArgument(J.MethodInvocation methodInvocation) {

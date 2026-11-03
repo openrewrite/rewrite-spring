@@ -46,7 +46,10 @@ public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (RESPONSE_STATUS_EXCEPTION_MATCHER.matches(m) || REST_CLIENT_RESPONSE_EXCEPTION_MATCHER.matches(m)) {
                     return JavaTemplate.builder("#{any()}.getStatusCode().value()")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-core-6", "spring-beans-6", "spring-web-6"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx,
+                                    "spring-core-6",
+                                    "spring-beans-6",
+                                    "spring-web-6"))
                             .build()
                             .apply(updateCursor(m), m.getCoordinates().replace(), m.getSelect());
                 }

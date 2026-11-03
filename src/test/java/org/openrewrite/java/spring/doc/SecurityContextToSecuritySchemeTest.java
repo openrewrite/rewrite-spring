@@ -67,6 +67,67 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
     }
 
     @Test
+    void apiKeyPassedAsCookieToSecurityScheme() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.ApiKey;
+
+              class Test {
+                  ApiKey apiKey() {
+                      return new ApiKey("api_key", "SESSION", "cookie");
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.SecurityScheme;
+
+              class Test {
+                  SecurityScheme apiKey() {
+                      return new SecurityScheme()
+                              .type(SecurityScheme.Type.APIKEY)
+                              .name("SESSION")
+                              .in(SecurityScheme.In.COOKIE);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void apiKeyWithNonLiteralPassAsIsNotConverted() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.ApiKey;
+
+              class Test {
+                  static final String PASS_AS = "query";
+
+                  ApiKey apiKey() {
+                      return new ApiKey("api_key", "X-API-KEY", PASS_AS);
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.SecurityScheme;
+
+              class Test {
+                  static final String PASS_AS = "query";
+
+                  SecurityScheme apiKey() {
+                      return new SecurityScheme("api_key", "X-API-KEY", PASS_AS);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void authorizationScopeToScopes() {
         rewriteRun(
           //language=java

@@ -27,9 +27,6 @@ import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.srcMainJava;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-/**
- * @author Alex Boyko
- */
 class LoggingShutdownHooksTest implements RewriteTest {
 
     @Language("java")
@@ -58,7 +55,7 @@ class LoggingShutdownHooksTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new LoggingShutdownHooks())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-autoconfigure-2.7"));
     }
 
     @Test

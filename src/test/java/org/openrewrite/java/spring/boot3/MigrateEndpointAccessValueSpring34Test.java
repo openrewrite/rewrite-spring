@@ -33,7 +33,7 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3"))
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.5"))
           .recipeFromResource(
             "/META-INF/rewrite/spring-boot-34-properties.yml",
             "org.openrewrite.java.spring.boot3.SpringBootProperties_3_4");
@@ -66,7 +66,8 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 """
                   management:
                     endpoints:
-                      access.default: read-only
+                      access:
+                        default: read-only
                   """,
                 sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )
@@ -98,7 +99,8 @@ class MigrateEndpointAccessValueSpring34Test implements RewriteTest {
                 """
                   management:
                     endpoints:
-                      access.default: none
+                      access:
+                        default: none
                   """,
                 sourceSpecs -> sourceSpecs.markers(JavaSourceSet.build("test", List.of()))
               )

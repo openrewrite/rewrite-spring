@@ -21,12 +21,14 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.ArrayList;
@@ -63,17 +65,12 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
                     newArgs.add(sql);
                     newArgs.add(rowMapper.withPrefix(arr.getPrefix()));
 
-                    if (arr instanceof J.NewArray) {
-                        J.NewArray newArray = (J.NewArray) arr;
-                        if (newArray.getInitializer() != null) {
-                            newArgs.addAll(newArray.getInitializer());
-                        } else {
-                            newArgs.add(arr);
-                        }
+                    if (arr instanceof J.NewArray && ((J.NewArray) arr).getInitializer() != null) {
+                        newArgs.addAll(ListUtils.mapFirst(((J.NewArray) arr).getInitializer(),
+                                first -> first.getPrefix().getWhitespace().isEmpty() ? first.withPrefix(Space.SINGLE_SPACE) : first));
                     } else {
                         newArgs.add(arr);
                     }
-
 
                     mi = mi.withArguments(newArgs);
                 }

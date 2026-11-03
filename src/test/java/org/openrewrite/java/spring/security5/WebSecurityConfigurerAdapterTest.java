@@ -33,9 +33,16 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
         spec.recipe(new WebSecurityConfigurerAdapter())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-autoconfigure-2", "spring-boot-2",
-              "spring-beans-4", "spring-context-4", "spring-web-4", "spring-core-4",
-              "spring-security-core-5.7", "spring-security-config-5.7", "spring-security-web-5.7",
+              "spring-boot-autoconfigure-2.7",
+              "spring-boot-2.7",
+              "spring-beans-4",
+              "spring-context-4",
+              "spring-web-4",
+              "spring-core-4",
+              "spring-security-core-5.7",
+              "spring-security-crypto-5.8",
+              "spring-security-config-5.7",
+              "spring-security-web-5.7",
               "tomcat-embed"
             ));
     }
@@ -102,56 +109,132 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     }
 
     @Test
-    void configureHttpSecurityMethodRemovesSuperCall() {
-        //language=java
+    void enableWebSecurityWithoutDirectConfiguration() {
         rewriteRun(
           java(
             """
-              package com.example.websecuritydemo;
-
-              import static org.springframework.security.config.Customizer.withDefaults;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.builders.WebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-              @Configuration
-              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
+              @EnableWebSecurity
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
                   @Override
                   protected void configure(HttpSecurity http) throws Exception {
-                      super.configure(http);
-                      http
-                          .authorizeHttpRequests((authz) -> authz
-                              .anyRequest().authenticated()
-                          )
-                          .httpBasic(withDefaults());
+                      http.authorizeRequests().anyRequest().authenticated();
                   }
 
+                  @Override
+                  public void configure(WebSecurity web) {
+                      web.ignoring().antMatchers("/static/**");
+                  }
               }
               """,
             """
-              package com.example.websecuritydemo;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+              import org.springframework.security.web.SecurityFilterChain;
 
-              import static org.springframework.security.config.Customizer.withDefaults;
+              @EnableWebSecurity
+              class SecurityConfig {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
 
+                  @Bean
+                  WebSecurityCustomizer webSecurityCustomizer() {
+                      return (web) -> {
+                          web.ignoring().antMatchers("/static/**");
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void customConfigurationMetaAnnotation() {
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              @interface SecurityConfiguration {}
+
+              @SecurityConfiguration
+              class SecurityConfig extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
               import org.springframework.security.web.SecurityFilterChain;
 
               @Configuration
-              public class SecurityConfiguration {
+              @interface SecurityConfiguration {}
 
+              @SecurityConfiguration
+              class SecurityConfig {
                   @Bean
                   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                      http
-                          .authorizeHttpRequests((authz) -> authz
-                              .anyRequest().authenticated()
-                          )
-                          .httpBasic(withDefaults());
+                      http.authorizeRequests().anyRequest().authenticated();
                       return http.build();
                   }
+              }
+              """
+          )
+        );
+    }
 
+    @Test
+    void configureHttpSecurityMethodInlinesSuperCall() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      super.configure(http);
+                      http.csrf().disable();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              class SecurityConfiguration {
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeRequests((requests) -> requests.anyRequest().authenticated());
+                      http.formLogin();
+                      http.httpBasic();
+                      http.csrf().disable();
+                      return http.build();
+                  }
               }
               """
           )
@@ -209,7 +292,6 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
             """
               import org.springframework.context.annotation.Bean;
               import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.builders.WebSecurity;
               import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 
               @Configuration
@@ -786,7 +868,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
                     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-                        auth.inMemoryAuthentication().withUser("user");
+                        auth.inMemoryAuthentication().withUser("user").password("{noop}password").roles("USER");
                   }
               }
               """,
@@ -802,7 +884,169 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               public class SecurityConfiguration {
                   @Bean
                   InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
-                      return new InMemoryUserDetailsManager(User.builder().username("user").build());
+                      return new InMemoryUserDetailsManager(User.withUsername("user").password("{noop}password").roles("USER").build());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfigWithMultipleUsers() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      auth.inMemoryAuthentication()
+                          .withUser("user").password("{noop}user").roles("USER")
+                          .and()
+                          .withUser("admin").password("{noop}admin").roles("USER", "ADMIN");
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              @Configuration
+              class SecurityConfiguration {
+                  @Bean
+                  InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+                      return new InMemoryUserDetailsManager(
+                              User.withUsername("user").password("{noop}user").roles("USER").build(),
+                              User.withUsername("admin").password("{noop}admin").roles("USER", "ADMIN").build());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfigWithUserSubtype() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.core.userdetails.User;
+
+              import static java.util.Collections.emptyList;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      User user = new User("user", "{noop}password", emptyList());
+                      auth.inMemoryAuthentication().withUser(user);
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.core.userdetails.User;
+              import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+              import static java.util.Collections.emptyList;
+
+              @Configuration
+              class SecurityConfiguration {
+                  @Bean
+                  InMemoryUserDetailsManager inMemoryAuthManager() throws Exception {
+                      User user = new User("user", "{noop}password", emptyList());
+                      return new InMemoryUserDetailsManager(user);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfigWithPasswordEncoderIsMarked() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      auth.inMemoryAuthentication()
+                          .passwordEncoder(NoOpPasswordEncoder.getInstance())
+                          .withUser("user").password("password").roles("USER");
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+              import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      auth.inMemoryAuthentication()
+                          .passwordEncoder(NoOpPasswordEncoder.getInstance())
+                          .withUser("user").password("password").roles("USER");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void inMemoryConfigWithUsersInSeparateStatementsIsMarked() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  @Override
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      auth.inMemoryAuthentication().withUser("user").password("{noop}user").roles("USER");
+                      auth.inMemoryAuthentication().withUser("admin").password("{noop}admin").roles("ADMIN");
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+                  /*~~(Migrate manually based on https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)~~>*/@Override
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                      auth.inMemoryAuthentication().withUser("user").password("{noop}user").roles("USER");
+                      auth.inMemoryAuthentication().withUser("admin").password("{noop}admin").roles("ADMIN");
                   }
               }
               """

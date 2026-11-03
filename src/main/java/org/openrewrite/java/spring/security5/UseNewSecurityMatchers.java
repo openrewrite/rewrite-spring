@@ -34,6 +34,7 @@ public class UseNewSecurityMatchers extends Recipe {
 
     private static final String HTTP_SECURITY_CLASS = "org.springframework.security.config.annotation.web.builders.HttpSecurity";
     private static final MethodMatcher HTTP_SECURITY_MATCHER = new MethodMatcher(HTTP_SECURITY_CLASS + " *Matcher(String)");
+    private static final MethodMatcher REGEX_MATCHER = new MethodMatcher(HTTP_SECURITY_CLASS + " regexMatcher(String)");
 
 
     String displayName = "Use the new `securityMatcher()` method";
@@ -49,7 +50,19 @@ public class UseNewSecurityMatchers extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (HTTP_SECURITY_MATCHER.matches(mi) && mi.getMethodType() != null) {
+                if (REGEX_MATCHER.matches(mi)) {
+                    RegexRequestMatchers matchers = RegexRequestMatchers.from(mi.getArguments());
+                    if (matchers == null) {
+                        return mi;
+                    }
+                    maybeAddImport(RegexRequestMatchers.REGEX_REQUEST_MATCHER);
+                    return matchers.template("securityMatcher(%s)", ctx)
+                            .contextSensitive()
+                            .build()
+                            .apply(getCursor(), mi.getCoordinates().replaceMethod(), matchers.getParameters());
+                }
+                if (HTTP_SECURITY_MATCHER.matches(mi) && mi.getMethodType() != null &&
+                        !"securityMatcher".equals(mi.getSimpleName())) {
                     return securityMatcherTemplate(ctx).apply(getCursor(), mi.getCoordinates().replaceMethod(), mi.getArguments().get(0));
                 }
                 return mi;

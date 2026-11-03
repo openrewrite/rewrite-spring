@@ -36,12 +36,13 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.*;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionContext>>> {
+public class RenameBean extends ScanningRecipe<List<RenameBean.Rename>> {
 
     @Option(displayName = "Type",
             description = "The fully qualified name of the bean type to rename. If omitted, beans are matched by name alone.",
@@ -82,12 +83,12 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     String description = "Renames a Spring bean, both declaration and references.";
 
     @Override
-    public List<TreeVisitor<?, ExecutionContext>> getInitialValue(ExecutionContext ctx) {
+    public List<Rename> getInitialValue(ExecutionContext ctx) {
         return new ArrayList<>();
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(List<TreeVisitor<?, ExecutionContext>> acc) {
+    public TreeVisitor<?, ExecutionContext> getScanner(List<Rename> acc) {
 
         return Preconditions.check(precondition(), new JavaIsoVisitor<ExecutionContext>() {
             @Override
@@ -97,12 +98,12 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
                 // handle beans named via methods
                 List<J.Annotation> allAnnotations = service(AnnotationService.class).getAllAnnotations(getCursor());
                 Expression beanNameExpression = getBeanNameExpression(allAnnotations, BEAN_METHOD_ANNOTATIONS);
-                if (beanNameExpression == null && isRelevantType(m.getMethodType().getReturnType()) && m.getSimpleName().equals(oldName)) {
-                    acc.add(new ChangeMethodName(methodPattern(m), newName, true, false).getVisitor());
+                if (beanNameExpression == null && m.getMethodType() != null && isRelevantType(m.getMethodType().getReturnType()) && m.getSimpleName().equals(oldName)) {
+                    acc.add(new Rename(new ChangeMethodName(methodPattern(m), newName, true, false), emptySet()));
                 }
 
                 // handle annotation renames
-                acc.add(renameBeanAnnotations(BEAN_METHOD_ANNOTATIONS));
+                addAnnotationRename(acc, BEAN_METHOD_ANNOTATIONS);
                 return m;
             }
 
@@ -114,15 +115,15 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
                 Expression beanNameExpression = getBeanNameExpression(allAnnotations, BEAN_TYPE_ANNOTATIONS);
 
                 // handle bean named via class name
-                if (beanNameExpression == null && isRelevantType(cd.getType()) && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
+                if (beanNameExpression == null && cd.getType() != null && isRelevantType(cd.getType()) && StringUtils.uncapitalize(cd.getSimpleName()).equals(oldName)) {
                     String newFullyQualifiedTypeName = cd.getType().getFullyQualifiedName()
                             .replaceAll("^((.+\\.)*)[^.]+$", "$1" + StringUtils.capitalize(newName));
-                    acc.add(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false).getVisitor());
-                    acc.add(new ChangeType(cd.getType().getFullyQualifiedName() + "Test", newFullyQualifiedTypeName + "Test", false).getVisitor());
+                    acc.add(new Rename(new ChangeType(cd.getType().getFullyQualifiedName(), newFullyQualifiedTypeName, false), emptySet()));
+                    acc.add(new Rename(new ChangeType(cd.getType().getFullyQualifiedName() + "Test", newFullyQualifiedTypeName + "Test", false), emptySet()));
                 }
 
                 // handle annotation renames
-                acc.add(renameBeanAnnotations(BEAN_TYPE_ANNOTATIONS));
+                addAnnotationRename(acc, BEAN_TYPE_ANNOTATIONS);
 
                 return cd;
             }
@@ -130,17 +131,49 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(List<TreeVisitor<?, ExecutionContext>> acc) {
+    public TreeVisitor<?, ExecutionContext> getVisitor(List<Rename> acc) {
+        List<TreeVisitor<?, ExecutionContext>> visitors = new ArrayList<>(acc.size());
+        for (Rename rename : acc) {
+            Recipe recipe = rename.getRecipe();
+            visitors.add(recipe == null ? renameBeanAnnotations(rename.getAnnotationTypes()) : recipe.getVisitor());
+        }
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit newCu = super.visitCompilationUnit(cu, ctx);
-                for (TreeVisitor<?, ExecutionContext> visitor : acc) {
+                for (TreeVisitor<?, ExecutionContext> visitor : visitors) {
                     newCu = (J.CompilationUnit) visitor.visit(newCu, ctx);
                 }
                 return newCu;
             }
         };
+    }
+
+    /**
+     * What the edit renames, in the order the scan found it: a {@link ChangeMethodName} or {@link ChangeType} of a
+     * declaration named after the bean, or else the bean's name in annotations of these types.
+     */
+    @Value
+    public static class Rename {
+        @Nullable
+        Recipe recipe;
+
+        Set<String> annotationTypes;
+    }
+
+    /**
+     * Every declaration the scan visits renames the bean in its kind of annotations. Consecutive ones make a single
+     * rename in the annotations of all their kinds, which does the same.
+     */
+    private static void addAnnotationRename(List<Rename> renames, Set<String> annotationTypes) {
+        Rename last = renames.isEmpty() ? null : renames.get(renames.size() - 1);
+        if (last == null || last.getRecipe() != null) {
+            renames.add(new Rename(null, annotationTypes));
+        } else if (!last.getAnnotationTypes().containsAll(annotationTypes)) {
+            Set<String> both = new HashSet<>(last.getAnnotationTypes());
+            both.addAll(annotationTypes);
+            renames.set(renames.size() - 1, new Rename(null, both));
+        }
     }
 
     /**
@@ -282,7 +315,8 @@ public class RenameBean extends ScanningRecipe<List<TreeVisitor<?, ExecutionCont
                     Object annotationParent = getCursor().getParent().getValue();
 
                     if (annotationParent instanceof J.MethodDeclaration) {
-                        return isRelevantType(((J.MethodDeclaration) annotationParent).getMethodType().getReturnType());
+                        JavaType.Method methodType = ((J.MethodDeclaration) annotationParent).getMethodType();
+                        return methodType != null && isRelevantType(methodType.getReturnType());
                     }
                     if (annotationParent instanceof J.ClassDeclaration) {
                         return isRelevantType(((J.ClassDeclaration) annotationParent).getType());

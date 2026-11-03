@@ -28,20 +28,25 @@ class MigrateDropWizardDependenciesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipeFromResources("org.openrewrite.java.spring.boot3.MigrateDropWizardDependencies")
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-3.+", "spring-context-5.+", "spring-beans-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-boot-3.5",
+            "spring-context-5.+",
+            "spring-beans-5.+"));
     }
 
     @Test
     void migrateDropWizardDependenciesPackageNames() {
-        java(
-          """
-            import com.codahale.metrics.servlet.InstrumentedFilter;
-            import com.codahale.metrics.servlets.MetricsServlet;
-            """,
-          """
-            import io.dropwizard.metrics.servlet.InstrumentedFilter;
-            import io.dropwizard.metrics.servlets.MetricsServlet;
+        rewriteRun(
+          java(
             """
+              import com.codahale.metrics.servlet.InstrumentedFilter;
+              import com.codahale.metrics.servlets.MetricsServlet;
+              """,
+            """
+              import io.dropwizard.metrics.servlet.InstrumentedFilter;
+              import io.dropwizard.metrics.servlets.MetricsServlet;
+              """
+          )
         );
     }
 }

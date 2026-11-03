@@ -29,7 +29,6 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .expectedCyclesThatMakeChanges(2)
           .recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3");
     }
 
@@ -74,6 +73,9 @@ class SpringCloudVersionUpgradeTest implements RewriteTest {
                 assertThat(actual)
                   .containsPattern("<version>3.3.\\d+</version>")
                   .containsPattern("<spring-cloud.version>2023.0.\\d+</spring-cloud.version>")
+                  // A stale mockito.version predating mockito-bom makes the imported BOM
+                  // unresolvable under Spring Boot 3.x; it must be removed so Spring Boot manages it.
+                  .doesNotContain("<mockito.version>")
                   .actual())
             )
           )

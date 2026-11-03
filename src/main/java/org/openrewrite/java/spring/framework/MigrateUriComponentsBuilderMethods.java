@@ -26,6 +26,7 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 
 public class MigrateUriComponentsBuilderMethods extends Recipe {
 
@@ -52,11 +53,13 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (FROM_HTTP_URL.matches(mi)) {
+                    JavaType.Method fromUriString = mi.getMethodType() == null ? null : mi.getMethodType().withName("fromUriString");
+                    mi = mi.withName(mi.getName().withSimpleName("fromUriString").withType(fromUriString)).withMethodType(fromUriString);
                     if (mi.getSelect() == null) {
                         maybeRemoveImport(TARGET_CLASS + ".fromHttpUrl");
-                        maybeAddImport(TARGET_CLASS, "fromUriString", false);
+                        maybeAddImport(TARGET_CLASS, "fromUriString");
                     }
-                    return mi.withName(mi.getName().withSimpleName("fromUriString"));
+                    return mi;
                 }
                 if (FROM_HTTP_REQUEST.matches(mi)) {
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");

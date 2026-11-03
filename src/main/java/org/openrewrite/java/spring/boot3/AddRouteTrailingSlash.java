@@ -101,10 +101,10 @@ public class AddRouteTrailingSlash extends Recipe {
         return !str.endsWith("/") && !str.endsWith("*");
     }
 
-    private J[] buildTwoStringsArray(J.Literal path) {
+    private Object[] buildTwoStringsArray(J.Literal path) {
         String oriPath = path.getValue().toString();
         String pathWithTrailingSlash = oriPath + '/';
-        return new J[]{
+        return new Object[]{
                 path.withId(Tree.randomId())
                         .withPrefix(EMPTY),
                 path.withId(Tree.randomId())

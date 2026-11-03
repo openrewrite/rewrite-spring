@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.batch;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -25,7 +24,6 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-@DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 class MigrateJobBuilderFactoryTest implements RewriteTest {
 
     @Override
@@ -92,8 +90,8 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
           // This test's source is already the migrated (Spring Batch 5) API, so it must be
           // parsed against Spring Batch 5 rather than the class default of Spring Batch 4.
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "spring-batch-core-5.+",
-            "spring-batch-infrastructure-5.+",
+            "spring-batch-core-5.2",
+            "spring-batch-infrastructure-5.2",
             "spring-beans-5.+",
             "spring-core-5.+",
             "spring-context-5.+")),
@@ -390,4 +388,163 @@ class MigrateJobBuilderFactoryTest implements RewriteTest {
         );
     }
 
+    @Test
+    void keepUnrelatedNoArgConstructor() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private JobBuilderFactory jobBuilderFactory;
+
+                  MyJobConfig() {
+                      init();
+                  }
+
+                  private void init() {
+                  }
+
+                  @Bean
+                  Job myJob(Step step) {
+                      return jobBuilderFactory.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  MyJobConfig() {
+                      init();
+                  }
+
+                  private void init() {
+                  }
+
+                  @Bean
+                  Job myJob(Step step, JobRepository jobRepository) {
+                      return new JobBuilder("myJob", jobRepository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void reuseExistingJobRepositoryParameter() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Job myJob(JobBuilderFactory jobs, JobRepository repository, Step step) {
+                      return jobs.get("myJob")
+                          .start(step)
+                          .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.batch.core.repository.JobRepository;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Bean
+                  Job myJob(JobRepository repository, Step step) {
+                      return new JobBuilder("myJob", repository)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void leaveHelperMethodsWithoutJobRepositoryUnchanged() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.context.annotation.Bean;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private JobBuilderFactory jobBuilderFactory;
+
+                  @Bean
+                  Job myJob(Step step) {
+                      return job("myJob", step);
+                  }
+
+                  Job job(String name, Step step) {
+                      return jobBuilderFactory.get(name)
+                          .start(step)
+                          .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void leaveFieldInitializerUnchanged() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.function.Function;
+
+              import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+              import org.springframework.batch.core.job.builder.JobBuilder;
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              class MyJobConfig {
+
+                  @Autowired
+                  private JobBuilderFactory jobBuilderFactory;
+
+                  private final Function<String, JobBuilder> jobs = name -> jobBuilderFactory.get(name);
+              }
+              """
+          )
+        );
+    }
 }

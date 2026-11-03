@@ -27,7 +27,22 @@ description: >-
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
+  - org.openrewrite.java.spring.boot4.AddModularStarterDependencies
+  # Update packages to match the new modular starter structure
+  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddModularStarterDependencies
+displayName: Add Spring Boot 4.0 modular starter dependencies
+description: >-
+  Adds the Spring Boot 4.0 modular starter dependencies implied by a module's Spring Boot 3
+  package usage, without relocating any source. Split out from `MigrateToModularStarters` so
+  that it can be sequenced ahead of `MigrateAutoconfigurePackages` when composed into a larger
+  migration.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
   # Add modular starter dependencies based on package usage
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
@@ -50,6 +65,8 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.orm.jpa.*
+  - org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbTest
+  - org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbReactiveTest
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-jdbc-test
@@ -65,12 +82,14 @@ recipeList:
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-liquibase
       newVersion: 4.0.x
+      changePluginDependencies: false
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.flywaydb
       oldArtifactId: flyway-core
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-flyway
       newVersion: 4.0.x
+      changePluginDependencies: false
   - org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.kafka
@@ -78,12 +97,14 @@ recipeList:
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-kafka
       newVersion: 4.0.x
+      changePluginDependencies: false
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: org.springframework.security
       oldArtifactId: spring-security-test
       newGroupId: org.springframework.boot
       newArtifactId: spring-boot-starter-security-test
       newVersion: 4.0.x
+      changePluginDependencies: false
 
   # Add dependencies not previously present
   - org.openrewrite.java.dependencies.AddDependency:
@@ -93,6 +114,28 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.boot.test.autoconfigure.web.servlet.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webmvc-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.test.web.servlet.MockMvc
+  # @WebFluxTest slice; keyed on specific types rather than the package, since the SB3 package's WebTestClient types belong to spring-boot-webtestclient and also serve MockMvc-backed tests
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webflux-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient
@@ -119,9 +162,18 @@ recipeList:
       version: 4.0.x
       scope: test
       onlyIfUsing: org.springframework.boot.test.web.client.*
-
-  # Update packages to match the new modular starter structure
-  - org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-jdbc
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.autoconfigure.jdbc.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-hibernate
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.autoconfigure.orm.jpa.*
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
@@ -257,9 +309,43 @@ recipeList:
       newPackageName: org.springframework.boot.graphql.autoconfigure
       recursive: true
   # spring-boot-data-mongodb
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoReactiveDataAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.data.mongo.MongoReactiveRepositoriesAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.data.mongodb.autoconfigure.DataMongoReactiveRepositoriesAutoConfiguration
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.data.mongo
+      newPackageName: org.springframework.boot.data.mongodb.autoconfigure
+      recursive: true
+  # spring-boot-data-mongodb-test
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.test.autoconfigure.data.mongo
+      newPackageName: org.springframework.boot.data.mongodb.test.autoconfigure
+      recursive: true
+  # spring-boot-mongodb
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.autoconfigure.mongo
       newPackageName: org.springframework.boot.mongodb.autoconfigure
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.data.mongo
+      newPackageName: org.springframework.boot.mongodb.autoconfigure.health
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.autoconfigure.metrics.mongo
+      newPackageName: org.springframework.boot.mongodb.autoconfigure.metrics
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.actuate.data.mongo
+      newPackageName: org.springframework.boot.mongodb.health
       recursive: true
   # spring-boot-kafka
   - org.openrewrite.java.ChangeType:
@@ -350,6 +436,16 @@ recipeList:
       oldPackageName: org.springframework.boot.test.autoconfigure.web.servlet
       newPackageName: org.springframework.boot.webmvc.test.autoconfigure
       recursive: true
+  # spring-boot-webflux-test: the @WebFluxTest slice, type-by-type since the WebTestClient types below share the SB3 package but move to spring-boot-webtestclient instead
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.WebFluxTest
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.AutoConfigureWebFlux
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTypeExcludeFilter
+      newFullyQualifiedTypeName: org.springframework.boot.webflux.test.autoconfigure.WebFluxTypeExcludeFilter
   # spring-boot-webtestclient (originating from spring-boot-test-autoconfigure and spring-boot-test)
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -469,7 +565,71 @@ recipeList:
       methodPattern: org.springframework.boot.health.contributor.HealthIndicator getHealth(..)
       newMethodName: health
       matchOverrides: true
-      ignoreDefinition: false
+  # spring-boot-jackson
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+      newFullyQualifiedTypeName: org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbTest
+displayName: Add `spring-boot-starter-data-mongodb-test` for imperative MongoDB tests
+description: >-
+  Adds the dedicated Spring Boot 4.0 imperative Spring Data MongoDB test starter when the
+  application directly uses the imperative Spring Data MongoDB starter and MongoDB test slices.
+preconditions:
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb
+  - org.openrewrite.Singleton
+recipeList:
+  # This recipe is independently invocable, so check both the pre- and post-`ChangePackage`
+  # annotation package to catch usage whether the package migration has already run.
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.data.mongo.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.data.mongodb.test.autoconfigure.*
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.AddSpringBootStarterDataMongoDbReactiveTest
+displayName: Add `spring-boot-starter-data-mongodb-reactive-test` for reactive MongoDB tests
+description: >-
+  Adds the dedicated Spring Boot 4.0 reactive Spring Data MongoDB test starter when the
+  application directly uses the reactive Spring Data MongoDB starter and MongoDB test slices.
+preconditions:
+  - org.openrewrite.java.dependencies.FindDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-reactive
+  - org.openrewrite.Singleton
+recipeList:
+  # This recipe is independently invocable, so check both the pre- and post-`ChangePackage`
+  # annotation package to catch usage whether the package migration has already run.
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-reactive-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.data.mongo.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-data-mongodb-reactive-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.data.mongodb.test.autoconfigure.*
+
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot4.AddSpringBootStarterFlyway
@@ -487,3 +647,104 @@ recipeList:
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: "*..*" # https://github.com/openrewrite/rewrite/issues/6468
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.RelocateWebServerClasses
+displayName: Relocate Spring Boot web server classes to their Spring Boot 4.0 packages
+description: >-
+  Spring Boot 4.0 relocated the embedded web server (Tomcat, Jetty) and web server
+  application context classes into dedicated modular packages. This recipe updates
+  references to the relocated classes' new fully-qualified names, including the servlet
+  and reactive `WebServerFactory` variants, which moved into `servlet` and `reactive`
+  subpackages. Undertow support was removed in Spring Boot 4.0 and is intentionally not
+  handled here.
+tags:
+  - spring
+  - boot
+recipeList:
+  # Embedded Tomcat: org.springframework.boot.web.embedded.tomcat -> org.springframework.boot.tomcat
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.CompressionConnectorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.CompressionConnectorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.ConfigurableTomcatWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.ConfigurableTomcatWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.ConnectorStartFailedException
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.ConnectorStartFailureAnalyzer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.ConnectorStartFailureAnalyzer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.DisableReferenceClearingContextCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.DisableReferenceClearingContextCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.LazySessionIdGenerator
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.LazySessionIdGenerator
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.SslConnectorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.SslConnectorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatConnectorCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatContextCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedContext
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatEmbeddedContext
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatEmbeddedWebappClassLoader
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatProtocolHandlerCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatWebServer
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.TomcatWebServer
+  # The servlet and reactive factories moved one level deeper, into dedicated subpackages.
+  # `org.springframework.boot.tomcat.TomcatWebServerFactory` is a new shared base class, not
+  # a replacement for either of them.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.tomcat.TomcatReactiveWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.tomcat.reactive.TomcatReactiveWebServerFactory
+  # Embedded Jetty: org.springframework.boot.web.embedded.jetty -> org.springframework.boot.jetty
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.ConfigurableJettyWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.ConfigurableJettyWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.ForwardHeadersCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.ForwardHeadersCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.JettyServerCustomizer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyWebServer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.JettyWebServer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.SslServerCustomizer
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.SslServerCustomizer
+  # As with Tomcat, the servlet and reactive factories moved into dedicated subpackages.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.servlet.JettyServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.embedded.jetty.JettyReactiveWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.jetty.reactive.JettyReactiveWebServerFactory
+  # The common servlet factory interfaces moved alongside the servlet server settings.
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.web.servlet.server.ServletWebServerFactory
+      newFullyQualifiedTypeName: org.springframework.boot.web.server.servlet.ServletWebServerFactory
+  # Servlet and reactive application context packages moved wholesale under web.server.
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.web.servlet.context
+      newPackageName: org.springframework.boot.web.server.servlet.context
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.web.reactive.context
+      newPackageName: org.springframework.boot.web.server.reactive.context

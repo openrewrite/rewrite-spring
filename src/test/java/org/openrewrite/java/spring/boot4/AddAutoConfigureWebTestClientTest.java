@@ -31,7 +31,7 @@ class AddAutoConfigureWebTestClientTest implements RewriteTest {
         spec.recipe(new AddAutoConfigureWebTestClient())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-test-3",
+              "spring-boot-test-3.2",
               "spring-beans-6")
             .dependsOn(
               """
@@ -48,6 +48,12 @@ class AddAutoConfigureWebTestClientTest implements RewriteTest {
               """
                 package org.springframework.boot.webtestclient.autoconfigure;
                 public @interface AutoConfigureWebTestClient {}
+                """,
+              """
+                package org.springframework.boot.test.autoconfigure.web.reactive;
+                public @interface AutoConfigureWebTestClient {
+                    String timeout() default "";
+                }
                 """));
     }
 
@@ -127,6 +133,28 @@ class AddAutoConfigureWebTestClientTest implements RewriteTest {
                   void setUp() {
                       webTestClient = WebTestClient.bindToServer().build();
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldNotAddAnnotationIfSpringBoot3AnnotationPresent() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.beans.factory.annotation.Autowired;
+              import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+              import org.springframework.boot.test.context.SpringBootTest;
+              import org.springframework.test.web.reactive.server.WebTestClient;
+
+              @AutoConfigureWebTestClient(timeout = "3600000")
+              @SpringBootTest
+              class CalendarApplicationTests {
+                  @Autowired
+                  WebTestClient webTestClient;
               }
               """
           )

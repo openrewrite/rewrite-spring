@@ -356,6 +356,10 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                   User getUser(String first, String last) {
                       return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", new Object[]{ first, last }, User.class);
                   }
+
+                  User getUserWithoutSpaces(String first, String last) {
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", new Object[]{first, last}, User.class);
+                  }
               }
               """,
             """
@@ -366,6 +370,10 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                   JdbcTemplate jdbcTemplate;
 
                   User getUser(String first, String last) {
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, first, last);
+                  }
+
+                  User getUserWithoutSpaces(String first, String last) {
                       return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, first, last);
                   }
               }

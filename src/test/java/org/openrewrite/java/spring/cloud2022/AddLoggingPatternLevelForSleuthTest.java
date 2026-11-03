@@ -59,7 +59,7 @@ class AddLoggingPatternLevelForSleuthTest implements RewriteTest {
               """
                 foo=bar
                 # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
-                logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+                logging.pattern.level=%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
                 """,
               s -> s.path("src/main/resources/application.properties")
             ),
@@ -70,7 +70,7 @@ class AddLoggingPatternLevelForSleuthTest implements RewriteTest {
                 logging:
                   pattern:
                     # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
-                    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+                    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
                 """,
               s -> s.path("src/main/resources/application.yml")
             )
