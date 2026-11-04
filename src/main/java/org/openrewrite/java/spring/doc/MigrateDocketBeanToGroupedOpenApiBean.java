@@ -44,8 +44,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     private static final TypeMatcher DOCKET_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.Docket");
     private static final TypeMatcher DOCUMENTATIONTYPE_TYPEMATCHER = new TypeMatcher("springfox.documentation.spi.DocumentationType");
     private static final TypeMatcher APISELECTORBUILDER_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.ApiSelectorBuilder");
-    private static final ArgumentExtractor REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors any()", true), new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors basePackage(..)", true)));
-    private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true)));
+    private static final List<MethodMatcher> REQUESTHANDLERSELECTORS_MATCHERS = Arrays.asList(new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors any()", true), new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors basePackage(..)", true));
+    private static final List<MethodMatcher> PATHSELECTOR_MATCHERS = Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true));
     private static final MethodMatcher WITH_METHOD_ANNOTATION = new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors withMethodAnnotation(..)", true);
     private static final MethodMatcher WITH_CLASS_ANNOTATION = new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors withClassAnnotation(..)", true);
     private static final MethodMatcher PREDICATE_NEGATE = new MethodMatcher("java.util.function.Predicate negate()", true);
@@ -183,7 +183,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     }
                     if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                             "paths".equals(mi.getSimpleName())) {
-                        PATHSELECTOR_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setPaths));
+                        new ArgumentExtractor(PATHSELECTOR_MATCHERS).visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setPaths));
                     } else if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                             "apis".equals(mi.getSimpleName())) {
                         Expression arg = mi.getArguments().get(0);
@@ -191,7 +191,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                         if (filter != null) {
                             builder.addAnnotationFilter(filter);
                         } else {
-                            REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setApis));
+                            new ArgumentExtractor(REQUESTHANDLERSELECTORS_MATCHERS).visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setApis));
                         }
                     } else if (DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                             "groupName".equals(mi.getSimpleName())) {
