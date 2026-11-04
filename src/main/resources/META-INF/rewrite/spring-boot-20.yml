@@ -110,6 +110,7 @@ recipeList:
   - org.openrewrite.java.spring.boot2.SpringBoot2BestPractices
   - org.openrewrite.apache.commons.lang.UpgradeApacheCommonsLang_2_3
   - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
+  - org.openrewrite.java.spring.data.MigrateCrudRepositoryMethods
   - org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_2_0
 ---
 type: specs.openrewrite.org/v1beta/recipe
