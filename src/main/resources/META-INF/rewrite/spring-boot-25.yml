@@ -102,7 +102,14 @@ description: >-
   Spring Boot upgrade and never reaches Groovy 3 on its own. Spock refuses to run on a Groovy it was not built for, so
   Groovy and Spock have to move together, wherever in the repository their versions are set.
 preconditions:
-  - org.openrewrite.java.spring.boot2.search.RepositoryPinsGroovyAllForSpock
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.codehaus.groovy
+      artifactId: groovy-all
+      belowMajorVersion: 3
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.spockframework
+      artifactId: "*"
+      belowMajorVersion: 2
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.codehaus.groovy
@@ -154,6 +161,22 @@ recipeList:
       artifactId: "*"
       newVersion: 2.0-groovy-3.0
       overrideManagedVersion: true
+  - org.openrewrite.java.spring.boot2.ExcludeTestNgFromGroovyAllForSpock2
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.ExcludeTestNgFromGroovyAllForSpock2
+displayName: Keep TestNG from `groovy-all` away from Spock 2
+description: >-
+  A repository moving off Spock 1.x with `groovy-all` on the classpath gets TestNG through it, and Surefire before 3.0
+  then finds no Spock 2 specifications, so the build passes without running any of them. Spock 1.x ran on JUnit 4 and
+  kept working, which is why this only surfaces with the upgrade.
+preconditions:
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.spockframework
+      artifactId: "*"
+      belowMajorVersion: 2
+recipeList:
+  - org.openrewrite.java.spring.boot2.DeclareGroovyAllAsPomWithoutTestNg
 ---
 ########################################################################################################################
 # SpringBoot 2.5 Search Recipes

@@ -201,6 +201,12 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                     <artifactId>groovy-all</artifactId>
                     <version>3.0.9</version>
                     <type>pom</type>
+                    <exclusions>
+                      <exclusion>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-testng</artifactId>
+                      </exclusion>
+                    </exclusions>
                   </dependency>
                   <dependency>
                     <groupId>org.spockframework</groupId>
@@ -211,6 +217,106 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                 </dependencies>
               </project>
               """
+          )
+        );
+    }
+
+    @Test
+    void groovyAllInParentAndSpockInModule() {
+        rewriteRun(
+          mavenProject("parent",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>parent</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <packaging>pom</packaging>
+                  <modules>
+                    <module>child</module>
+                  </modules>
+                  <dependencies>
+                    <dependency>
+                      <groupId>org.codehaus.groovy</groupId>
+                      <artifactId>groovy-all</artifactId>
+                      <version>3.0.9</version>
+                      <type>pom</type>
+                    </dependency>
+                  </dependencies>
+                </project>
+                """,
+              """
+                <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>parent</artifactId>
+                  <version>0.0.1-SNAPSHOT</version>
+                  <packaging>pom</packaging>
+                  <modules>
+                    <module>child</module>
+                  </modules>
+                  <dependencies>
+                    <dependency>
+                      <groupId>org.codehaus.groovy</groupId>
+                      <artifactId>groovy-all</artifactId>
+                      <version>3.0.9</version>
+                      <type>pom</type>
+                      <exclusions>
+                        <exclusion>
+                          <groupId>org.codehaus.groovy</groupId>
+                          <artifactId>groovy-testng</artifactId>
+                        </exclusion>
+                      </exclusions>
+                    </dependency>
+                  </dependencies>
+                </project>
+                """
+            ),
+            mavenProject("child",
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>parent</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                    </parent>
+                    <artifactId>child</artifactId>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.spockframework</groupId>
+                        <artifactId>spock-core</artifactId>
+                        <version>1.3-groovy-2.5</version>
+                        <scope>test</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """,
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                      <groupId>com.example</groupId>
+                      <artifactId>parent</artifactId>
+                      <version>0.0.1-SNAPSHOT</version>
+                    </parent>
+                    <artifactId>child</artifactId>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.spockframework</groupId>
+                        <artifactId>spock-core</artifactId>
+                        <version>2.0-groovy-3.0</version>
+                        <scope>test</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """
+              )
+            )
           )
         );
     }
@@ -253,6 +359,7 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                 assertThat(actual)
                   .contains("<version>${groovy.version}</version>")
                   .contains("<version>2.0-groovy-3.0</version>")
+                  .contains("<artifactId>groovy-testng</artifactId>")
                   .doesNotContain("<groovy.version>");
                 return actual;
             })
@@ -1391,6 +1498,62 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                     }
                     """
                 )
+              )
+            );
+        }
+
+        @Test
+        void groovyAllOnGroovy3WithoutSpock() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <version>3.0.9</version>
+                        <type>pom</type>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """
+              )
+            );
+        }
+
+        @Test
+        void groovyAllWithNewerSpock() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <version>3.0.9</version>
+                        <type>pom</type>
+                      </dependency>
+                      <dependency>
+                        <groupId>org.spockframework</groupId>
+                        <artifactId>spock-core</artifactId>
+                        <version>2.1-groovy-3.0</version>
+                        <scope>test</scope>
+                      </dependency>
+                    </dependencies>
+                  </project>
+                  """
               )
             );
         }

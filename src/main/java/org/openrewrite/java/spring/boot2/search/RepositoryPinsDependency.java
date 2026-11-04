@@ -19,12 +19,14 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Option;
 import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.gradle.trait.GradleMultiDependency;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
@@ -34,39 +36,55 @@ import org.openrewrite.maven.tree.ManagedDependency;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Pom;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @EqualsAndHashCode(callSuper = false)
 @Value
-public class RepositoryPinsGroovyAllForSpock extends ScanningRecipe<RepositoryPinsGroovyAllForSpock.Accumulator> {
+public class RepositoryPinsDependency extends ScanningRecipe<AtomicBoolean> {
+    private static final Pattern MAJOR_VERSION = Pattern.compile("^(\\d+)\\.");
 
-    String displayName = "Repository pins `groovy-all` for Spock 1.x";
+    @Option(displayName = "Group ID",
+            description = "The first part of a dependency coordinate `org.spockframework:spock-core:VERSION`.",
+            example = "org.spockframework")
+    String groupId;
 
-    String description = "Marks every source file of a repository that declares both `groovy-all` below Groovy 3 and " +
-            "Spock 1.x in a way `UpgradeDependencyVersion` can change, so that the two can move together. A version " +
-            "the repository inherits, keeps in a map or declares for a configuration its project does not have stays " +
-            "where it is, and upgrading only the other one would leave Groovy and Spock apart. Every source file is " +
-            "marked because such a pin can live in a parent POM or a `gradle.properties` that no dependency search " +
-            "would match. This recipe is intended to be used as a precondition for other recipes.";
+    @Option(displayName = "Artifact ID",
+            description = "The second part of a dependency coordinate `org.spockframework:spock-core:VERSION`. " +
+                          "This can be a glob expression.",
+            example = "spock-*")
+    String artifactId;
 
-    public static class Accumulator {
-        boolean pinsGroovyAll;
-        boolean pinsSpock1;
+    @Option(displayName = "Below major version",
+            description = "Only a version with a lower major version counts.",
+            example = "2")
+    int belowMajorVersion;
+
+    String displayName = "Repository pins a dependency below a major version";
+
+    String description = "Marks every source file of a repository that declares a dependency below a major version " +
+            "in a way `UpgradeDependencyVersion` can change. A version the repository inherits, keeps in a map or " +
+            "declares for a configuration its project does not have does not count, since it would stay where it " +
+            "is. Every source file is marked because such a pin can live in a parent POM or a `gradle.properties` " +
+            "that no dependency search would match. This recipe is intended to be used as a precondition for other " +
+            "recipes.";
+
+    @Override
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
+        return new AtomicBoolean();
     }
 
     @Override
-    public Accumulator getInitialValue(ExecutionContext ctx) {
-        return new Accumulator();
-    }
-
-    @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(Accumulator acc) {
+    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean pinned) {
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree != null) {
-                    tree.getMarkers().findFirst(MavenResolutionResult.class).ifPresent(mrr -> scan(mrr, acc));
+                if (tree != null && !pinned.get()) {
+                    tree.getMarkers().findFirst(MavenResolutionResult.class).ifPresent(mrr -> scan(mrr, pinned));
                     if (tree instanceof JavaSourceFile) {
                         tree.getMarkers().findFirst(GradleProject.class).ifPresent(project ->
-                                scan((JavaSourceFile) tree, project, acc, ctx));
+                                scan((JavaSourceFile) tree, project, pinned, ctx));
                     }
                 }
                 return tree;
@@ -75,8 +93,8 @@ public class RepositoryPinsGroovyAllForSpock extends ScanningRecipe<RepositoryPi
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(Accumulator acc) {
-        return Preconditions.check(acc.pinsGroovyAll && acc.pinsSpock1, new TreeVisitor<Tree, ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean pinned) {
+        return Preconditions.check(pinned.get(), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 return tree == null ? null : SearchResult.found(tree);
@@ -84,21 +102,21 @@ public class RepositoryPinsGroovyAllForSpock extends ScanningRecipe<RepositoryPi
         });
     }
 
-    private static void scan(MavenResolutionResult mrr, Accumulator acc) {
+    private void scan(MavenResolutionResult mrr, AtomicBoolean pinned) {
         Pom requested = mrr.getPom().getRequested();
         for (Dependency dependency : requested.getDependencies()) {
-            scan(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), mrr, acc);
+            scan(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), mrr, pinned);
         }
         for (ManagedDependency managed : requested.getDependencyManagement()) {
-            scan(managed.getGroupId(), managed.getArtifactId(), managed.getVersion(), mrr, acc);
+            scan(managed.getGroupId(), managed.getArtifactId(), managed.getVersion(), mrr, pinned);
         }
     }
 
-    private static void scan(@Nullable String groupId, String artifactId, @Nullable String version,
-                             MavenResolutionResult mrr, Accumulator acc) {
+    private void scan(@Nullable String group, String artifact, @Nullable String version,
+                      MavenResolutionResult mrr, AtomicBoolean pinned) {
         if (version != null && !(version.startsWith("${") && version.endsWith("}") &&
                                  !declaresProperty(version.substring(2, version.length() - 1), mrr))) {
-            record(groupId, artifactId, mrr.getPom().getValue(version), acc);
+            record(group, artifact, mrr.getPom().getValue(version), pinned);
         }
     }
 
@@ -115,7 +133,7 @@ public class RepositoryPinsGroovyAllForSpock extends ScanningRecipe<RepositoryPi
         return false;
     }
 
-    private static void scan(JavaSourceFile buildScript, GradleProject project, Accumulator acc, ExecutionContext ctx) {
+    private void scan(JavaSourceFile buildScript, GradleProject project, AtomicBoolean pinned, ExecutionContext ctx) {
         new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext c) {
@@ -123,7 +141,7 @@ public class RepositoryPinsGroovyAllForSpock extends ScanningRecipe<RepositoryPi
                     String variable = dependency.getVersionVariable();
                     if (project.getConfiguration(dependency.getConfigurationName()) != null &&
                         (variable == null || !variable.contains("."))) {
-                        record(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), acc);
+                        record(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), pinned);
                     }
                 }));
                 return super.visitMethodInvocation(method, c);
@@ -131,14 +149,12 @@ public class RepositoryPinsGroovyAllForSpock extends ScanningRecipe<RepositoryPi
         }.visit(buildScript, ctx);
     }
 
-    private static void record(@Nullable String groupId, String artifactId, @Nullable String version, Accumulator acc) {
-        if (version == null) {
-            return;
-        }
-        if ("org.codehaus.groovy".equals(groupId) && "groovy-all".equals(artifactId)) {
-            acc.pinsGroovyAll |= version.startsWith("1.") || version.startsWith("2.");
-        } else if ("org.spockframework".equals(groupId)) {
-            acc.pinsSpock1 |= version.startsWith("0.") || version.startsWith("1.");
+    private void record(@Nullable String group, String artifact, @Nullable String version, AtomicBoolean pinned) {
+        if (version != null && groupId.equals(group) && StringUtils.matchesGlob(artifact, artifactId)) {
+            Matcher major = MAJOR_VERSION.matcher(version);
+            if (major.find() && Integer.parseInt(major.group(1)) < belowMajorVersion) {
+                pinned.set(true);
+            }
         }
     }
 }
