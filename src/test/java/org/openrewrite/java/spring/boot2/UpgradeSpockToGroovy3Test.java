@@ -1237,6 +1237,159 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
         }
     }
 
+    /**
+     * Spock 1.x ran on JUnit 4 and Spock 2 runs on the JUnit Platform, so a repository that already has Groovy 3 and
+     * only moves Spock would pass its build without running a single specification.
+     */
+    @Nested
+    class KeepSpecificationsRunningOnGroovy3 {
+
+        @Test
+        void gradleMovesToJUnitPlatform() {
+            rewriteRun(
+              spec -> spec.beforeRecipe(withToolingApi()),
+              //language=groovy
+              buildGradle(
+                """
+                  plugins {
+                    id 'groovy'
+                  }
+
+                  repositories {
+                    mavenCentral()
+                  }
+
+                  dependencies {
+                    implementation 'org.codehaus.groovy:groovy:3.0.9'
+                    testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+                  }
+                  """,
+                """
+                  plugins {
+                    id 'groovy'
+                  }
+
+                  repositories {
+                    mavenCentral()
+                  }
+
+                  dependencies {
+                    implementation 'org.codehaus.groovy:groovy:3.0.9'
+                    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+                  }
+                  tasks.withType(Test).configureEach {
+                      useJUnitPlatform()
+                  }
+                  """
+              )
+            );
+        }
+
+        /**
+         * Only the module on Groovy 3 moves to Spock 2. The other stays on Spock 1.x, which the JUnit Platform would
+         * stop running.
+         */
+        @Test
+        void gradleModuleStayingOnSpock1KeepsItsTestRunner() {
+            rewriteRun(
+              spec -> spec.beforeRecipe(withToolingApi()),
+              settingsGradle(
+                """
+                  rootProject.name = 'demo'
+                  include 'moving', 'staying'
+                  """
+              ),
+              mavenProject("moving",
+                //language=groovy
+                buildGradle(
+                  """
+                    plugins {
+                      id 'groovy'
+                    }
+
+                    repositories {
+                      mavenCentral()
+                    }
+
+                    dependencies {
+                      implementation 'org.codehaus.groovy:groovy:3.0.9'
+                      testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+                    }
+                    """,
+                  spec -> spec.after(actual -> {
+                      assertThat(actual).contains("useJUnitPlatform()", "spock-core:2.0-groovy-3.0");
+                      return actual;
+                  })
+                )
+              ),
+              mavenProject("staying",
+                //language=groovy
+                buildGradle(
+                  """
+                    plugins {
+                      id 'groovy'
+                    }
+
+                    repositories {
+                      mavenCentral()
+                    }
+
+                    dependencies {
+                      implementation 'org.codehaus.groovy:groovy:2.5.14'
+                      testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void surefireBelowJUnitPlatformSupport() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy</artifactId>
+                        <version>3.0.9</version>
+                      </dependency>
+                      <dependency>
+                        <groupId>org.spockframework</groupId>
+                        <artifactId>spock-core</artifactId>
+                        <version>1.3-groovy-2.5</version>
+                        <scope>test</scope>
+                      </dependency>
+                    </dependencies>
+                    <build>
+                      <plugins>
+                        <plugin>
+                          <groupId>org.apache.maven.plugins</groupId>
+                          <artifactId>maven-surefire-plugin</artifactId>
+                          <version>2.20</version>
+                        </plugin>
+                      </plugins>
+                    </build>
+                  </project>
+                  """,
+                spec -> spec.after(actual -> {
+                    assertThat(actual)
+                      .contains("<version>2.22.2</version>", "<version>2.0-groovy-3.0</version>")
+                      .doesNotContain("<version>2.20</version>");
+                    return actual;
+                })
+              )
+            );
+        }
+    }
+
     @Nested
     class NoChange {
 
@@ -1380,6 +1533,148 @@ class UpgradeSpockToGroovy3Test implements RewriteTest {
                         <scope>test</scope>
                       </dependency>
                     </dependencies>
+                  </project>
+                  """
+              )
+            );
+        }
+
+        /**
+         * A repository already on Spock 2 is not moving, so the upgrade has no reason to change how it runs its tests.
+         */
+        @Test
+        void gradleAlreadyOnSpock2KeepsItsTestRunner() {
+            rewriteRun(
+              spec -> spec.beforeRecipe(withToolingApi()),
+              //language=groovy
+              buildGradle(
+                """
+                  plugins {
+                    id 'groovy'
+                  }
+
+                  repositories {
+                    mavenCentral()
+                  }
+
+                  dependencies {
+                    implementation 'org.codehaus.groovy:groovy:3.0.9'
+                    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+                  }
+                  """
+              )
+            );
+        }
+
+        /**
+         * With Groovy 3 already on the classpath the upgrade only reaches the files of a module that resolves it, which
+         * a `gradle.properties` is not. Spock stays on 1.x, which the JUnit Platform would stop running.
+         */
+        @Test
+        void gradleVersionInGradlePropertiesOnGroovy3() {
+            rewriteRun(
+              spec -> spec.beforeRecipe(withToolingApi()),
+              mavenProject("demo",
+                //language=properties
+                properties(
+                  """
+                    spockVersion=1.3-groovy-2.5
+                    """,
+                  spec -> spec.path("gradle.properties")
+                ),
+                //language=groovy
+                buildGradle(
+                  """
+                    plugins {
+                      id 'groovy'
+                    }
+
+                    repositories {
+                      mavenCentral()
+                    }
+
+                    dependencies {
+                      implementation 'org.codehaus.groovy:groovy:3.0.9'
+                      testImplementation "org.spockframework:spock-core:${spockVersion}"
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Test
+        void surefireAlreadyOnSpock2() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy</artifactId>
+                        <version>3.0.9</version>
+                      </dependency>
+                      <dependency>
+                        <groupId>org.spockframework</groupId>
+                        <artifactId>spock-core</artifactId>
+                        <version>2.1-groovy-3.0</version>
+                        <scope>test</scope>
+                      </dependency>
+                    </dependencies>
+                    <build>
+                      <plugins>
+                        <plugin>
+                          <groupId>org.apache.maven.plugins</groupId>
+                          <artifactId>maven-surefire-plugin</artifactId>
+                          <version>2.20</version>
+                        </plugin>
+                      </plugins>
+                    </build>
+                  </project>
+                  """
+              )
+            );
+        }
+
+        @Test
+        void surefireWhenSpock1StaysOnGroovy25() {
+            rewriteRun(
+              //language=xml
+              pomXml(
+                """
+                  <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                      <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy</artifactId>
+                        <version>2.5.14</version>
+                      </dependency>
+                      <dependency>
+                        <groupId>org.spockframework</groupId>
+                        <artifactId>spock-core</artifactId>
+                        <version>1.3-groovy-2.5</version>
+                        <scope>test</scope>
+                      </dependency>
+                    </dependencies>
+                    <build>
+                      <plugins>
+                        <plugin>
+                          <groupId>org.apache.maven.plugins</groupId>
+                          <artifactId>maven-surefire-plugin</artifactId>
+                          <version>2.20</version>
+                        </plugin>
+                      </plugins>
+                    </build>
                   </project>
                   """
               )
