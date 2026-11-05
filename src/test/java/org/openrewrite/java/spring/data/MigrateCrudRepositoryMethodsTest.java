@@ -1324,6 +1324,411 @@ class MigrateCrudRepositoryMethodsTest implements RewriteTest {
         }
     }
 
+    /**
+     * `findOne` of a query keeps its name on Spring Data 2.x and only starts to return an `Optional`.
+     */
+    @Nested
+    class FindOneOfAQuery {
+
+        private static final String JPA_SPECIFICATION_EXECUTOR =
+          //language=java
+          """
+            package org.springframework.data.jpa.repository;
+
+            import org.springframework.data.jpa.domain.Specification;
+
+            public interface JpaSpecificationExecutor<T> {
+                T findOne(Specification<T> spec);
+            }
+            """;
+
+        private static final String SPECIFICATION =
+          "package org.springframework.data.jpa.domain; public interface Specification<T> {}";
+
+        private static final String QUERYDSL_PREDICATE =
+          "package com.querydsl.core.types; public interface Predicate {}";
+
+        private static final String QUERYDSL_ORDER_SPECIFIER =
+          "package com.querydsl.core.types; public class OrderSpecifier<T extends Comparable> {}";
+
+        @Test
+        void bySpecification() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13", "mockito-core")
+                .dependsOn(SPECIFICATION, JPA_SPECIFICATION_EXECUTOR)),
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.Repository;
+                  import java.util.Optional;
+
+                  import static org.mockito.Mockito.verify;
+                  import static org.mockito.Mockito.when;
+
+                  interface UserRepository extends Repository<User, Long>, JpaSpecificationExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Specification<User> spec) {
+                          return users.findOne(spec);
+                      }
+
+                      Optional<User> maybe(Specification<User> spec) {
+                          return Optional.ofNullable(users.findOne(spec));
+                      }
+
+                      void stub(Specification<User> spec, User user) {
+                          when(users.findOne(spec)).thenReturn(user);
+                          verify(users).findOne(spec);
+                      }
+                  }
+                  """,
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.Repository;
+                  import java.util.Optional;
+
+                  import static org.mockito.Mockito.verify;
+                  import static org.mockito.Mockito.when;
+
+                  interface UserRepository extends Repository<User, Long>, JpaSpecificationExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Specification<User> spec) {
+                          return users.findOne(spec).orElse(null);
+                      }
+
+                      Optional<User> maybe(Specification<User> spec) {
+                          return users.findOne(spec);
+                      }
+
+                      void stub(Specification<User> spec, User user) {
+                          when(users.findOne(spec)).thenReturn(Optional.ofNullable(user));
+                          verify(users).findOne(spec);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void byExample() {
+            rewriteRun(
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.domain.Example;
+                  import org.springframework.data.repository.CrudRepository;
+                  import org.springframework.data.repository.query.QueryByExampleExecutor;
+
+                  interface UserRepository extends CrudRepository<User, Long>, QueryByExampleExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Example<User> example) {
+                          return users.findOne(example);
+                      }
+                  }
+                  """,
+                """
+                  import com.acme.User;
+                  import org.springframework.data.domain.Example;
+                  import org.springframework.data.repository.CrudRepository;
+                  import org.springframework.data.repository.query.QueryByExampleExecutor;
+
+                  interface UserRepository extends CrudRepository<User, Long>, QueryByExampleExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Example<User> example) {
+                          return users.findOne(example).orElse(null);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void byPredicate() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13")
+                .dependsOn(QUERYDSL_PREDICATE, QUERYDSL_ORDER_SPECIFIER)),
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import com.querydsl.core.types.Predicate;
+                  import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+                  import org.springframework.data.repository.CrudRepository;
+
+                  interface UserRepository extends CrudRepository<User, Long>, QueryDslPredicateExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Predicate predicate) {
+                          return users.findOne(predicate);
+                      }
+                  }
+                  """,
+                """
+                  import com.acme.User;
+                  import com.querydsl.core.types.Predicate;
+                  import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+                  import org.springframework.data.repository.CrudRepository;
+
+                  interface UserRepository extends CrudRepository<User, Long>, QueryDslPredicateExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Predicate predicate) {
+                          return users.findOne(predicate).orElse(null);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void redeclaredByARepository() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13")
+                .dependsOn(SPECIFICATION, JPA_SPECIFICATION_EXECUTOR)),
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.Repository;
+
+                  interface UserRepository extends Repository<User, Long>, JpaSpecificationExecutor<User> {
+                      @Override
+                      User findOne(Specification<User> spec);
+                  }
+                  """,
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.Repository;
+
+                  import java.util.Optional;
+
+                  interface UserRepository extends Repository<User, Long>, JpaSpecificationExecutor<User> {
+                      @Override
+                      Optional<User> findOne(Specification<User> spec);
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void idOverloadOnARepositoryWithBoth() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13")
+                .dependsOn(SPECIFICATION, JPA_SPECIFICATION_EXECUTOR)),
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.CrudRepository;
+
+                  interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Long id, Specification<User> spec) {
+                          User found = users.findOne(id);
+                          return found == null ? users.findOne(spec) : found;
+                      }
+                  }
+                  """,
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.CrudRepository;
+
+                  interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Long id, Specification<User> spec) {
+                          User found = users.findById(id).orElse(null);
+                          return found == null ? users.findOne(spec).orElse(null) : found;
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void redeclaredIdOverloadOnARepositoryWithBoth() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13")
+                .dependsOn(SPECIFICATION, JPA_SPECIFICATION_EXECUTOR)),
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.CrudRepository;
+
+                  interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User> {
+                      @Override
+                      User findOne(Long id);
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Long id) {
+                          return users.findOne(id);
+                      }
+                  }
+                  """,
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+                  import org.springframework.data.repository.CrudRepository;
+
+                  import java.util.Optional;
+
+                  interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User> {
+                      @Override
+                      Optional<User> findById(Long id);
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      User find(Long id) {
+                          return users.findById(id).orElse(null);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void overrideWithABodyIsLeftWithItsCallers() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion()
+                .classpathFromResources(new InMemoryExecutionContext(), "spring-data-commons-1.13")
+                .dependsOn(SPECIFICATION, JPA_SPECIFICATION_EXECUTOR)),
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.jpa.domain.Specification;
+                  import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+                  abstract class Users implements JpaSpecificationExecutor<User> {
+                      @Override
+                      public User findOne(Specification<User> spec) {
+                          return null;
+                      }
+
+                      User first(Specification<User> spec) {
+                          return this.findOne(spec);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void methodReferenceIsLeftForTheCompilerToPointOut() {
+            rewriteRun(
+              USER,
+              java(
+                """
+                  import com.acme.User;
+                  import org.springframework.data.domain.Example;
+                  import org.springframework.data.repository.CrudRepository;
+                  import org.springframework.data.repository.query.QueryByExampleExecutor;
+                  import java.util.function.Function;
+
+                  interface UserRepository extends CrudRepository<User, Long>, QueryByExampleExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+                      Function<Example<User>, User> finder = users::findOne;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void alreadyOnSpringData2() {
+            rewriteRun(
+              spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+                "spring-data-commons-2.7")),
+              java(
+                """
+                  import org.springframework.data.domain.Example;
+                  import org.springframework.data.repository.CrudRepository;
+                  import org.springframework.data.repository.query.QueryByExampleExecutor;
+                  import java.util.Optional;
+
+                  class User {
+                  }
+
+                  interface UserRepository extends CrudRepository<User, Long>, QueryByExampleExecutor<User> {
+                  }
+
+                  class UserService {
+                      UserRepository users;
+
+                      Optional<User> find(Example<User> example) {
+                          return users.findOne(example);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+    }
+
     @Nested
     class NotTheMethodsThatWereRenamed {
 
@@ -1356,7 +1761,7 @@ class MigrateCrudRepositoryMethodsTest implements RewriteTest {
         }
 
         @Test
-        void queryByExample() {
+        void existsByExampleKeepsItsName() {
             rewriteRun(
               USER,
               java(
@@ -1374,10 +1779,6 @@ class MigrateCrudRepositoryMethodsTest implements RewriteTest {
 
                       boolean has(Example<User> example) {
                           return users.exists(example);
-                      }
-
-                      User find(Example<User> example) {
-                          return users.findOne(example);
                       }
                   }
                   """

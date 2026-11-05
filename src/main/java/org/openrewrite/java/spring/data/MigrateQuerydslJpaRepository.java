@@ -21,6 +21,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -29,6 +30,8 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MigrateQuerydslJpaRepository extends Recipe {
@@ -47,9 +50,46 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                if (isUsedAsRepository(cu)) {
+                    return cu;
+                }
                 J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
                 doAfterVisit(new ChangeType(originalFqn, targetFqn, false).getVisitor());
                 return c;
+            }
+
+            /**
+             * `QuerydslJpaPredicateExecutor` only has the `QuerydslPredicateExecutor` part of `QuerydslJpaRepository`, and
+             * is not a `SimpleJpaRepository`. So a superclass or the base class of a repository factory can't move to it,
+             * and those stay as they are for as long as `QuerydslJpaRepository` exists.
+             */
+            private boolean isUsedAsRepository(J.CompilationUnit cu) {
+                return new JavaIsoVisitor<AtomicBoolean>() {
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean found) {
+                        if (classDecl.getExtends() != null && TypeUtils.isOfClassType(classDecl.getExtends().getType(), originalFqn)) {
+                            found.set(true);
+                        }
+                        return super.visitClassDeclaration(classDecl, found);
+                    }
+
+                    @Override
+                    public J.NewClass visitNewClass(J.NewClass newClass, AtomicBoolean found) {
+                        if (newClass.getBody() != null && newClass.getClazz() != null &&
+                                TypeUtils.isOfClassType(newClass.getClazz().getType(), originalFqn)) {
+                            found.set(true);
+                        }
+                        return super.visitNewClass(newClass, found);
+                    }
+
+                    @Override
+                    public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, AtomicBoolean found) {
+                        if ("class".equals(fieldAccess.getSimpleName()) && TypeUtils.isOfClassType(fieldAccess.getTarget().getType(), originalFqn)) {
+                            found.set(true);
+                        }
+                        return super.visitFieldAccess(fieldAccess, found);
+                    }
+                }.reduce(cu, new AtomicBoolean()).get();
             }
 
             @Override

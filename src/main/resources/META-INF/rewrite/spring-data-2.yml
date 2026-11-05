@@ -16,12 +16,41 @@
 
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.data.UpgradeSpringData_2_0
+displayName: Migrate to Spring Data 2.0
+description: Migrate applications from Spring Data 1.x to Spring Data 2.0.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.spring.data.MigrateAuditorAwareToOptional
+  # Before the renames below, since `findOne(Predicate)` is found on `QueryDslPredicateExecutor`
+  - org.openrewrite.java.spring.data.MigrateCrudRepositoryMethods
+  - org.openrewrite.java.spring.data.MigratePageRequestAndSort
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.querydsl.QueryDslPredicateExecutor
+      newFullyQualifiedTypeName: org.springframework.data.querydsl.QuerydslPredicateExecutor
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.querydsl.QueryDslUtils
+      newFullyQualifiedTypeName: org.springframework.data.querydsl.QuerydslUtils
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.jpa.repository.support.QueryDslJpaRepository
+      newFullyQualifiedTypeName: org.springframework.data.jpa.repository.support.QuerydslJpaRepository
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.jpa.repository.support.QueryDslRepositorySupport
+      newFullyQualifiedTypeName: org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.data.mongodb.repository.support.QueryDslMongoRepository
+      newFullyQualifiedTypeName: org.springframework.data.mongodb.repository.support.QuerydslMongoRepository
+
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.data.UpgradeSpringData_2_3
 displayName: Migrate to Spring Data 2.3
 description: Migrate applications to the latest Spring Data 2.3 release.
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
+  - org.openrewrite.java.spring.data.UpgradeSpringData_2_0
   - org.openrewrite.java.spring.data.MigrateJpaSort
   - org.openrewrite.java.spring.data.MigrateQuerydslJpaRepository
   - org.openrewrite.java.dependencies.AddDependency:
