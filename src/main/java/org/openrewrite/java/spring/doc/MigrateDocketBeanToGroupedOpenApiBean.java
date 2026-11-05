@@ -44,8 +44,8 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     private static final TypeMatcher DOCKET_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.Docket");
     private static final TypeMatcher DOCUMENTATIONTYPE_TYPEMATCHER = new TypeMatcher("springfox.documentation.spi.DocumentationType");
     private static final TypeMatcher APISELECTORBUILDER_TYPEMATCHER = new TypeMatcher("springfox.documentation.spring.web.plugins.ApiSelectorBuilder");
-    private static final ArgumentExtractor REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors any()", true), new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors basePackage(..)", true)));
-    private static final ArgumentExtractor PATHSELECTOR_ARGUMENT_EXTRACTOR = new ArgumentExtractor(Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true)));
+    private static final List<MethodMatcher> REQUESTHANDLERSELECTORS_MATCHERS = Arrays.asList(new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors any()", true), new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors basePackage(..)", true));
+    private static final List<MethodMatcher> PATHSELECTOR_MATCHERS = Arrays.asList(new MethodMatcher("springfox.documentation.builders.PathSelectors any()", true), new MethodMatcher("springfox.documentation.builders.PathSelectors ant(..)", true));
     private static final MethodMatcher WITH_METHOD_ANNOTATION = new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors withMethodAnnotation(..)", true);
     private static final MethodMatcher WITH_CLASS_ANNOTATION = new MethodMatcher("springfox.documentation.builders.RequestHandlerSelectors withClassAnnotation(..)", true);
     private static final MethodMatcher PREDICATE_NEGATE = new MethodMatcher("java.util.function.Predicate negate()", true);
@@ -183,7 +183,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     }
                     if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                             "paths".equals(mi.getSimpleName())) {
-                        PATHSELECTOR_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setPaths));
+                        extractArgument(mi.getArguments(), PATHSELECTOR_MATCHERS, builder, builder::setPaths);
                     } else if (APISELECTORBUILDER_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                             "apis".equals(mi.getSimpleName())) {
                         Expression arg = mi.getArguments().get(0);
@@ -191,7 +191,7 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                         if (filter != null) {
                             builder.addAnnotationFilter(filter);
                         } else {
-                            REQUESTHANDLERSELECTORS_ARGUMENT_EXTRACTOR.visit(mi.getArguments(), new ArgumentExtractor.ArgumentExtractorResult(builder, builder::setApis));
+                            extractArgument(mi.getArguments(), REQUESTHANDLERSELECTORS_MATCHERS, builder, builder::setApis);
                         }
                     } else if (DOCKET_TYPEMATCHER.matches(mi.getSelect().getType()) &&
                             "groupName".equals(mi.getSimpleName())) {
@@ -200,6 +200,30 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                     return mi;
                 }
             }.reduce(md, new DocketDefinition.Builder());
+        }
+
+        private static void extractArgument(List<Expression> arguments, List<MethodMatcher> matchers,
+                                            DocketDefinition.Builder builder, Consumer<Expression> success) {
+            for (Expression argument : arguments) {
+                if (!builder.isValid() || !(argument instanceof J.MethodInvocation) ||
+                        matchers.stream().noneMatch(m -> m.matches((J.MethodInvocation) argument))) {
+                    builder.invalidate();
+                    continue;
+                }
+                new JavaIsoVisitor<Integer>() {
+                    @Override
+                    public J.Literal visitLiteral(J.Literal literal, Integer p) {
+                        success.accept(literal);
+                        return literal;
+                    }
+
+                    @Override
+                    public J.Identifier visitIdentifier(J.Identifier identifier, Integer p) {
+                        success.accept(identifier);
+                        return identifier;
+                    }
+                }.visit(((J.MethodInvocation) argument).getArguments(), 0);
+            }
         }
 
         private static @Nullable AnnotationFilter tryExtractAnnotationFilter(Expression arg) {
@@ -219,48 +243,6 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 return new AnnotationFilter(true, negated, call.getArguments().get(0));
             }
             return null;
-        }
-    }
-
-    @EqualsAndHashCode(callSuper = false)
-    @Value
-    private static class ArgumentExtractor extends JavaIsoVisitor<ArgumentExtractor.ArgumentExtractorResult> {
-
-        List<MethodMatcher> methodMatchers;
-
-        @Override
-        public @Nullable J visit(@Nullable Tree tree, ArgumentExtractorResult argumentExtractorResult) {
-            if (argumentExtractorResult.builder.isValid() &&
-                    tree instanceof J.MethodInvocation &&
-                    methodMatchers.stream().anyMatch(e -> e.matches((J.MethodInvocation) tree))) {
-                return super.visit(tree, argumentExtractorResult);
-            }
-            argumentExtractorResult.builder.invalidate();
-            return (J) tree;
-        }
-
-        @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ArgumentExtractorResult argumentExtractorResult) {
-            new JavaIsoVisitor<ArgumentExtractorResult>() {
-                @Override
-                public J.Literal visitLiteral(J.Literal literal, ArgumentExtractorResult argumentExtractorResult) {
-                    argumentExtractorResult.success.accept(literal);
-                    return literal;
-                }
-
-                @Override
-                public J.Identifier visitIdentifier(J.Identifier identifier, ArgumentExtractorResult argumentExtractorResult) {
-                    argumentExtractorResult.success.accept(identifier);
-                    return identifier;
-                }
-            }.visit(method.getArguments(), argumentExtractorResult);
-            return method;
-        }
-
-        @Value
-        static class ArgumentExtractorResult {
-            DocketDefinition.Builder builder;
-            Consumer<Expression> success;
         }
     }
 
