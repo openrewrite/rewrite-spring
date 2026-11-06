@@ -21,6 +21,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.ChangeType;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -30,6 +31,8 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class MigrateQuerydslJpaRepository extends Recipe {
 
@@ -37,7 +40,8 @@ public class MigrateQuerydslJpaRepository extends Recipe {
     final String displayName = "Use `QuerydslPredicateExecutor<T>`";
 
     @Getter
-    final String description = "`QuerydslJpaRepository<T, ID extends Serializable>` was deprecated in Spring Data 2.1.";
+    final String description = "`QuerydslJpaRepository<T, ID extends Serializable>` was deprecated in Spring Data 2.1. " +
+            "A file with a named subclass of it or its class literal is left as it is, because `QuerydslJpaPredicateExecutor` can't stand in for it there.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -47,6 +51,26 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
             @Override
             public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                boolean usedAsRepository = new JavaIsoVisitor<AtomicBoolean>() {
+                    @Override
+                    public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean found) {
+                        if (classDecl.getExtends() != null && TypeUtils.isOfClassType(classDecl.getExtends().getType(), originalFqn)) {
+                            found.set(true);
+                        }
+                        return super.visitClassDeclaration(classDecl, found);
+                    }
+
+                    @Override
+                    public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, AtomicBoolean found) {
+                        if ("class".equals(fieldAccess.getSimpleName()) && TypeUtils.isOfClassType(fieldAccess.getTarget().getType(), originalFqn)) {
+                            found.set(true);
+                        }
+                        return super.visitFieldAccess(fieldAccess, found);
+                    }
+                }.reduce(cu, new AtomicBoolean()).get();
+                if (usedAsRepository) {
+                    return cu;
+                }
                 J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
                 doAfterVisit(new ChangeType(originalFqn, targetFqn, false).getVisitor());
                 return c;
