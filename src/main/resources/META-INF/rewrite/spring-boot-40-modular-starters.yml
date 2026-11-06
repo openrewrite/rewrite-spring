@@ -148,13 +148,58 @@ recipeList:
       acceptTransitive: true
       version: 4.0.x
       onlyIfUsing: org.springframework.boot.web.client.*
+  # Spring's reactive `WebClient` now has a dedicated starter in Boot 4.0;
+  # previously it was pulled in transitively via `spring-boot-starter-webflux`.
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webclient
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.web.reactive.function.client.*
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webclient
+      acceptTransitive: true
+      version: 4.0.x
+      onlyIfUsing: org.springframework.boot.web.reactive.function.client.*
+  # `restclient-test` is keyed on specific RestClient types rather than the whole
+  # `test.autoconfigure.web.client` package, since `AutoConfigureWebClient` in that
+  # package belongs to `webclient-test` (same reason `WebFluxTest` above is specific).
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-starter-restclient-test
       acceptTransitive: true
       version: 4.0.x
       scope: test
-      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.*
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.RestClientTest
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-restclient-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerAutoConfiguration
+  # `webclient-test` is keyed on the Boot 3 `AutoConfigureWebClient` type. Gates use
+  # pre-rename namespaces because `AddModularStarterDependencies` runs before
+  # `MigrateAutoconfigurePackages` in `MigrateToModularStarters`.
+  # Note: no `reactor-test` removal here on purpose. `spring-boot-starter-webclient-test`
+  # brings `reactor-test` transitively, so an explicit dep is redundant but harmless
+  # (versions are deduped by `RemoveRedundantDependencyVersions`), while an unconditional
+  # `RemoveDependency` would break projects using `reactor-test` without WebClient.
+  - org.openrewrite.java.dependencies.AddDependency:
+      groupId: org.springframework.boot
+      artifactId: spring-boot-starter-webclient-test
+      acceptTransitive: true
+      version: 4.0.x
+      scope: test
+      onlyIfUsing: org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: org.springframework.boot
       artifactId: spring-boot-resttestclient
@@ -478,6 +523,33 @@ recipeList:
       oldPackageName: org.springframework.boot.autoconfigure.web.client
       newPackageName: org.springframework.boot.restclient.autoconfigure
       recursive: true
+  # spring-boot-webclient
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.web.reactive.function.client
+      newPackageName: org.springframework.boot.webclient
+      recursive: true
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: org.springframework.boot.autoconfigure.web.reactive.function.client
+      newPackageName: org.springframework.boot.webclient.autoconfigure
+      recursive: true
+  # spring-boot-webclient-test: `AutoConfigureWebClient` moves to its own module,
+  # so it must be listed before the broad `restclient.test.autoconfigure` mapping below.
+  # Per the Boot 4 migration guide relocation table, Boot 3
+  # `org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient`
+  # moves to `org.springframework.boot.webclient.test.autoconfigure.AutoConfigureWebClient`
+  # in `spring-boot-webclient-test` (NOT to `restclient-test`): the Boot 4 WebClient
+  # annotation configures `WebClient.Builder`, while RestClient/RestTemplate support lives
+  # in `AutoConfigureRestClient` (`spring-boot-restclient-test`).
+  # The Boot 3 `registerRestTemplate` attribute no longer exists in Boot 4, so it is
+  # removed first (otherwise the renamed annotation would not compile). Tests that
+  # relied on `registerRestTemplate = true` for a `RestTemplate` bean should additionally
+  # add `@AutoConfigureRestClient` manually.
+  - org.openrewrite.java.RemoveAnnotationAttribute:
+      annotationType: org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient
+      attributeName: registerRestTemplate
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient
+      newFullyQualifiedTypeName: org.springframework.boot.webclient.test.autoconfigure.AutoConfigureWebClient
   # spring-boot-restclient-test
   - org.openrewrite.java.ChangePackage:
       oldPackageName: org.springframework.boot.test.autoconfigure.web.client
