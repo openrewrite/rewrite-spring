@@ -100,6 +100,9 @@ public class ConvertAutoConfigurationExcludeToExcludeName extends Recipe {
                             return arg;
                         });
 
+                        // Removing `exclude` must not leave the next argument's separating space after the `(`.
+                        Space firstArgPrefix = a.getArguments().get(0).getPrefix();
+                        newArgs = ListUtils.mapFirst(newArgs, first -> first.withPrefix(firstArgPrefix));
                         if (!mergedIntoExisting[0]) {
                             newArgs = ListUtils.concat(newArgs, buildExcludeNameAssignment(!newArgs.isEmpty()));
                         }
@@ -174,21 +177,8 @@ public class ConvertAutoConfigurationExcludeToExcludeName extends Recipe {
 
                     private Expression mergeIntoExcludeName(J.Assignment as) {
                         Expression rhs = as.getAssignment();
-                        if (rhs instanceof J.Literal) {
-                            J.Literal literal = (J.Literal) rhs;
-                            if (fullyQualifiedName.equals(literal.getValue())) {
-                                return as;
-                            }
-                            List<JRightPadded<Expression>> elements = new ArrayList<>();
-                            elements.add(JRightPadded.build((Expression) literal.withPrefix(Space.SINGLE_SPACE)));
-                            elements.add(JRightPadded.<Expression>build(newStringLiteral(Space.SINGLE_SPACE))
-                                    .withAfter(Space.SINGLE_SPACE));
-                            J.NewArray array = new J.NewArray(
-                                    Tree.randomId(), Space.SINGLE_SPACE, Markers.EMPTY,
-                                    null, emptyList(),
-                                    JContainer.build(Space.EMPTY, elements, Markers.EMPTY),
-                                    null);
-                            return as.withAssignment(array);
+                        if (rhs instanceof J.Literal && fullyQualifiedName.equals(((J.Literal) rhs).getValue())) {
+                            return as;
                         }
                         if (rhs instanceof J.NewArray) {
                             J.NewArray array = (J.NewArray) rhs;
@@ -218,7 +208,17 @@ public class ConvertAutoConfigurationExcludeToExcludeName extends Recipe {
                             return as.withAssignment(array.getPadding().withInitializer(
                                     initContainer.getPadding().withElements(padded)));
                         }
-                        return as;
+                        // The class has already left `exclude`, so any other value, such as a constant, has to keep it here.
+                        List<JRightPadded<Expression>> elements = new ArrayList<>();
+                        elements.add(JRightPadded.build((Expression) rhs.withPrefix(Space.SINGLE_SPACE)));
+                        elements.add(JRightPadded.<Expression>build(newStringLiteral(Space.SINGLE_SPACE))
+                                .withAfter(Space.SINGLE_SPACE));
+                        J.NewArray array = new J.NewArray(
+                                Tree.randomId(), Space.SINGLE_SPACE, Markers.EMPTY,
+                                null, emptyList(),
+                                JContainer.build(Space.EMPTY, elements, Markers.EMPTY),
+                                null);
+                        return as.withAssignment(array);
                     }
 
                     private J.Assignment buildExcludeNameAssignment(boolean followsOtherArg) {
@@ -242,7 +242,7 @@ public class ConvertAutoConfigurationExcludeToExcludeName extends Recipe {
 
                     private boolean isTargetClassReference(Expression expr) {
                         return expr instanceof J.FieldAccess &&
-                                TypeUtils.isAssignableTo(fullyQualifiedName, ((J.FieldAccess) expr).getTarget().getType());
+                                TypeUtils.isOfClassType(((J.FieldAccess) expr).getTarget().getType(), fullyQualifiedName);
                     }
                 });
     }
