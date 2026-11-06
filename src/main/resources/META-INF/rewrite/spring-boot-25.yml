@@ -85,19 +85,123 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot2.UpgradeSpockToGroovy3
 displayName: Upgrade Spock to a Groovy 3 compatible variant
+description: >-
+  Upgrade Spock dependencies to a Groovy 3 compatible 2.0 variant when Groovy 3 is on the classpath.
+  A `groovy-all` pinned below Groovy 3 for Spock 1.x moves to Groovy 3 together with Spock.
+preconditions:
+  - org.openrewrite.Singleton
+recipeList:
+  - org.openrewrite.java.spring.boot2.UpgradePinnedGroovyAllForSpock
+  - org.openrewrite.java.spring.boot2.UpgradeSpockOnGroovy3
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradePinnedGroovyAllForSpock
+displayName: Upgrade a `groovy-all` pinned for Spock 1.x to Groovy 3
+description: >-
+  Spring Boot does not manage `groovy-all`, so a project that pins it for Spock 1.x keeps the old Groovy through a
+  Spring Boot upgrade and never reaches Groovy 3 on its own. Spock refuses to run on a Groovy it was not built for, so
+  Groovy and Spock have to move together, wherever in the repository their versions are set.
+preconditions:
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.codehaus.groovy
+      artifactId: groovy-all
+      belowMajorVersion: 3
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.spockframework
+      artifactId: "*"
+      belowMajorVersion: 2
+recipeList:
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.codehaus.groovy
+      artifactId: groovy-all
+      newVersion: 3.0.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.codehaus.groovy
+      artifactId: groovy
+      newVersion: 3.0.x
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.spockframework
+      artifactId: "*"
+      newVersion: 2.0-groovy-3.0
+      overrideManagedVersion: true
+  # Spock 2 runs on the JUnit Platform. Without it the build passes, but no specification runs
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.apache.maven.plugins
+      artifactId: maven-surefire-plugin
+      newVersion: 2.22.x
+  - org.openrewrite.java.spring.boot2.UseJUnitPlatformForSpock2
+  - org.openrewrite.java.spring.boot2.DeclareGroovyAllAsPomWithoutTestNg
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UseJUnitPlatformForSpock2
+displayName: Run Spock 2 on the JUnit Platform in Gradle
+description: >-
+  Spock 2 runs on the JUnit Platform, so a Gradle `Test` task that does not use it passes without running any
+  specification. Only the modules using Spock change, since a module on JUnit 4 would stop running its tests instead.
+  The version is left out on purpose: a module keeps reporting Spock 1.x when `gradle.properties` holds its version.
+preconditions:
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.spockframework
+      artifactIdPattern: spock-core
+recipeList:
+  - org.openrewrite.java.testing.junit5.GradleUseJunitJupiter
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UpgradeSpockOnGroovy3
+displayName: Upgrade Spock when Groovy 3 is on the classpath
 description: Upgrade Spock dependencies to a Groovy 3 compatible 2.0 variant when Groovy 3 is on the classpath.
 preconditions:
   - org.openrewrite.java.dependencies.DependencyInsight:
       groupIdPattern: org.codehaus.groovy
       artifactIdPattern: groovy
       version: 3.x
-  - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.spockframework
       artifactId: "*"
       newVersion: 2.0-groovy-3.0
       overrideManagedVersion: true
+  - org.openrewrite.java.spring.boot2.UseJUnitPlatformWhenLeavingSpock1
+  - org.openrewrite.java.spring.boot2.KeepSurefireRunningSpecificationsOnSpock2
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.UseJUnitPlatformWhenLeavingSpock1
+displayName: Run Spock 2 on the JUnit Platform when leaving Spock 1.x in Gradle
+description: >-
+  A Gradle module leaving Spock 1.x needs the JUnit Platform, or its `Test` task passes without running any
+  specification. The module has to report Spock 2 by now: `UpgradeSpockOnGroovy3` cannot reach a version kept in
+  `gradle.properties`, and the Spock 1.x left there would stop running on the JUnit Platform instead.
+preconditions:
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.spockframework
+      artifactId: "*"
+      belowMajorVersion: 2
+  - org.openrewrite.java.dependencies.DependencyInsight:
+      groupIdPattern: org.spockframework
+      artifactIdPattern: spock-core
+      version: 2.0-groovy-3.0
+recipeList:
+  - org.openrewrite.java.testing.junit5.GradleUseJunitJupiter
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.KeepSurefireRunningSpecificationsOnSpock2
+displayName: Keep Surefire running specifications when leaving Spock 1.x
+description: >-
+  Spock 1.x ran on JUnit 4 and kept working on any Surefire, which is why this only surfaces with the upgrade. Spock 2
+  runs on the JUnit Platform, which Surefire only supports from 2.22 on. Surefire before 3.0 also finds no Spock 2
+  specifications once `groovy-all` brings TestNG to the classpath. Either way the build passes without running any of
+  them.
+preconditions:
+  - org.openrewrite.java.spring.boot2.search.RepositoryPinsDependency:
+      groupId: org.spockframework
+      artifactId: "*"
+      belowMajorVersion: 2
+recipeList:
+  - org.openrewrite.maven.UpgradePluginVersion:
+      groupId: org.apache.maven.plugins
+      artifactId: maven-surefire-plugin
+      newVersion: 2.22.x
+  - org.openrewrite.java.spring.boot2.DeclareGroovyAllAsPomWithoutTestNg
 ---
 ########################################################################################################################
 # SpringBoot 2.5 Search Recipes
