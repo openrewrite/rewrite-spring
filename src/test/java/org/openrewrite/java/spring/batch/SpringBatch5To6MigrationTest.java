@@ -60,4 +60,27 @@ class SpringBatch5To6MigrationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void renameJobRegistryBeanPostProcessor() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+
+              class MyJobConfig {
+                  JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor;
+              }
+              """,
+            """
+              import org.springframework.batch.core.configuration.support.JobRegistrySmartInitializingSingleton;
+
+              class MyJobConfig {
+                  JobRegistrySmartInitializingSingleton jobRegistryBeanPostProcessor;
+              }
+              """
+          )
+        );
+    }
 }
