@@ -184,6 +184,103 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void ignoreClassesDeclaringPropertiesBeanMethods() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.validation.annotation.Validated;
+
+              @Configuration
+              public class AppConfig {
+                  private final NestedProperties defaults = new NestedProperties();
+
+                  @Bean
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public NestedProperties appProperties() {
+                      return new NestedProperties();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void ignoreOtherTopLevelClasses() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private String name;
+              }
+
+              class AppPropertiesHelper {
+                  private NestedProperties nested;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidToPropertiesClassNestedInOtherClass() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.validation.annotation.Validated;
+
+              @Configuration
+              public class AppConfig {
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public static class AppProperties {
+                      private NestedProperties nested;
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.validation.annotation.Validated;
+
+              @Configuration
+              public class AppConfig {
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public static class AppProperties {
+                      @Valid
+                      private NestedProperties nested;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotAddValidToLocalVariables() {
         rewriteRun(
           // language=java
@@ -369,7 +466,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void doNotAddValidToEnums() {
+    void doNotAddValidToEnumsOrInterfaceConstants() {
         rewriteRun(
           // language=java
           java(
@@ -389,6 +486,10 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                   public enum Mode {
                       SINGLE,
                       MULTI
+                  }
+
+                  public interface Defaults {
+                      NestedProperties DEFAULT = new NestedProperties();
                   }
               }
               """
