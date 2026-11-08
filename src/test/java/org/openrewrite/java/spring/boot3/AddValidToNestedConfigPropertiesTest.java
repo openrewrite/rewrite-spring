@@ -206,6 +206,54 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void addValidToFieldsButNotToLambdaParametersOrInitializerBlockVariables() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import java.util.function.Consumer;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private NestedProperties nested;
+                  private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+
+                  {
+                      NestedProperties defaults = new NestedProperties();
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import java.util.function.Consumer;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private NestedProperties nested;
+                  private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+
+                  {
+                      NestedProperties defaults = new NestedProperties();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void addValidToFieldsAndRecordComponentsButNotToParameters() {
         rewriteRun(
           // language=java

@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import lombok.Getter;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -67,17 +68,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     }
 
                     @Override
-                    public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
-                        if (getCursor().getParentTreeCursor().getValue() instanceof J.ClassDeclaration) {
-                            // Properties are declared as fields in a class body
-                            return super.visitBlock(block, ctx);
-                        }
-                        return block;
-                    }
-
-                    @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                        // Validation cascades through fields and record components, not method parameters
+                        // Nothing declared in a method, a local class included, is a property
                         return method;
                     }
 
@@ -85,6 +77,9 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
                         if (varDecl.hasModifier(J.Modifier.Type.Static)) {
                             return varDecl;
+                        }
+                        if (!declaresProperty()) {
+                            return super.visitVariableDeclarations(varDecl, ctx);
                         }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
                         if (type != null && type.getKind() != JavaType.FullyQualified.Kind.Enum &&
@@ -99,6 +94,13 @@ public class AddValidToNestedConfigProperties extends Recipe {
                                     .apply(getCursor(), varDecl.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                         }
                         return super.visitVariableDeclarations(varDecl, ctx);
+                    }
+
+                    // Validation cascades through fields and record components, not parameters or local variables
+                    private boolean declaresProperty() {
+                        Cursor parent = getCursor().getParentTreeCursor();
+                        return parent.getValue() instanceof J.ClassDeclaration ||
+                                parent.getValue() instanceof J.Block && parent.getParentTreeCursor().getValue() instanceof J.ClassDeclaration;
                     }
 
                     private boolean isPrimitiveOrCommonType(JavaType.FullyQualified type) {
