@@ -18,7 +18,9 @@ package org.openrewrite.java.spring.boot3;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
+import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.maven.UpgradeParentVersion;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.SourceSpecs;
@@ -241,11 +243,47 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void addValidOnSpringBootBefore3_4() {
+    void addValidWithoutKnownSpringBootVersion() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBoot3_4"),
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private NestedProperties nested;
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private NestedProperties nested;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidWhenSpringBoot3_4IsOnlyATestDependency() {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBoot3_4"),
           mavenProject("demo",
-            springBootPom("3.3.13"),
+            springBootPom("3.4.0", "test"),
             // language=java
             java(
               """
@@ -284,7 +322,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBoot3_4"),
           mavenProject("demo",
-            springBootPom("3.4.0"),
+            springBootPom("3.4.0", "compile"),
             // language=java
             java(
               """
@@ -305,9 +343,13 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void addValidAsPartOfUpgradeSpringBoot_3_4() {
+    void addValidWhenTheSameRunUpgradesSpringBootTo3_4() {
         rewriteRun(
-          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4"),
+          spec -> spec.recipes(
+            new UpgradeParentVersion("org.springframework.boot", "spring-boot-starter-parent", "3.4.x", null, null),
+            Environment.builder().scanYamlResources().build()
+              .activateRecipes("org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBoot3_4")
+          ),
           mavenProject("demo",
             pomXml(
               // language=xml
@@ -329,7 +371,10 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> assertThat(actual).containsPattern("<version>3\\.4\\.\\d+</version>").actual())
+              spec -> spec.after(actual -> assertThat(actual)
+                .containsPattern("<parent>\\s*<groupId>org.springframework.boot</groupId>\\s*" +
+                                 "<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>3\\.4\\.\\d+</version>")
+                .actual())
             ),
             // language=java
             java(
@@ -364,7 +409,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
         );
     }
 
-    private static SourceSpecs springBootPom(String version) {
+    private static SourceSpecs springBootPom(String version, String scope) {
         return pomXml(
           // language=xml
           """
@@ -377,10 +422,11 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot</artifactId>
                         <version>%s</version>
+                        <scope>%s</scope>
                     </dependency>
                 </dependencies>
             </project>
-            """.formatted(version)
+            """.formatted(version, scope)
         );
     }
 }
