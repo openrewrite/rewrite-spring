@@ -23,6 +23,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.SourceSpecs;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
@@ -295,6 +296,66 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                 @ConfigurationProperties("app")
                 @Validated
                 public class AppProperties {
+                    private NestedProperties nested;
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void addValidAsPartOfUpgradeSpringBoot_3_4() {
+        rewriteRun(
+          spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4"),
+          mavenProject("demo",
+            pomXml(
+              // language=xml
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>3.3.13</version>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>demo</artifactId>
+                    <version>1.0.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """,
+              spec -> spec.after(actual -> assertThat(actual).containsPattern("<version>3\\.4\\.\\d+</version>").actual())
+            ),
+            // language=java
+            java(
+              """
+                package com.example.demo;
+
+                import org.springframework.boot.context.properties.ConfigurationProperties;
+                import org.springframework.validation.annotation.Validated;
+
+                @ConfigurationProperties("app")
+                @Validated
+                public class AppProperties {
+                    private NestedProperties nested;
+                }
+                """,
+              """
+                package com.example.demo;
+
+                import jakarta.validation.Valid;
+                import org.springframework.boot.context.properties.ConfigurationProperties;
+                import org.springframework.validation.annotation.Validated;
+
+                @ConfigurationProperties("app")
+                @Validated
+                public class AppProperties {
+                    @Valid
                     private NestedProperties nested;
                 }
                 """
