@@ -29,6 +29,7 @@ import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
 
@@ -38,6 +39,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
 
     private static final String EnableGlobalMethodSecurityFqn = "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity";
     private static final String EnableMethodSecurityFqn = "org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity";
+    private static final String GlobalMethodSecurityConfigurationFqn = "org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration";
 
     @Getter
     final String displayName = "Replace global method security with method security";
@@ -55,7 +57,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                     @Override
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                         annotation = super.visitAnnotation(annotation, ctx);
-                        if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
+                        if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation) && !annotatesGlobalMethodSecurityConfiguration()) {
                             maybeRemoveImport(EnableGlobalMethodSecurityFqn);
                             maybeAddImport(EnableMethodSecurityFqn);
                             J.Annotation replacementAnnotation = JavaTemplate.builder("@EnableMethodSecurity(prePostEnabled = false)")
@@ -79,6 +81,15 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                             return autoFormat(replacementAnnotation.withArguments(newArgs), ctx);
                         }
                         return annotation;
+                    }
+
+                    /**
+                     * `GlobalMethodSecurityConfiguration` reads its settings from `@EnableGlobalMethodSecurity`,
+                     * so a subclass fails to start once the annotation is swapped. Leave those classes alone.
+                     */
+                    private boolean annotatesGlobalMethodSecurityConfiguration() {
+                        J.ClassDeclaration classDecl = getCursor().firstEnclosing(J.ClassDeclaration.class);
+                        return classDecl != null && TypeUtils.isAssignableTo(GlobalMethodSecurityConfigurationFqn, classDecl.getType());
                     }
 
                     private boolean isPrePostEnabled(Expression arg) {
