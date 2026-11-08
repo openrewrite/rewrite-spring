@@ -22,6 +22,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
@@ -484,6 +486,102 @@ class FindIntegrationSchedulerPoolTest implements RewriteTest {
                   }
                   """
               )
+            )
+          )
+        );
+    }
+
+    @Test
+    void gradleProject() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  package demo;
+
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class ExampleApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(ExampleApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  package demo;
+
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  // TODO: Scheduler thread pool size for Spring Integration either in properties or config server
+                  @SpringBootApplication
+                  public class ExampleApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(ExampleApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-integration:2.4.13'
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void gradleProjectWithoutSpringIntegration() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  package demo;
+
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class ExampleApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(ExampleApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            ),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter:2.4.13'
+                }
+                """
             )
           )
         );

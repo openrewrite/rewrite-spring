@@ -19,6 +19,8 @@ import lombok.Data;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.gradle.marker.GradleDependencyConfiguration;
+import org.openrewrite.gradle.marker.GradleProject;
 import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.marker.JavaProject;
@@ -34,7 +36,6 @@ import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.semver.DependencyMatcher;
 import org.openrewrite.trait.Comments;
-import org.openrewrite.xml.tree.Xml;
 import org.openrewrite.yaml.YamlIsoVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
@@ -53,6 +54,11 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
     private static final Pattern APP_PROPS_FILE_REGEX = Pattern.compile("^application.*\\.properties$");
     private static final Pattern APP_YAML_FILE_REGEX = Pattern.compile("^application.*\\.ya?ml$");
 
+    private static final DependencyMatcher SPRING_BOOT_24 = requireNonNull(
+            DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
+    private static final String SPRING_INTEGRATION_GROUP_ID = "org.springframework.integration";
+    private static final String SPRING_INTEGRATION_ARTIFACT_ID = "spring-integration-core";
+
     private static final String PROPERTY_KEY = "spring.task.scheduling.pool.size";
 
     private static final String PROPS_MIGRATION_MESSAGE = " TODO: Consider Scheduler thread pool size for Spring Integration";
@@ -68,29 +74,26 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
             "uses the auto-configured task scheduler that has a pool size of 1. To restore Spring Integration’s " +
             "default of 10 threads, use the `spring.task.scheduling.pool.size` property.";
 
-    private boolean isApplicableMavenProject(Xml.Document maven) {
-        DependencyMatcher boot25Matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
-        DependencyMatcher integrationMatcher = requireNonNull(DependencyMatcher.build("org.springframework.integration:spring-integration-core").getValue());
-
-        List<ResolvedDependency> deps = maven.getMarkers().findFirst(MavenResolutionResult.class)
-                .orElseThrow(() -> new IllegalStateException("Maven visitors should not be visiting XML documents without a Maven marker"))
-                .getDependencies().getOrDefault(Scope.Compile, emptyList());
-
-        boolean boot25 = false;
-        boolean si = false;
-
-        for (ResolvedDependency d : deps) {
-            if (!boot25) {
-                boot25 = boot25Matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion());
-            }
-            if (!si) {
-                si = integrationMatcher.matches(d.getGroupId(), d.getArtifactId());
-            }
-            if (boot25 && si) {
+    private static boolean isApplicableMavenProject(MavenResolutionResult model) {
+        if (model.findDependencies(SPRING_INTEGRATION_GROUP_ID, SPRING_INTEGRATION_ARTIFACT_ID, Scope.Compile).isEmpty()) {
+            return false;
+        }
+        for (ResolvedDependency d : model.getDependencies().getOrDefault(Scope.Compile, emptyList())) {
+            if (SPRING_BOOT_24.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isApplicableGradleProject(GradleProject gradleProject) {
+        GradleDependencyConfiguration configuration = gradleProject.getConfiguration("compileClasspath");
+        if (configuration == null ||
+                configuration.findResolvedDependency(SPRING_INTEGRATION_GROUP_ID, SPRING_INTEGRATION_ARTIFACT_ID) == null) {
+            return false;
+        }
+        ResolvedDependency boot = configuration.findResolvedDependency("org.springframework.boot", "spring-boot");
+        return boot != null && SPRING_BOOT_24.matches(boot.getGroupId(), boot.getArtifactId(), boot.getVersion());
     }
 
     private static boolean usesSpringBootApplication(JavaSourceFile javaSourceFile) {
@@ -157,13 +160,19 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
                 String fileName = source.getSourcePath().getFileName().toString();
                 JavaProject javaProject = maybeJavaProject.get();
 
-                if (source instanceof Xml.Document) {
-                    Xml.Document xml = (Xml.Document) source;
-                    Optional<MavenResolutionResult> maybeMavenMarker = source.getMarkers().findFirst(MavenResolutionResult.class);
-                    if (maybeMavenMarker.isPresent() && isApplicableMavenProject(xml)) {
+                if (!acc.getApplicableProjects().contains(javaProject)) {
+                    Optional<MavenResolutionResult> maven = source.getMarkers().findFirst(MavenResolutionResult.class);
+                    if (maven.isPresent()) {
+                        if (isApplicableMavenProject(maven.get())) {
+                            acc.getApplicableProjects().add(javaProject);
+                        }
+                    } else if (source.getMarkers().findFirst(GradleProject.class)
+                            .map(FindIntegrationSchedulerPool::isApplicableGradleProject).orElse(false)) {
                         acc.getApplicableProjects().add(javaProject);
                     }
-                } else if (source instanceof Properties && APP_PROPS_FILE_REGEX.matcher(fileName).matches()) {
+                }
+
+                if (source instanceof Properties && APP_PROPS_FILE_REGEX.matcher(fileName).matches()) {
                     if (!FindProperties.find((Properties) source, PROPERTY_KEY, false).isEmpty()) {
                         acc.getSourceToCommentByProject().put(javaProject, source.getSourcePath());
                     }
