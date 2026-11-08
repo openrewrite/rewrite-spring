@@ -16,7 +16,6 @@
 package org.openrewrite.java.spring.boot3;
 
 import lombok.Getter;
-import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
@@ -68,18 +67,30 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     }
 
                     @Override
+                    public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                        if (getCursor().getParentTreeCursor().getValue() instanceof J.ClassDeclaration) {
+                            return super.visitBlock(block, ctx);
+                        }
+                        // Any other block is code, whose declarations, local classes included, are not properties
+                        return block;
+                    }
+
+                    @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                        // Nothing declared in a method, a local class included, is a property
+                        // Validation cascades through fields and record components, not method parameters
                         return method;
+                    }
+
+                    @Override
+                    public J.EnumValue visitEnumValue(J.EnumValue enumValue, ExecutionContext ctx) {
+                        // An enum constant's arguments are code
+                        return enumValue;
                     }
 
                     @Override
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
                         if (varDecl.hasModifier(J.Modifier.Type.Static)) {
                             return varDecl;
-                        }
-                        if (!declaresProperty()) {
-                            return super.visitVariableDeclarations(varDecl, ctx);
                         }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
                         if (type != null && type.getKind() != JavaType.FullyQualified.Kind.Enum &&
@@ -93,14 +104,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
                                     .build()
                                     .apply(getCursor(), varDecl.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                         }
-                        return super.visitVariableDeclarations(varDecl, ctx);
-                    }
-
-                    // Validation cascades through fields and record components, not parameters or local variables
-                    private boolean declaresProperty() {
-                        Cursor parent = getCursor().getParentTreeCursor();
-                        return parent.getValue() instanceof J.ClassDeclaration ||
-                                parent.getValue() instanceof J.Block && parent.getParentTreeCursor().getValue() instanceof J.ClassDeclaration;
+                        // An initializer is code
+                        return varDecl;
                     }
 
                     private boolean isPrimitiveOrCommonType(JavaType.FullyQualified type) {

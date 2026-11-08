@@ -206,7 +206,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void addValidToFieldsButNotToLambdaParametersOrInitializerBlockVariables() {
+    void addValidToFieldsButNotToDeclarationsInInitializersOrEnumConstants() {
         rewriteRun(
           // language=java
           java(
@@ -222,9 +222,24 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
               public class AppProperties {
                   private NestedProperties nested;
                   private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+                  private final Object holder = new Object() {
+                      class Inner {
+                          NestedProperties inner;
+                      }
+                  };
 
                   {
                       NestedProperties defaults = new NestedProperties();
+                      class Local {
+                          NestedProperties local;
+                      }
+                  }
+
+                  enum Mode {
+                      COUNT((NestedProperties each) -> each.getCount());
+
+                      Mode(Consumer<NestedProperties> action) {
+                      }
                   }
               }
               """,
@@ -243,9 +258,24 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                   @Valid
                   private NestedProperties nested;
                   private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+                  private final Object holder = new Object() {
+                      class Inner {
+                          NestedProperties inner;
+                      }
+                  };
 
                   {
                       NestedProperties defaults = new NestedProperties();
+                      class Local {
+                          NestedProperties local;
+                      }
+                  }
+
+                  enum Mode {
+                      COUNT((NestedProperties each) -> each.getCount());
+
+                      Mode(Consumer<NestedProperties> action) {
+                      }
                   }
               }
               """
