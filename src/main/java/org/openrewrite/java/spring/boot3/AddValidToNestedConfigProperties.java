@@ -40,6 +40,7 @@ public class AddValidToNestedConfigProperties extends Recipe {
     private static final String JAKARTA_VALIDATION_VALID = "jakarta.validation.Valid";
     private static final AnnotationMatcher CONFIGURATION_PROPERTIES_MATCHER = new AnnotationMatcher("@" + CONFIGURATION_PROPERTIES);
     private static final AnnotationMatcher VALIDATED_MATCHER = new AnnotationMatcher("@" + VALIDATED);
+    private static final String IN_PROPERTIES_CLASS = "IN_PROPERTIES_CLASS";
 
     @Getter
     final String displayName = "Add `@Valid` to nested properties in `@ConfigurationProperties`";
@@ -55,22 +56,18 @@ public class AddValidToNestedConfigProperties extends Recipe {
                         new UsesType<>(VALIDATED, true)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
-                    boolean inPropertiesClass;
-
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                        boolean enclosing = inPropertiesClass;
                         AnnotationService annotations = service(AnnotationService.class);
                         boolean annotated = annotations.matches(getCursor(), CONFIGURATION_PROPERTIES_MATCHER) &&
                                 annotations.matches(getCursor(), VALIDATED_MATCHER);
                         J.ClassDeclaration.Kind.Type kind = classDecl.getKind();
                         // Enums, interfaces and annotation types hold constants, not properties
                         boolean classOrRecord = kind == J.ClassDeclaration.Kind.Type.Class || kind == J.ClassDeclaration.Kind.Type.Record;
-                        // A class or record nested in a properties class is a nested property type
-                        inPropertiesClass = (annotated || enclosing) && classOrRecord;
-                        J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
-                        inPropertiesClass = enclosing;
-                        return c;
+                        // A class or record nested in a properties class is treated as a nested property type
+                        boolean nested = getCursor().getParentOrThrow().getNearestMessage(IN_PROPERTIES_CLASS, false);
+                        getCursor().putMessage(IN_PROPERTIES_CLASS, (annotated || nested) && classOrRecord);
+                        return super.visitClassDeclaration(classDecl, ctx);
                     }
 
                     @Override
@@ -90,7 +87,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
 
                     @Override
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
-                        if (!inPropertiesClass || varDecl.hasModifier(J.Modifier.Type.Static)) {
+                        if (!getCursor().getNearestMessage(IN_PROPERTIES_CLASS, false) ||
+                                varDecl.hasModifier(J.Modifier.Type.Static)) {
                             return varDecl;
                         }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
