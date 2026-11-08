@@ -69,10 +69,16 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     @Override
                     public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                         if (getCursor().getParentTreeCursor().getValue() instanceof J.ClassDeclaration) {
-                            // Avoid adding @Valid to local variables inside methods
+                            // Properties are declared as fields in a class body
                             return super.visitBlock(block, ctx);
                         }
                         return block;
+                    }
+
+                    @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        // Validation cascades through fields and record components, not method parameters
+                        return method;
                     }
 
                     @Override
@@ -81,7 +87,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
                             return varDecl;
                         }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
-                        if (type != null && !isPrimitiveOrCommonType(type) &&
+                        if (type != null && type.getKind() != JavaType.FullyQualified.Kind.Enum &&
+                                !isPrimitiveOrCommonType(type) &&
                                 FindAnnotations.find(varDecl, "@javax.validation.Valid").isEmpty() &&
                                 FindAnnotations.find(varDecl, "@" + JAKARTA_VALIDATION_VALID).isEmpty()) {
                             maybeAddImport(JAKARTA_VALIDATION_VALID);
