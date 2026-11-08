@@ -206,7 +206,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
-    void addValidToFieldsButNotToDeclarationsInInitializersOrEnumConstants() {
+    void addValidToFieldsButNotToDeclarationsInInitializersOrEnums() {
         rewriteRun(
           // language=java
           java(
@@ -237,6 +237,8 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
 
                   enum Mode {
                       COUNT((NestedProperties each) -> each.getCount());
+
+                      private final NestedProperties sample = null;
 
                       Mode(Consumer<NestedProperties> action) {
                       }
@@ -273,6 +275,8 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
 
                   enum Mode {
                       COUNT((NestedProperties each) -> each.getCount());
+
+                      private final NestedProperties sample = null;
 
                       Mode(Consumer<NestedProperties> action) {
                       }

@@ -56,6 +56,10 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         if (visitedTopLevelClass) {
+                            if (classDecl.getKind() == J.ClassDeclaration.Kind.Type.Enum) {
+                                // An enum is bound from a constant's name, so nothing declared in it is a property
+                                return classDecl;
+                            }
                             return super.visitClassDeclaration(classDecl, ctx);
                         }
                         visitedTopLevelClass = true;
@@ -79,12 +83,6 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         // Validation cascades through fields and record components, not method parameters
                         return method;
-                    }
-
-                    @Override
-                    public J.EnumValue visitEnumValue(J.EnumValue enumValue, ExecutionContext ctx) {
-                        // An enum constant's arguments are code
-                        return enumValue;
                     }
 
                     @Override
