@@ -56,6 +56,10 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         if (visitedTopLevelClass) {
+                            if (classDecl.getKind() == J.ClassDeclaration.Kind.Type.Enum) {
+                                // An enum is bound from a constant's name, so nothing declared in it is a property
+                                return classDecl;
+                            }
                             return super.visitClassDeclaration(classDecl, ctx);
                         }
                         visitedTopLevelClass = true;
@@ -69,10 +73,16 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     @Override
                     public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                         if (getCursor().getParentTreeCursor().getValue() instanceof J.ClassDeclaration) {
-                            // Avoid adding @Valid to local variables inside methods
                             return super.visitBlock(block, ctx);
                         }
+                        // Any other block is code, whose declarations, local classes included, are not properties
                         return block;
+                    }
+
+                    @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        // Validation cascades through fields and record components, not method parameters
+                        return method;
                     }
 
                     @Override
@@ -81,7 +91,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
                             return varDecl;
                         }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
-                        if (type != null && !isPrimitiveOrCommonType(type) &&
+                        if (type != null && type.getKind() != JavaType.FullyQualified.Kind.Enum &&
+                                !isPrimitiveOrCommonType(type) &&
                                 FindAnnotations.find(varDecl, "@javax.validation.Valid").isEmpty() &&
                                 FindAnnotations.find(varDecl, "@" + JAKARTA_VALIDATION_VALID).isEmpty()) {
                             maybeAddImport(JAKARTA_VALIDATION_VALID);
@@ -91,7 +102,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
                                     .build()
                                     .apply(getCursor(), varDecl.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                         }
-                        return super.visitVariableDeclarations(varDecl, ctx);
+                        // An initializer is code
+                        return varDecl;
                     }
 
                     private boolean isPrimitiveOrCommonType(JavaType.FullyQualified type) {

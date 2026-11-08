@@ -206,6 +206,193 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void addValidToFieldsButNotToDeclarationsInInitializersOrEnums() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import java.util.function.Consumer;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private NestedProperties nested;
+                  private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+                  private final Object holder = new Object() {
+                      class Inner {
+                          NestedProperties inner;
+                      }
+                  };
+
+                  {
+                      NestedProperties defaults = new NestedProperties();
+                      class Local {
+                          NestedProperties local;
+                      }
+                  }
+
+                  enum Mode {
+                      COUNT((NestedProperties each) -> each.getCount());
+
+                      private final NestedProperties sample = null;
+
+                      Mode(Consumer<NestedProperties> action) {
+                      }
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import java.util.function.Consumer;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private NestedProperties nested;
+                  private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+                  private final Object holder = new Object() {
+                      class Inner {
+                          NestedProperties inner;
+                      }
+                  };
+
+                  {
+                      NestedProperties defaults = new NestedProperties();
+                      class Local {
+                          NestedProperties local;
+                      }
+                  }
+
+                  enum Mode {
+                      COUNT((NestedProperties each) -> each.getCount());
+
+                      private final NestedProperties sample = null;
+
+                      Mode(Consumer<NestedProperties> action) {
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidToFieldsAndRecordComponentsButNotToParameters() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private NestedProperties nested;
+
+                  public NestedProperties getNested() {
+                      return nested;
+                  }
+
+                  public void setNested(NestedProperties nested) {
+                      this.nested = nested;
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private NestedProperties nested;
+
+                  public NestedProperties getNested() {
+                      return nested;
+                  }
+
+                  public void setNested(NestedProperties nested) {
+                      this.nested = nested;
+                  }
+              }
+              """
+          ),
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("record")
+              @Validated
+              public record RecordProperties(String name, NestedProperties nested) {
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("record")
+              @Validated
+              public record RecordProperties(String name, @Valid NestedProperties nested) {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotAddValidToEnums() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import jakarta.validation.constraints.NotNull;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @NotNull
+                  private Mode mode = Mode.SINGLE;
+
+                  public enum Mode {
+                      SINGLE,
+                      MULTI
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotAddValidToStaticFields() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion()
