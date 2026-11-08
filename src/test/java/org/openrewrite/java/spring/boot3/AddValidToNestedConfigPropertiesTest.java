@@ -19,9 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
-import org.openrewrite.config.Environment;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.maven.UpgradeParentVersion;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -476,11 +474,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
         @Test
         void addValidWhenTheSameRunUpgradesSpringBootTo3_4() {
             rewriteRun(
-              spec -> spec.recipes(
-                new UpgradeParentVersion("org.springframework.boot", "spring-boot-starter-parent", "3.4.x", null, null),
-                Environment.builder().scanYamlResources().build()
-                  .activateRecipes("org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBoot3_4")
-              ),
+              spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4"),
               mavenProject("demo",
                 pomXml(
                   // language=xml
@@ -557,7 +551,7 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                             <dependencies>
                                 <dependency>
                                     <groupId>org.springframework.boot</groupId>
-                                    <artifactId>spring-boot</artifactId>
+                                    <artifactId>spring-boot-starter</artifactId>
                                     <version>3.4.0</version>
                                 </dependency>
                             </dependencies>
