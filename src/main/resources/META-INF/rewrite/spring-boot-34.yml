@@ -76,14 +76,12 @@ name: org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBo
 displayName: Add `@Valid` to nested properties in `@ConfigurationProperties` before Spring Boot 3.4
 description: >-
   Spring Boot 3.4 cascades validation into nested `@ConfigurationProperties` only through fields annotated with
-  `@Valid`. Adds `@Valid` so that modules keep the validation they had before 3.4. Modules whose build puts Spring Boot
-  3.4 or later on the compile classpath are left unchanged, because `@Valid` would enable validation they do not run
-  today.
+  `@Valid`. Adds `@Valid` so that modules keep the validation they had before 3.4. Modules that already depend on Spring
+  Boot 3.4 or later are left unchanged, because `@Valid` would enable validation they do not run today.
 preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.boot
       artifactIdPattern: spring-boot
-      scope: compile
       version: "[3.4,)"
       invertMarking: true
 recipeList:
