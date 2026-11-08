@@ -105,6 +105,50 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void addValidToFieldsOfNestedPropertyClasses() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private Pool pool;
+
+                  public static class Pool {
+                      private NestedProperties nested;
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private Pool pool;
+
+                  public static class Pool {
+                      @Valid
+                      private NestedProperties nested;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotAddValidToSimpleTypes() {
         rewriteRun(
           // language=java
@@ -491,6 +535,22 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                   public interface Defaults {
                       NestedProperties DEFAULT = new NestedProperties();
                   }
+              }
+              """
+          ),
+
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("defaults")
+              @Validated
+              public interface DefaultProperties {
+                  NestedProperties DEFAULT = new NestedProperties();
               }
               """
           )

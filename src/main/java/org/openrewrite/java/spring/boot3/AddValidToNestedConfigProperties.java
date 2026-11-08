@@ -61,12 +61,13 @@ public class AddValidToNestedConfigProperties extends Recipe {
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                         boolean enclosing = inPropertiesClass;
                         AnnotationService annotations = service(AnnotationService.class);
+                        boolean annotated = annotations.matches(getCursor(), CONFIGURATION_PROPERTIES_MATCHER) &&
+                                annotations.matches(getCursor(), VALIDATED_MATCHER);
                         J.ClassDeclaration.Kind.Type kind = classDecl.getKind();
-                        // A class or record nested in a properties class is a nested property type.
-                        // An enum is bound from a constant's name, and the fields of an interface are constants.
-                        inPropertiesClass = annotations.matches(getCursor(), CONFIGURATION_PROPERTIES_MATCHER) &&
-                                annotations.matches(getCursor(), VALIDATED_MATCHER) ||
-                                enclosing && (kind == J.ClassDeclaration.Kind.Type.Class || kind == J.ClassDeclaration.Kind.Type.Record);
+                        // Enums, interfaces and annotation types hold constants, not properties
+                        boolean classOrRecord = kind == J.ClassDeclaration.Kind.Type.Class || kind == J.ClassDeclaration.Kind.Type.Record;
+                        // A class or record nested in a properties class is a nested property type
+                        inPropertiesClass = (annotated || enclosing) && classOrRecord;
                         J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
                         inPropertiesClass = enclosing;
                         return c;
