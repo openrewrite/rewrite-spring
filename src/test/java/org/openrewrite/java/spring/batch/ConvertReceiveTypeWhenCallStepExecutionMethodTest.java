@@ -21,7 +21,6 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -42,13 +41,14 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     void methodReferenceToLambda() {
         //language=java
         rewriteRun(
-          spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodInvocations(false)),
           java(
             """
               package test;
 
               import org.springframework.batch.core.JobExecution;
               import org.springframework.batch.core.StepExecution;
+              import java.util.function.Function;
+
               public class ProfileUpdateWriter {
 
                   private void populateJobMetrics(JobExecution jobExecution) {
@@ -62,12 +62,47 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
               import org.springframework.batch.core.JobExecution;
               import org.springframework.batch.core.StepExecution;
+              import java.util.function.Function;
+
               public class ProfileUpdateWriter {
 
                   private void populateJobMetrics(JobExecution jobExecution) {
                     jobExecution.getStepExecutions().stream().map(_stepExecution -> (int) _stepExecution.getRollbackCount()).mapToLong(Integer::longValue).sum();
                   }
 
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void methodReferenceToIntFunctions() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import java.util.function.Function;
+              import java.util.function.ToIntFunction;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  Function<StepExecution, Integer> readCount = StepExecution::getReadCount;
+                  ToIntFunction<StepExecution> writeCount = StepExecution::getWriteCount;
+              }
+              """,
+            """
+              package test;
+
+              import java.util.function.Function;
+              import java.util.function.ToIntFunction;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  Function<StepExecution, Integer> readCount = _stepExecution -> (int) _stepExecution.getReadCount();
+                  ToIntFunction<StepExecution> writeCount = _stepExecution -> (int) _stepExecution.getWriteCount();
               }
               """
           )
@@ -158,7 +193,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
     void changeMockitoWhen() {
         //language=java
         rewriteRun(
-          spec -> spec.afterTypeValidationOptions(TypeValidation.all().methodInvocations(false)),
           java(
             """
               package test;
@@ -169,6 +203,7 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
                   private void populateJobMetrics(StepExecution stepExecution) {
                     Mockito.when(stepExecution.getRollbackCount()).thenReturn(1);
+                    Mockito.when(stepExecution.getReadCount()).thenReturn(1, 2, 3);
                   }
 
               }
@@ -182,8 +217,78 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
 
                   private void populateJobMetrics(StepExecution stepExecution) {
                     Mockito.when(stepExecution.getRollbackCount()).thenReturn((long) 1);
+                    Mockito.when(stepExecution.getReadCount()).thenReturn((long) 1, (long) 2, (long) 3);
                   }
 
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeForUnrelatedMockitoStub() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              import org.mockito.Mockito;
+
+              class ProfileUpdateWriter {
+                  interface Counter {
+                      int count();
+                      int getRollbackCount();
+                  }
+
+                  void test(StepExecution stepExecution, Counter counter) {
+                      int readCount = stepExecution.getReadCount();
+                      long writeCount = stepExecution.getWriteCount();
+                      Mockito.when(counter.count()).thenReturn(5);
+                      Mockito.when(counter.getRollbackCount()).thenReturn(3);
+                  }
+              }
+              """,
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+              import org.mockito.Mockito;
+
+              class ProfileUpdateWriter {
+                  interface Counter {
+                      int count();
+                      int getRollbackCount();
+                  }
+
+                  void test(StepExecution stepExecution, Counter counter) {
+                      int readCount = (int) stepExecution.getReadCount();
+                      long writeCount = stepExecution.getWriteCount();
+                      Mockito.when(counter.count()).thenReturn(5);
+                      Mockito.when(counter.getRollbackCount()).thenReturn(3);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noTruncation() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void foo(StepExecution stepExecution) {
+                      long readCount = stepExecution.getReadCount() + 1;
+                  }
               }
               """
           )
