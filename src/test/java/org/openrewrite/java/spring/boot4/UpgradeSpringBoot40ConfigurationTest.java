@@ -22,6 +22,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainResources;
+import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
 import static org.openrewrite.yaml.Assertions.yaml;
 
@@ -130,6 +131,72 @@ class UpgradeSpringBoot40ConfigurationTest implements RewriteTest {
                   spring.jackson.datatype.enum.read-enums-using-to-string=true
                   spring.jackson.datatype.enum.fail-on-numbers-for-enums=true
                   """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void commentsOutJackson2PropertiesOnlyInModulesWithoutSpringBootJackson2() {
+        rewriteRun(
+          mavenProject("api",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>api</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-jackson2</artifactId>
+                            <version>4.0.6</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.jackson2.date-format=yyyy-MM-dd
+                  management.health.mongo.enabled=false
+                  """,
+                """
+                  spring.jackson2.date-format=yyyy-MM-dd
+                  management.health.mongodb.enabled=false
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            )
+          ),
+          mavenProject("worker",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>worker</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </project>
+                """
+            ),
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.jackson2.date-format=yyyy-MM-dd
+                  """,
+                """
+                  # This property is deprecated: Deprecated in favor of Jackson 3
+                  # spring.jackson2.date-format=yyyy-MM-dd
+                  """,
+                spec -> spec.path("application.properties")
               )
             )
           )

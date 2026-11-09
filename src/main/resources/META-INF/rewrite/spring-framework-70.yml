@@ -58,10 +58,8 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.framework.UpgradeJacksonUnlessSpringBootJackson2
 displayName: Migrate to Jackson 3 in modules without `spring-boot-jackson2`
 description: >-
-  Migrate from Jackson 2 to Jackson 3, except in modules that depend on `spring-boot-jackson2`. A Spring Boot 4
-  application declares that dependency to keep using Jackson 2, for example for a library that needs a Jackson 2
-  `ObjectMapper`. Only the Jackson code and dependency migration is skipped there, and other Spring Boot 4 steps such
-  as the `spring.jackson.*` property renames still run.
+  Migrate from Jackson 2 to Jackson 3, except in modules that depend on `spring-boot-jackson2`. Those modules keep
+  Jackson 2 on purpose, for example for a library that needs a Jackson 2 `ObjectMapper`.
 preconditions:
   - org.openrewrite.java.dependencies.search.ModuleHasDependency:
       groupIdPattern: org.springframework.boot

@@ -327,9 +327,6 @@ recipeList:
 
 
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: management.endpoints.jackson2.isolated-object-mapper
-      comment: "This property is deprecated: Jackson 3 is preferred."
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: management.metrics.export.signalfx.access-token
       comment: "This property is deprecated: SignalFX is no longer supported."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
@@ -440,6 +437,36 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.jackson.parser
       comment: "This property is deprecated: Partially replaced by 'spring.jackson.json.read'."
+  - org.openrewrite.java.spring.boot4.CommentOutJackson2Properties
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.mustache.enabled
+      comment: "This property is deprecated: No longer required. To use Mustache without auto-configuration, depend directly on Mustache instead of spring-boot-mustache."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.neo4j.pool.metrics-enabled
+      comment: "This property is deprecated: Use 'management.metrics.enable' to restrict certain metrics."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.test.observability.auto-configure
+      comment: "This property is deprecated: Superseded by 'spring.test.metrics.export' and 'spring.test.tracing.export'."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.thymeleaf.enabled
+      comment: "This property is deprecated: No longer required. To use Thymeleaf without auto-configuration, depend directly on Thymeleaf instead of spring-boot-thymeleaf."
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot4.CommentOutJackson2Properties
+displayName: Comment out Jackson 2 properties in modules without `spring-boot-jackson2`
+description: >-
+  Comment out the deprecated `spring.jackson2.*` and `management.endpoints.jackson2.*` properties, except in modules
+  that depend on `spring-boot-jackson2`. There they configure the Jackson 2 `ObjectMapper` that the module keeps.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-jackson2
+      invertMarking: true
+recipeList:
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.endpoints.jackson2.isolated-object-mapper
+      comment: "This property is deprecated: Jackson 3 is preferred."
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.jackson2.constructor-detector
       comment: "This property is deprecated: Deprecated in favor of Jackson 3"
@@ -485,15 +512,3 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.jackson2.visibility
       comment: "This property is deprecated: Deprecated in favor of Jackson 3"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.mustache.enabled
-      comment: "This property is deprecated: No longer required. To use Mustache without auto-configuration, depend directly on Mustache instead of spring-boot-mustache."
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.neo4j.pool.metrics-enabled
-      comment: "This property is deprecated: Use 'management.metrics.enable' to restrict certain metrics."
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.test.observability.auto-configure
-      comment: "This property is deprecated: Superseded by 'spring.test.metrics.export' and 'spring.test.tracing.export'."
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.thymeleaf.enabled
-      comment: "This property is deprecated: No longer required. To use Thymeleaf without auto-configuration, depend directly on Thymeleaf instead of spring-boot-thymeleaf."

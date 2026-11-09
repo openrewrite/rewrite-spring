@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.spring.framework;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -189,56 +188,73 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
         );
     }
 
-    @Nested
-    class NoChange {
-
-        @Test
-        void keepsJackson2InModuleWithSpringBootJackson2() {
-            rewriteRun(
-              spec -> spec.parser(JavaParser.fromJavaVersion()
-                .classpathFromResources(new InMemoryExecutionContext(), "jackson-databind-2.19")),
-              mavenProject("api",
-                //language=xml
-                pomXml(
-                  """
-                    <project>
-                        <modelVersion>4.0.0</modelVersion>
-                        <parent>
+    @Test
+    void migratesSpringButKeepsJackson2InModuleWithSpringBootJackson2() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "jackson-databind-2.19", "spring-web-6.2")),
+          mavenProject("api",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.6</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>api</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
                             <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-starter-parent</artifactId>
-                            <version>4.0.6</version>
-                            <relativePath/>
-                        </parent>
-                        <groupId>com.example</groupId>
-                        <artifactId>api</artifactId>
-                        <version>1.0-SNAPSHOT</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-jackson2</artifactId>
-                            </dependency>
-                        </dependencies>
-                    </project>
-                    """
-                ),
-                srcMainJava(
-                  //language=java
-                  java(
-                    """
-                      import com.fasterxml.jackson.databind.ObjectMapper;
+                            <artifactId>spring-boot-jackson2</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import com.fasterxml.jackson.databind.ObjectMapper;
+                  import org.springframework.http.HttpStatus;
 
-                      class JsonApiConfig {
-                          private final ObjectMapper objectMapper;
+                  class JsonApiConfig {
+                      private final ObjectMapper objectMapper;
 
-                          JsonApiConfig(ObjectMapper objectMapper) {
-                              this.objectMapper = objectMapper;
-                          }
+                      JsonApiConfig(ObjectMapper objectMapper) {
+                          this.objectMapper = objectMapper;
                       }
-                      """
-                  )
-                )
+
+                      HttpStatus invalidDocument() {
+                          return HttpStatus.UNPROCESSABLE_ENTITY;
+                      }
+                  }
+                  """,
+                """
+                  import com.fasterxml.jackson.databind.ObjectMapper;
+                  import org.springframework.http.HttpStatus;
+
+                  class JsonApiConfig {
+                      private final ObjectMapper objectMapper;
+
+                      JsonApiConfig(ObjectMapper objectMapper) {
+                          this.objectMapper = objectMapper;
+                      }
+
+                      HttpStatus invalidDocument() {
+                          return HttpStatus.UNPROCESSABLE_CONTENT;
+                      }
+                  }
+                  """
               )
-            );
-        }
+            )
+          )
+        );
     }
 }
