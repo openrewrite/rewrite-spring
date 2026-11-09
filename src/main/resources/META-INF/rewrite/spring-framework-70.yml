@@ -49,6 +49,22 @@ recipeList:
       newMethodName: bodyValue
       matchOverrides: true
   - org.openrewrite.java.testing.junit6.JUnit5to6Migration
-  - org.openrewrite.java.jackson.UpgradeJackson_2_3
+  - org.openrewrite.java.spring.framework.UpgradeJacksonUnlessSpringBootJackson2
   - org.openrewrite.java.spring.kafka.UpgradeSpringKafka_4_0
   - org.openrewrite.java.jspecify.MigrateFromSpringFrameworkAnnotations
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.framework.UpgradeJacksonUnlessSpringBootJackson2
+displayName: Migrate to Jackson 3 in modules without `spring-boot-jackson2`
+description: >-
+  Migrate from Jackson 2 to Jackson 3, except in modules that depend on `spring-boot-jackson2`. A Spring Boot 4
+  application declares that dependency to keep using Jackson 2, for example for a library that needs a Jackson 2
+  `ObjectMapper`.
+preconditions:
+  - org.openrewrite.java.dependencies.search.ModuleHasDependency:
+      groupIdPattern: org.springframework.boot
+      artifactIdPattern: spring-boot-jackson2
+      invertMarking: true
+recipeList:
+  - org.openrewrite.java.jackson.UpgradeJackson_2_3
