@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.doc;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.gradle.marker.GradlePluginDescriptor;
@@ -271,8 +273,13 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
-    @Test
-    void rewriteSingleDocketWithLiteralValuesToApplicationYml() {
+    @ParameterizedTest
+    @CsvSource(value = {
+      "/api/v1/**|/api/v1/**",
+      "/**|/**",
+      "**/api/**|'**/api/**'"
+    }, delimiter = '|', quoteCharacter = '"')
+    void rewriteSingleDocketWithLiteralValuesToApplicationYml(String path, String yamlPath) {
         rewriteRun(
           //language=yaml
           srcMainResources(
@@ -289,9 +296,9 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                     path: /swagger-ui.html
                   group-configs[0]:
                     group: internal
-                    paths-to-match: "/api/v1/**"
-                    packages-to-scan: "com.example.api"
-                """,
+                    paths-to-match: %s
+                    packages-to-scan: com.example.api
+                """.formatted(yamlPath),
               spec -> spec.path("application.yaml")
             )
           ),
@@ -314,12 +321,12 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                                 .groupName("internal")
                                 .select()
                                 .apis(RequestHandlerSelectors.basePackage("com.example.api"))
-                                .paths(PathSelectors.ant("/api/v1/**"))
+                                .paths(PathSelectors.ant("%s"))
                                 .build()
                                 .pathMapping("/");
                     }
                 }
-                """,
+                """.formatted(path),
               """
                 package org.project.example;
 
@@ -344,8 +351,8 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                 spring.application.name = main
                 springdoc.api-docs.path=/v3/api-docs
                 springdoc.group-configs[0].group=internal
-                springdoc.group-configs[0].packages-to-scan="com.example.api"
-                springdoc.group-configs[0].paths-to-match="/api/v1/**"
+                springdoc.group-configs[0].packages-to-scan=com.example.api
+                springdoc.group-configs[0].paths-to-match=/api/v1/**
                 springdoc.swagger-ui.path=/swagger-ui.html
                 """,
               spec -> spec.path("application.properties")

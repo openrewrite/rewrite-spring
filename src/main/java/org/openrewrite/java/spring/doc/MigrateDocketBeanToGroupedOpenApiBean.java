@@ -312,13 +312,13 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                         (paths == null || paths instanceof J.Literal);
                 boolean selectsAll = paths == null && apis == null;
                 return new DocketDefinition(owningType, methodName, configurableInProperties,
-                        groupName instanceof J.Literal ? groupName.toString() : null,
-                        selectsAll ? "/**" : valueSource(paths),
-                        selectsAll ? null : valueSource(apis));
+                        literalValue(groupName),
+                        selectsAll ? "/**" : literalValue(paths),
+                        selectsAll ? null : literalValue(apis));
             }
 
-            private static @Nullable String valueSource(@Nullable Expression expression) {
-                return expression instanceof J.Literal ? ((J.Literal) expression).getValueSource() : null;
+            private static @Nullable String literalValue(@Nullable Expression expression) {
+                return expression instanceof J.Literal ? (String) ((J.Literal) expression).getValue() : null;
             }
         }
     }
