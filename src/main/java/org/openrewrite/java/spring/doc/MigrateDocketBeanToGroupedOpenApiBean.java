@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.doc;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import lombok.*;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
@@ -140,6 +141,18 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
     }
 
     private static Tree addSpringProperty(ExecutionContext ctx, Tree properties, String property, String value) {
+        if (properties instanceof Yaml.Documents) {
+            value = "\"" + new String(JsonStringEncoder.getInstance().quoteAsString(value)) + "\"";
+        } else {
+            value = value.replace("\\", "\\\\")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t")
+                    .replace("\f", "\\f");
+            if (value.startsWith(" ")) {
+                value = "\\" + value;
+            }
+        }
         return new AddSpringProperty(property, value, null, null).getVisitor().visitNonNull(properties, ctx);
     }
 
@@ -312,13 +325,13 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                         (paths == null || paths instanceof J.Literal);
                 boolean selectsAll = paths == null && apis == null;
                 return new DocketDefinition(owningType, methodName, configurableInProperties,
-                        groupName instanceof J.Literal ? groupName.toString() : null,
-                        selectsAll ? "/**" : valueSource(paths),
-                        selectsAll ? null : valueSource(apis));
+                        literalValue(groupName),
+                        selectsAll ? "/**" : literalValue(paths),
+                        selectsAll ? null : literalValue(apis));
             }
 
-            private static @Nullable String valueSource(@Nullable Expression expression) {
-                return expression instanceof J.Literal ? ((J.Literal) expression).getValueSource() : null;
+            private static @Nullable String literalValue(@Nullable Expression expression) {
+                return expression instanceof J.Literal ? (String) ((J.Literal) expression).getValue() : null;
             }
         }
     }
