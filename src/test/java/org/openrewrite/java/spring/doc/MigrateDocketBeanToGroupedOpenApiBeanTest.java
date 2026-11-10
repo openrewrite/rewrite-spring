@@ -17,7 +17,8 @@ package org.openrewrite.java.spring.doc;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.gradle.marker.GradlePluginDescriptor;
@@ -27,6 +28,7 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.java.Assertions.*;
@@ -62,10 +64,10 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                 spring.application.name: main
                 springdoc:
                   api-docs:
-                    path: /v3/api-docs
+                    path: "/v3/api-docs"
                   swagger-ui:
-                    path: /swagger-ui.html
-                  paths-to-match: /**
+                    path: "/swagger-ui.html"
+                  paths-to-match: "/**"
                 """,
               spec -> spec.path("application.yaml")
             )
@@ -182,10 +184,10 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
               spring.application.name: main
               springdoc:
                 api-docs:
-                  path: /v3/api-docs
+                  path: "/v3/api-docs"
                 swagger-ui:
-                  path: /swagger-ui.html
-                paths-to-match: /**
+                  path: "/swagger-ui.html"
+                paths-to-match: "/**"
               """,
             spec -> spec.path("config/application.yml")
           ),
@@ -273,12 +275,18 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
+    static Stream<Arguments> yamlPaths() {
+        return Stream.of(
+          Arguments.of("/api/v1/**", "\"/api/v1/**\""),
+          Arguments.of("/**", "\"/**\""),
+          Arguments.of("**/api/**", "\"**/api/**\""),
+          Arguments.of("'/api/**'", "\"'/api/**'\""),
+          Arguments.of("null", "\"null\"")
+        );
+    }
+
     @ParameterizedTest
-    @CsvSource(value = {
-      "/api/v1/**|/api/v1/**",
-      "/**|/**",
-      "**/api/**|'**/api/**'"
-    }, delimiter = '|', quoteCharacter = '"')
+    @MethodSource("yamlPaths")
     void rewriteSingleDocketWithLiteralValuesToApplicationYml(String path, String yamlPath) {
         rewriteRun(
           //language=yaml
@@ -291,13 +299,13 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                 spring.application.name: main
                 springdoc:
                   api-docs:
-                    path: /v3/api-docs
+                    path: "/v3/api-docs"
                   swagger-ui:
-                    path: /swagger-ui.html
+                    path: "/swagger-ui.html"
                   group-configs[0]:
-                    group: internal
+                    group: "internal"
                     paths-to-match: %s
-                    packages-to-scan: com.example.api
+                    packages-to-scan: "com.example.api"
                 """.formatted(yamlPath),
               spec -> spec.path("application.yaml")
             )
@@ -338,8 +346,18 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
-    @Test
-    void rewriteSingleWithLiteralValuesToApplicationProperties() {
+    static Stream<Arguments> propertiesPaths() {
+        return Stream.of(
+          Arguments.of("/api/v1/**", "/api/v1/**"),
+          Arguments.of("/api/\\\\*", "/api/\\\\*"),
+          Arguments.of("/api/\\n", "/api/\\n"),
+          Arguments.of(" /api/**", "\\ /api/**")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("propertiesPaths")
+    void rewriteSingleWithLiteralValuesToApplicationProperties(String javaPath, String propertiesPath) {
         rewriteRun(
           //language=properties
           srcMainResources(
@@ -352,9 +370,9 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                 springdoc.api-docs.path=/v3/api-docs
                 springdoc.group-configs[0].group=internal
                 springdoc.group-configs[0].packages-to-scan=com.example.api
-                springdoc.group-configs[0].paths-to-match=/api/v1/**
+                springdoc.group-configs[0].paths-to-match=%s
                 springdoc.swagger-ui.path=/swagger-ui.html
-                """,
+                """.formatted(propertiesPath),
               spec -> spec.path("application.properties")
             )
           ),
@@ -377,12 +395,12 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                                 .groupName("internal")
                                 .select()
                                 .apis(RequestHandlerSelectors.basePackage("com.example.api"))
-                                .paths(PathSelectors.ant("/api/v1/**"))
+                                .paths(PathSelectors.ant("%s"))
                                 .build()
                                 .pathMapping("/");
                     }
                 }
-                """,
+                """.formatted(javaPath),
               """
                 package org.project.example;
 
