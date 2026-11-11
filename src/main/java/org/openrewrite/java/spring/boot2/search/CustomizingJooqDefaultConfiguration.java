@@ -43,10 +43,6 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             "org.jooq.TransactionListenerProvider"
     );
 
-    @SuppressWarnings("unchecked")
-    private static final TreeVisitor<?, ExecutionContext> precondition =
-            Preconditions.or(jooqTypes.stream().map(t -> new UsesType<>(t, false)).toArray(UsesType[]::new));
-
     @Getter
     final String displayName = "In Spring Boot 2.5 a `DefaultConfigurationCustomizer` can now be used in favour of defining one or more `*Provider` beans";
 
@@ -57,8 +53,11 @@ public class CustomizingJooqDefaultConfiguration extends Recipe {
             "the support for which has now been deprecated. " +
             "See [Spring Boot 2.5 jOOQ customization](https://docs.spring.io/spring-boot/docs/2.5.x/reference/htmlsingle/#features.sql.jooq.customizing).";
 
+    @SuppressWarnings("unchecked")
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
+        TreeVisitor<?, ExecutionContext> precondition =
+                Preconditions.or(jooqTypes.stream().map(t -> new UsesType<>(t, false)).toArray(UsesType[]::new));
         return Preconditions.check(precondition, new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {

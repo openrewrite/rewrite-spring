@@ -743,4 +743,37 @@ class MigrateItemWriterWriteTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void keepParameterAnnotations() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(@SuppressWarnings("unused") final List<? extends T> items) throws Exception {
+                      items.forEach(System.out::println);
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class ConsoleItemWriter<T> implements ItemWriter<T> {
+
+                  @Override
+                  public void write(@SuppressWarnings("unused") final Chunk<? extends T> items) throws Exception {
+                      items.forEach(System.out::println);
+                  }
+              }
+              """
+          )
+        );
+    }
 }
