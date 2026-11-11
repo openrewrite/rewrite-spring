@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.boot3;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -22,7 +23,10 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 class AddValidToNestedConfigPropertiesTest implements RewriteTest {
 
@@ -94,6 +98,50 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
 
                   @Valid
                   private NestedProperties nested;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidToFieldsOfNestedPropertyClasses() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private Pool pool;
+
+                  public static class Pool {
+                      private NestedProperties nested;
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private Pool pool;
+
+                  public static class Pool {
+                      @Valid
+                      private NestedProperties nested;
+                  }
               }
               """
           )
@@ -180,6 +228,103 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
     }
 
     @Test
+    void ignoreClassesDeclaringPropertiesBeanMethods() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.validation.annotation.Validated;
+
+              @Configuration
+              public class AppConfig {
+                  private final NestedProperties defaults = new NestedProperties();
+
+                  @Bean
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public NestedProperties appProperties() {
+                      return new NestedProperties();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void ignoreOtherTopLevelClasses() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private String name;
+              }
+
+              class AppPropertiesHelper {
+                  private NestedProperties nested;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidToPropertiesClassNestedInOtherClass() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.validation.annotation.Validated;
+
+              @Configuration
+              public class AppConfig {
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public static class AppProperties {
+                      private NestedProperties nested;
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.validation.annotation.Validated;
+
+              @Configuration
+              public class AppConfig {
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public static class AppProperties {
+                      @Valid
+                      private NestedProperties nested;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void doNotAddValidToLocalVariables() {
         rewriteRun(
           // language=java
@@ -199,6 +344,213 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
                       var serviceProperties = new NestedProperties();
                       return serviceProperties;
                   }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidToFieldsButNotToDeclarationsInInitializersOrEnums() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import java.util.function.Consumer;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private NestedProperties nested;
+                  private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+                  private final Object holder = new Object() {
+                      class Inner {
+                          NestedProperties inner;
+                      }
+                  };
+
+                  {
+                      NestedProperties defaults = new NestedProperties();
+                      class Local {
+                          NestedProperties local;
+                      }
+                  }
+
+                  enum Mode {
+                      COUNT((NestedProperties each) -> each.getCount());
+
+                      private final NestedProperties sample = null;
+
+                      Mode(Consumer<NestedProperties> action) {
+                      }
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import java.util.function.Consumer;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private NestedProperties nested;
+                  private final Consumer<NestedProperties> logger = (NestedProperties each) -> each.getCount();
+                  private final Object holder = new Object() {
+                      class Inner {
+                          NestedProperties inner;
+                      }
+                  };
+
+                  {
+                      NestedProperties defaults = new NestedProperties();
+                      class Local {
+                          NestedProperties local;
+                      }
+                  }
+
+                  enum Mode {
+                      COUNT((NestedProperties each) -> each.getCount());
+
+                      private final NestedProperties sample = null;
+
+                      Mode(Consumer<NestedProperties> action) {
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addValidToFieldsAndRecordComponentsButNotToParameters() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  private NestedProperties nested;
+
+                  public NestedProperties getNested() {
+                      return nested;
+                  }
+
+                  public void setNested(NestedProperties nested) {
+                      this.nested = nested;
+                  }
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @Valid
+                  private NestedProperties nested;
+
+                  public NestedProperties getNested() {
+                      return nested;
+                  }
+
+                  public void setNested(NestedProperties nested) {
+                      this.nested = nested;
+                  }
+              }
+              """
+          ),
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("record")
+              @Validated
+              public record RecordProperties(String name, NestedProperties nested) {
+              }
+              """,
+            """
+              package com.example.demo;
+
+              import jakarta.validation.Valid;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("record")
+              @Validated
+              public record RecordProperties(String name, @Valid NestedProperties nested) {
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotAddValidToEnumsOrInterfaceConstants() {
+        rewriteRun(
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import jakarta.validation.constraints.NotNull;
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("app")
+              @Validated
+              public class AppProperties {
+                  @NotNull
+                  private Mode mode = Mode.SINGLE;
+
+                  public enum Mode {
+                      SINGLE,
+                      MULTI
+                  }
+
+                  public interface Defaults {
+                      NestedProperties DEFAULT = new NestedProperties();
+                  }
+              }
+              """
+          ),
+
+          // language=java
+          java(
+            """
+              package com.example.demo;
+
+              import org.springframework.boot.context.properties.ConfigurationProperties;
+              import org.springframework.validation.annotation.Validated;
+
+              @ConfigurationProperties("defaults")
+              @Validated
+              public interface DefaultProperties {
+                  NestedProperties DEFAULT = new NestedProperties();
               }
               """
           )
@@ -234,5 +586,157 @@ class AddValidToNestedConfigPropertiesTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class BeforeBoot3_4 implements RewriteTest {
+
+        @Override
+        public void defaults(RecipeSpec spec) {
+            AddValidToNestedConfigPropertiesTest.this.defaults(spec);
+            spec.recipeFromResources("org.openrewrite.java.spring.boot3.AddValidToNestedConfigPropertiesBeforeBoot3_4");
+        }
+
+        @Test
+        void addValidWithoutKnownSpringBootVersion() {
+            rewriteRun(
+              // language=java
+              java(
+                """
+                  package com.example.demo;
+
+                  import org.springframework.boot.context.properties.ConfigurationProperties;
+                  import org.springframework.validation.annotation.Validated;
+
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public class AppProperties {
+                      private NestedProperties nested;
+                  }
+                  """,
+                """
+                  package com.example.demo;
+
+                  import jakarta.validation.Valid;
+                  import org.springframework.boot.context.properties.ConfigurationProperties;
+                  import org.springframework.validation.annotation.Validated;
+
+                  @ConfigurationProperties("app")
+                  @Validated
+                  public class AppProperties {
+                      @Valid
+                      private NestedProperties nested;
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void addValidWhenTheSameRunUpgradesSpringBootTo3_4() {
+            rewriteRun(
+              spec -> spec.recipeFromResources("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4"),
+              mavenProject("demo",
+                pomXml(
+                  // language=xml
+                  """
+                    <project>
+                        <parent>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-parent</artifactId>
+                            <version>3.3.13</version>
+                        </parent>
+                        <groupId>com.example</groupId>
+                        <artifactId>demo</artifactId>
+                        <version>1.0.0</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter</artifactId>
+                            </dependency>
+                        </dependencies>
+                    </project>
+                    """,
+                  spec -> spec.after(actual -> assertThat(actual)
+                    .containsPattern("<parent>\\s*<groupId>org.springframework.boot</groupId>\\s*" +
+                                     "<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>3\\.4\\.\\d+</version>")
+                    .actual())
+                ),
+                // language=java
+                java(
+                  """
+                    package com.example.demo;
+
+                    import org.springframework.boot.context.properties.ConfigurationProperties;
+                    import org.springframework.validation.annotation.Validated;
+
+                    @ConfigurationProperties("app")
+                    @Validated
+                    public class AppProperties {
+                        private NestedProperties nested;
+                    }
+                    """,
+                  """
+                    package com.example.demo;
+
+                    import jakarta.validation.Valid;
+                    import org.springframework.boot.context.properties.ConfigurationProperties;
+                    import org.springframework.validation.annotation.Validated;
+
+                    @ConfigurationProperties("app")
+                    @Validated
+                    public class AppProperties {
+                        @Valid
+                        private NestedProperties nested;
+                    }
+                    """
+                )
+              )
+            );
+        }
+
+        @Nested
+        class NoChange {
+
+            @Test
+            void onSpringBoot3_4() {
+                rewriteRun(
+                  mavenProject("demo",
+                    pomXml(
+                      // language=xml
+                      """
+                        <project>
+                            <groupId>com.example</groupId>
+                            <artifactId>demo</artifactId>
+                            <version>1.0.0</version>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>org.springframework.boot</groupId>
+                                    <artifactId>spring-boot-starter</artifactId>
+                                    <version>3.4.0</version>
+                                </dependency>
+                            </dependencies>
+                        </project>
+                        """
+                    ),
+                    // language=java
+                    java(
+                      """
+                        package com.example.demo;
+
+                        import org.springframework.boot.context.properties.ConfigurationProperties;
+                        import org.springframework.validation.annotation.Validated;
+
+                        @ConfigurationProperties("app")
+                        @Validated
+                        public class AppProperties {
+                            private NestedProperties nested;
+                        }
+                        """
+                    )
+                  )
+                );
+            }
+        }
     }
 }

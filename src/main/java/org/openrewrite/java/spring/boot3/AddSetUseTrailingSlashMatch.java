@@ -95,7 +95,9 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 boolean configMethodExists = classDecl.getBody().getStatements().stream()
                         .filter(org.openrewrite.java.tree.J.MethodDeclaration.class::isInstance)
                         .map(J.MethodDeclaration.class::cast)
-                        .anyMatch(methodDeclaration -> isWebMVCConfigurerMatchMethod(methodDeclaration) ||
+                        // Without a method type we can't rule out a same-named method, and a second one would not compile
+                        .anyMatch(methodDeclaration -> (methodDeclaration.getMethodType() == null && methodDeclaration.getSimpleName().startsWith("configurePathMatch")) ||
+                                isWebMVCConfigurerMatchMethod(methodDeclaration) ||
                                 isWebFluxconfigurePathMatchingMethod(methodDeclaration));
 
                 if (configMethodExists) {
@@ -190,12 +192,14 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
 
     private static boolean isWebMVCConfigurerMatchMethod(J.MethodDeclaration method) {
         return "configurePathMatch".equals(method.getName().getSimpleName()) &&
+                method.getMethodType() != null &&
                 method.getMethodType().getParameterTypes().size() == 1 &&
                 WEB_MVC_PATH_MATCH_CONFIGURER.equals(method.getMethodType().getParameterTypes().get(0).toString());
     }
 
     private static boolean isWebFluxconfigurePathMatchingMethod(J.MethodDeclaration method) {
         return "configurePathMatching".equals(method.getName().getSimpleName()) &&
+                method.getMethodType() != null &&
                 method.getMethodType().getParameterTypes().size() == 1 &&
                 WEB_FLUX_PATH_MATCH_CONFIGURER.equals(method.getMethodType().getParameterTypes().get(0).toString());
     }

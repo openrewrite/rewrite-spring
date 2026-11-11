@@ -20,11 +20,13 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.AnnotationMatcher;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.search.FindAnnotations;
 import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -36,6 +38,9 @@ public class AddValidToNestedConfigProperties extends Recipe {
     private static final String CONFIGURATION_PROPERTIES = "org.springframework.boot.context.properties.ConfigurationProperties";
     private static final String VALIDATED = "org.springframework.validation.annotation.Validated";
     private static final String JAKARTA_VALIDATION_VALID = "jakarta.validation.Valid";
+    private static final AnnotationMatcher CONFIGURATION_PROPERTIES_MATCHER = new AnnotationMatcher("@" + CONFIGURATION_PROPERTIES);
+    private static final AnnotationMatcher VALIDATED_MATCHER = new AnnotationMatcher("@" + VALIDATED);
+    private static final String IN_PROPERTIES_CLASS = "IN_PROPERTIES_CLASS";
 
     @Getter
     final String displayName = "Add `@Valid` to nested properties in `@ConfigurationProperties`";
@@ -51,37 +56,44 @@ public class AddValidToNestedConfigProperties extends Recipe {
                         new UsesType<>(VALIDATED, true)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
-                    boolean visitedTopLevelClass = false;
-
                     @Override
                     public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                        if (visitedTopLevelClass) {
-                            return super.visitClassDeclaration(classDecl, ctx);
-                        }
-                        visitedTopLevelClass = true;
-                        if (!FindAnnotations.find(classDecl, "@" + CONFIGURATION_PROPERTIES).isEmpty() &&
-                                !FindAnnotations.find(classDecl, "@" + VALIDATED).isEmpty()) {
-                            return super.visitClassDeclaration(classDecl, ctx);
-                        }
-                        return classDecl;
+                        AnnotationService annotations = service(AnnotationService.class);
+                        boolean annotated = annotations.matches(getCursor(), CONFIGURATION_PROPERTIES_MATCHER) &&
+                                annotations.matches(getCursor(), VALIDATED_MATCHER);
+                        J.ClassDeclaration.Kind.Type kind = classDecl.getKind();
+                        // Enums, interfaces and annotation types hold constants, not properties
+                        boolean classOrRecord = kind == J.ClassDeclaration.Kind.Type.Class || kind == J.ClassDeclaration.Kind.Type.Record;
+                        // A class or record nested in a properties class is treated as a nested property type
+                        boolean nested = getCursor().getParentOrThrow().getNearestMessage(IN_PROPERTIES_CLASS, false);
+                        getCursor().putMessage(IN_PROPERTIES_CLASS, (annotated || nested) && classOrRecord);
+                        return super.visitClassDeclaration(classDecl, ctx);
                     }
 
                     @Override
                     public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
                         if (getCursor().getParentTreeCursor().getValue() instanceof J.ClassDeclaration) {
-                            // Avoid adding @Valid to local variables inside methods
                             return super.visitBlock(block, ctx);
                         }
+                        // Any other block is code, whose declarations, local classes included, are not properties
                         return block;
                     }
 
                     @Override
+                    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
+                        // Validation cascades through fields and record components, not method parameters
+                        return method;
+                    }
+
+                    @Override
                     public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations varDecl, ExecutionContext ctx) {
-                        if (varDecl.hasModifier(J.Modifier.Type.Static)) {
+                        if (!getCursor().getNearestMessage(IN_PROPERTIES_CLASS, false) ||
+                                varDecl.hasModifier(J.Modifier.Type.Static)) {
                             return varDecl;
                         }
                         JavaType.FullyQualified type = TypeUtils.asFullyQualified(varDecl.getType());
-                        if (type != null && !isPrimitiveOrCommonType(type) &&
+                        if (type != null && type.getKind() != JavaType.FullyQualified.Kind.Enum &&
+                                !isPrimitiveOrCommonType(type) &&
                                 FindAnnotations.find(varDecl, "@javax.validation.Valid").isEmpty() &&
                                 FindAnnotations.find(varDecl, "@" + JAKARTA_VALIDATION_VALID).isEmpty()) {
                             maybeAddImport(JAKARTA_VALIDATION_VALID);
@@ -91,7 +103,8 @@ public class AddValidToNestedConfigProperties extends Recipe {
                                     .build()
                                     .apply(getCursor(), varDecl.getCoordinates().addAnnotation(Comparator.comparing(J.Annotation::getSimpleName)));
                         }
-                        return super.visitVariableDeclarations(varDecl, ctx);
+                        // An initializer is code
+                        return varDecl;
                     }
 
                     private boolean isPrimitiveOrCommonType(JavaType.FullyQualified type) {

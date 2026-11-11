@@ -242,7 +242,7 @@ tasks {
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
         forkEvery = 0
     }
-    val generatePropertyMigrationRecipes by registering(JavaExec::class) {
+    val generatePropertyMigrationRecipes = register<JavaExec>("generatePropertyMigrationRecipes") {
         group = "generate"
         description = "Generate Spring Boot property migration recipes."
         mainClass = "org.openrewrite.java.spring.internal.GeneratePropertiesMigratorConfiguration"

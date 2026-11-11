@@ -149,8 +149,8 @@ public class MigrateItemWriterWrite extends Recipe {
                                 m.getModifiers().stream()
                                         .map(J.Modifier::toString)
                                         .collect(joining(" ")),
-                                parameter.getModifiers().stream()
-                                        .map(J.Modifier::toString)
+                                Stream.concat(parameter.getLeadingAnnotations().stream(), parameter.getModifiers().stream())
+                                        .map(it -> it.printTrimmed(getCursor()))
                                         .collect(joining(" ")),
                                 chunkTypeParameter,
                                 paramName,
