@@ -38,6 +38,9 @@ public class AddAutoConfigureWebTestClient extends Recipe {
     private static final String WEB_TEST_CLIENT = "org.springframework.test.web.reactive.server.WebTestClient";
 
     private static final AnnotationMatcher AUTO_CONFIGURE_WEB_TEST_CLIENT = new AnnotationMatcher("@" + FULLY_QUALIFIED, true);
+    // Spring Boot 3's annotation, which the type relocations of the Spring Boot 4 migration move to `FULLY_QUALIFIED`
+    private static final AnnotationMatcher BOOT_3_AUTO_CONFIGURE_WEB_TEST_CLIENT = new AnnotationMatcher(
+            "@org.springframework.boot.test.autoconfigure.web.reactive." + SIMPLE_NAME, true);
     private static final AnnotationMatcher SPRING_BOOT_TEST = new AnnotationMatcher("@org.springframework.boot.test.context.SpringBootTest", true);
 
     @Getter
@@ -60,7 +63,8 @@ public class AddAutoConfigureWebTestClient extends Recipe {
 
                 AnnotationService annotationService = service(AnnotationService.class);
                 if (annotationService.matches(getCursor(), SPRING_BOOT_TEST) &&
-                        !annotationService.matches(getCursor(), AUTO_CONFIGURE_WEB_TEST_CLIENT)) {
+                        !annotationService.matches(getCursor(), AUTO_CONFIGURE_WEB_TEST_CLIENT) &&
+                        !annotationService.matches(getCursor(), BOOT_3_AUTO_CONFIGURE_WEB_TEST_CLIENT)) {
                     maybeAddImport(FULLY_QUALIFIED);
                     return JavaTemplate.builder("@" + SIMPLE_NAME)
                             .imports(FULLY_QUALIFIED)

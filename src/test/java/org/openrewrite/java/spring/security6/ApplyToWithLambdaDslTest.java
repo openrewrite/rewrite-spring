@@ -20,9 +20,13 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static java.util.Objects.requireNonNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class ApplyToWithLambdaDslTest implements RewriteTest {
@@ -113,6 +117,7 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1245")
     @Test
     void standaloneApply() {
         //language=java
@@ -143,7 +148,13 @@ class ApplyToWithLambdaDslTest implements RewriteTest {
                       return http.build();
                   }
               }
-              """
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                var configure = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                var with = (J.MethodInvocation) requireNonNull(configure.getBody()).getStatements().getFirst();
+                assertThat(TypeUtils.toString(requireNonNull(with.getMethodType()).getReturnType()))
+                  .isEqualTo("org.springframework.security.config.annotation.web.builders.HttpSecurity");
+            })
           )
         );
     }

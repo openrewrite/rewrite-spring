@@ -541,4 +541,90 @@ class MigrateAuditorAwareToOptionalTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void onlyWrapReturnsOfGetCurrentAuditorItself() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.function.Supplier;
+
+              public class MyAuditorAware implements AuditorAware<String> {
+                  @Override
+                  public String getCurrentAuditor() {
+                      Supplier<String> fallback = () -> {
+                          return "system";
+                      };
+                      return fallback.get();
+                  }
+              }
+              """,
+            """
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.Optional;
+              import java.util.function.Supplier;
+
+              public class MyAuditorAware implements AuditorAware<String> {
+                  @Override
+                  public Optional<String> getCurrentAuditor() {
+                      Supplier<String> fallback = () -> {
+                          return "system";
+                      };
+                      return Optional.ofNullable(fallback.get());
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotWrapReturnsOfAnonymousClassInGetCurrentAuditor() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.function.Supplier;
+
+              public class MyAuditorAware implements AuditorAware<String> {
+                  @Override
+                  public String getCurrentAuditor() {
+                      Supplier<String> fallback = new Supplier<String>() {
+                          @Override
+                          public String get() {
+                              return "system";
+                          }
+                      };
+                      return fallback.get();
+                  }
+              }
+              """,
+            """
+              import org.springframework.data.domain.AuditorAware;
+
+              import java.util.Optional;
+              import java.util.function.Supplier;
+
+              public class MyAuditorAware implements AuditorAware<String> {
+                  @Override
+                  public Optional<String> getCurrentAuditor() {
+                      Supplier<String> fallback = new Supplier<String>() {
+                          @Override
+                          public String get() {
+                              return "system";
+                          }
+                      };
+                      return Optional.ofNullable(fallback.get());
+                  }
+              }
+              """
+          )
+        );
+    }
 }

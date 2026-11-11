@@ -16,23 +16,30 @@
 package org.openrewrite.java.spring.cloud2022;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
+import org.openrewrite.SourceFile;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.gradle.marker.GradleDependencyConfiguration;
+import org.openrewrite.gradle.marker.GradleProject;
+import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.spring.AddSpringProperty;
-import org.openrewrite.maven.MavenVisitor;
-import org.openrewrite.maven.tree.ResolvedDependency;
+import org.openrewrite.marker.SearchResult;
+import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Scope;
-import org.openrewrite.semver.DependencyMatcher;
-import org.openrewrite.xml.tree.Xml;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
-import static java.util.Collections.emptyList;
+public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<Set<JavaProject>> {
 
-public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolean> {
+    private static final String SLEUTH_GROUP_ID = "org.springframework.cloud";
+    private static final String SLEUTH_ARTIFACT_ID = "spring-cloud-starter-sleuth";
+
     @Getter
     final String displayName = "Add `logging.pattern.level` for `traceId` and `spanId`";
 
@@ -40,32 +47,59 @@ public class AddLoggingPatternLevelForSleuth extends ScanningRecipe<AtomicBoolea
     final String description = "Add `logging.pattern.level` for `traceId` and `spanId` which was previously set by default, if not already set.";
 
     @Override
-    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
-        return new AtomicBoolean(false);
+    public Set<JavaProject> getInitialValue(ExecutionContext ctx) {
+        return new HashSet<>();
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean acc) {
-        return new MavenVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getScanner(Set<JavaProject> acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
-                if (!acc.get()) {
-                    DependencyMatcher matcher = DependencyMatcher.build("org.springframework.cloud:spring-cloud-starter-sleuth:X").getValue();
-                    List<ResolvedDependency> dependencies = getResolutionResult().getDependencies().getOrDefault(Scope.Compile, emptyList());
-                    acc.set(dependencies.stream().anyMatch(d -> matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())));
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
                 }
-                return document;
+                Optional<JavaProject> maybeJavaProject = tree.getMarkers().findFirst(JavaProject.class);
+                if (!maybeJavaProject.isPresent() || acc.contains(maybeJavaProject.get())) {
+                    return tree;
+                }
+                Optional<MavenResolutionResult> maven = tree.getMarkers().findFirst(MavenResolutionResult.class);
+                if (maven.isPresent()) {
+                    if (!maven.get().findDependencies(SLEUTH_GROUP_ID, SLEUTH_ARTIFACT_ID, Scope.Compile).isEmpty()) {
+                        acc.add(maybeJavaProject.get());
+                    }
+                    return tree;
+                }
+                Optional<GradleProject> gradle = tree.getMarkers().findFirst(GradleProject.class);
+                if (gradle.isPresent()) {
+                    GradleDependencyConfiguration configuration = gradle.get().getConfiguration("compileClasspath");
+                    if (configuration != null && configuration.findResolvedDependency(SLEUTH_GROUP_ID, SLEUTH_ARTIFACT_ID) != null) {
+                        acc.add(maybeJavaProject.get());
+                    }
+                }
+                return tree;
             }
         };
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean acc) {
+    public TreeVisitor<?, ExecutionContext> getVisitor(Set<JavaProject> acc) {
         AddSpringProperty addSpringProperty = new AddSpringProperty(
                 "logging.pattern.level",
                 "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]",
                 "Logging pattern containing traceId and spanId; no longer provided through Sleuth by default",
                 null);
-        return Preconditions.check(acc.get(), addSpringProperty.getVisitor());
+        return Preconditions.check(new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof SourceFile) {
+                    Optional<JavaProject> javaProject = tree.getMarkers().findFirst(JavaProject.class);
+                    if (javaProject.isPresent() && acc.contains(javaProject.get())) {
+                        return SearchResult.found(tree);
+                    }
+                }
+                return tree;
+            }
+        }, addSpringProperty.getVisitor());
     }
 }

@@ -96,6 +96,77 @@ class NormalizeSpringfoxPathSelectorsRegexToAntTest implements RewriteTest {
     }
 
     @Test
+    void keepStaticImportStyle() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
+
+              import static springfox.documentation.builders.PathSelectors.regex;
+
+              class ApplicationConfiguration {
+                  ApiSelectorBuilder publicApi(ApiSelectorBuilder selector) {
+                      return selector.paths(regex("/api/v1/.*"));
+                  }
+              }
+              """,
+            """
+              import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
+
+              import static springfox.documentation.builders.PathSelectors.ant;
+
+              class ApplicationConfiguration {
+                  ApiSelectorBuilder publicApi(ApiSelectorBuilder selector) {
+                      return selector.paths(ant("/api/v1/**"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepStaticRegexImportWhileStillUsed() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
+
+              import static springfox.documentation.builders.PathSelectors.regex;
+
+              class ApplicationConfiguration {
+                  ApiSelectorBuilder publicApi(ApiSelectorBuilder selector) {
+                      return selector.paths(regex("/api/v1/.*"));
+                  }
+
+                  ApiSelectorBuilder versionedApi(ApiSelectorBuilder selector) {
+                      return selector.paths(regex("/api/v[0-9]+/.*"));
+                  }
+              }
+              """,
+            """
+              import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
+
+              import static springfox.documentation.builders.PathSelectors.ant;
+              import static springfox.documentation.builders.PathSelectors.regex;
+
+              class ApplicationConfiguration {
+                  ApiSelectorBuilder publicApi(ApiSelectorBuilder selector) {
+                      return selector.paths(ant("/api/v1/**"));
+                  }
+
+                  ApiSelectorBuilder versionedApi(ApiSelectorBuilder selector) {
+                      return selector.paths(regex("/api/v[0-9]+/.*"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void leaveRegexWithCharacterClassAlone() {
         rewriteRun(
           srcMainJava(

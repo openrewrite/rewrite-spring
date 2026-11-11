@@ -37,6 +37,7 @@ class UnnecessarySpringExtensionTest implements RewriteTest {
         spec.recipe(new UnnecessarySpringExtension())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
+              "spring-beans-5",
               "spring-context-5",
               "spring-test-5",
               "spring-boot-test-2.4",
