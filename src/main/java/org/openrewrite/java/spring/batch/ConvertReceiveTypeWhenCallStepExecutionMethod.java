@@ -51,8 +51,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
             "Adds `(int)` casts where `int` is still expected, rewrites method references to lambdas, " +
             "and adds `(long)` casts in Mockito `thenReturn` stubs.";
 
-    private static final MethodMatcher STEP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution get*Count()");
-
+    private static final MethodMatcher STEP_COUNT_MATCHER = new MethodMatcher("org.springframework.batch.core.StepExecution get*Count()");
     private static final MethodMatcher WHEN_MATCHER = new MethodMatcher("org.mockito.Mockito when(..)");
     private static final MethodMatcher THEN_RETURN_MATCHER = new MethodMatcher("org.mockito.stubbing.OngoingStubbing thenReturn(..)");
     private static final Set<J.Binary.Type> ARITHMETIC = EnumSet.of(
@@ -62,7 +61,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                new UsesMethod<>(STEP_COUNT),
+                new UsesMethod<>(STEP_COUNT_MATCHER),
                 new JavaVisitor<ExecutionContext>() {
                     /**
                      * Do not visit method reference from the Javadoc
@@ -90,7 +89,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                         J.MethodInvocation methodInvocation = (J.MethodInvocation) j;
 
                         // int count = stepExecution.getXCount(); -> int count = (int) stepExecution.getXCount();
-                        if (STEP_COUNT.matches(methodInvocation) && isInt(methodInvocation.getType())) {
+                        if (STEP_COUNT_MATCHER.matches(methodInvocation) && isInt(methodInvocation.getType())) {
                             return expectsInt(getCursor()) ? cast("int", methodInvocation, getCursor().getParentOrThrow()) : methodInvocation;
                         }
 
@@ -123,7 +122,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
     // StepExecution::getXCount where result must be int
     private static boolean shouldConvertToLambda(J.MemberReference memberReference, JavaType.Method method) {
-        return STEP_COUNT.matches(memberReference)
+        return STEP_COUNT_MATCHER.matches(memberReference)
                 && isInt(method.getReturnType())
                 && wantsInt(memberReference.getType())
                 && isClassReference(memberReference.getContaining());
@@ -161,7 +160,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
             return false;
         }
         List<Expression> args = ((J.MethodInvocation) expression).getArguments();
-        return !args.isEmpty() && STEP_COUNT.matches(args.get(0));
+        return !args.isEmpty() && STEP_COUNT_MATCHER.matches(args.get(0));
     }
 
     // expression -> (int) expression or (long) expression
