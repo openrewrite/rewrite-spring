@@ -425,4 +425,249 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void noNameClashForLambdaParameter() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.JobExecution;
+              import org.springframework.batch.core.StepExecution;
+              import java.util.function.Function;
+
+              public class ProfileUpdateWriter {
+
+                  private void populateJobMetrics(JobExecution jobExecution, StepExecution stepExecution) {
+                    jobExecution.getStepExecutions().stream().map(StepExecution::getRollbackCount).mapToLong(Integer::longValue).sum();
+                  }
+
+              }
+              """,
+            """
+              package test;
+
+              import org.springframework.batch.core.JobExecution;
+              import org.springframework.batch.core.StepExecution;
+              import java.util.function.Function;
+
+              public class ProfileUpdateWriter {
+
+                  private void populateJobMetrics(JobExecution jobExecution, StepExecution stepExecution) {
+                    jobExecution.getStepExecutions().stream().map(stepExecution1 -> (int) stepExecution1.getRollbackCount()).mapToLong(Integer::longValue).sum();
+                  }
+
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeForToLongFunction() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import java.util.function.ToLongFunction;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  ToLongFunction<StepExecution> readCount = StepExecution::getReadCount;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeForInstanceMethodReference() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import java.util.function.IntSupplier;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdaterWriter {
+                  int count(StepExecution stepExecution) {
+                      IntSupplier supplier = stepExecution::getReadCount;
+                      return supplier.getAsInt();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeForUnrelatedMethodReference() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              import java.util.function.Function;
+
+              class ProfileUpdateWriter {
+                  interface Counter {
+                      int getRollbackCount();
+                  }
+
+                  Function<Counter, Integer> unrelated = Counter::getRollbackCount;
+
+                  int test(StepExecution stepExecution) {
+                      long readCount = stepExecution.getReadCount();
+                      return 0;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noChangeWhenAlreadyCast() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  int test(StepExecution stepExecution) {
+                      return (int) stepExecution.getReadCount();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void castInArithmeticWithIntTarget() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void test(StepExecution stepExecution) {
+                      int total = stepExecution.getReadCount() + 1;
+                  }
+              }
+              """,
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void test(StepExecution stepExecution) {
+                      int total = ((int) stepExecution.getReadCount()) + 1;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void castInReassignment() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void test(StepExecution stepExecution) {
+                      int v;
+                      v = stepExecution.getReadCount();
+                  }
+              }
+              """,
+            """
+              package test;
+
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void test(StepExecution stepExecution) {
+                      int v;
+                      v = (int) stepExecution.getReadCount();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void noCastInLambdaReturnForLongFunction() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import java.util.function.ToLongFunction;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  ToLongFunction<StepExecution> f = se -> { return se.getReadCount(); };
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void changeMockitoWhenWithStaticImport() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package test;
+
+              import static org.mockito.Mockito.when;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void test(StepExecution stepExecution) {
+                      when(stepExecution.getReadCount()).thenReturn(1);
+                  }
+              }
+              """,
+            """
+              package test;
+
+              import static org.mockito.Mockito.when;
+              import org.springframework.batch.core.StepExecution;
+
+              class ProfileUpdateWriter {
+                  void test(StepExecution stepExecution) {
+                      when(stepExecution.getReadCount()).thenReturn((long) 1);
+                  }
+              }
+              """
+          )
+        );
+    }
 }
