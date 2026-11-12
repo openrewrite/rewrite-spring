@@ -41,6 +41,8 @@ class GeneratePropertiesMigratorConfiguration {
     private static final Map<String, String> UPSTREAM_TYPO_CORRECTIONS = Map.of(
       "management.promethus.metrics.export.pushgateway.base-url", "management.prometheus.metrics.export.pushgateway.base-url"
     );
+    // The replacement enables one timer; it cannot accept the old list of meter names.
+    private static final String IGNORED_METERS = "management.metrics.observations.ignored-meters";
 
     public static void main(String[] args) throws IOException {
         var springBootReleases = new SpringBootReleases(true); // `true` for release candidates
@@ -51,7 +53,7 @@ class GeneratePropertiesMigratorConfiguration {
         File[] listing = releasesDir.listFiles();
         Set<String> latestPatchReleases = List.of(args).contains("offline") ?
           (listing == null ? emptySet() :
-            Arrays.stream(listing).map(File::getName).collect(toSet())) :
+            Arrays.stream(listing).map(File::getName).sorted().collect(toCollection(LinkedHashSet::new))) :
           springBootReleases.latestPatchReleases();
 
         var alreadyDefined = new HashSet<>();
@@ -111,6 +113,7 @@ class GeneratePropertiesMigratorConfiguration {
                       var metadata = objectMapper.readValue(inputStream2, SpringConfigurationMetadata.class);
                       return metadata.properties().stream()
                         .filter(p -> p.deprecation() != null)
+                        .filter(p -> !IGNORED_METERS.equals(p.name()))
                         .map(GeneratePropertiesMigratorConfiguration::correctUpstreamTypo)
                         .filter(p -> alreadyDefined.add(getPropertyKey(p)));
                   } catch (IOException e) {
@@ -136,7 +139,7 @@ class GeneratePropertiesMigratorConfiguration {
                   """.formatted(
                   r.name(), requireNonNull(r.deprecation()).replacement())
                 )
-                .collect(joining("", "\n", "\n")),
+                .collect(joining("", "", "\n")),
               StandardOpenOption.APPEND);
         }
     }
@@ -186,7 +189,10 @@ class GeneratePropertiesMigratorConfiguration {
             tags:
               - spring
               - boot
-            recipeList:""".formatted(majorMinor[0], majorMinor[1]));
+            preconditions:
+              - org.openrewrite.Singleton
+            recipeList:
+            """.formatted(majorMinor[0], majorMinor[1]));
     }
 }
 

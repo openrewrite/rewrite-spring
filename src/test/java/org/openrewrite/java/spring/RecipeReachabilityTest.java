@@ -69,6 +69,7 @@ class RecipeReachabilityTest {
 
     private static final Set<String> NOT_YET_IN_A_COMPOSITE = Set.of(
       "org.openrewrite.java.spring.boot4.SpringBootProperties_4_1",
+      "org.openrewrite.java.spring.boot4.SpringBootProperties_4_2",
       "org.openrewrite.java.spring.data.UpgradeSpringData_4_0"
     );
 
