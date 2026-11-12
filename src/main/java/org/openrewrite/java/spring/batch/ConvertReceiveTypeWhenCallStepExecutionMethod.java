@@ -44,10 +44,12 @@ import java.util.Set;
 public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
     @Getter
-    final String displayName = "Convert receive type in some invocation of StepExecution.xx()";
+    final String displayName = "Cast `StepExecution` count results to match `int` usages";
 
     @Getter
-    final String description = "Convert receive type in some invocation of StepExecution.xx().";
+    final String description = "Spring Batch 5 changed `StepExecution.get*Count()` from `int` to `long`. " +
+            "Adds `(int)` casts where `int` is still expected, rewrites method references to lambdas, " +
+            "and adds `(long)` casts in Mockito `thenReturn` stubs.";
 
     private static final MethodMatcher STEP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution get*Count()");
 
@@ -139,11 +141,11 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                         "spring-batch-infrastructure-5.+"))
                 .build()
                 .apply(cursor, memberReference.getCoordinates().replace());
-        return withOriginalMethodType(lambda, method);
+        return withMethodType(lambda, method);
     }
 
     // Get type info for generic calls like map(...)
-    private static J.Lambda withOriginalMethodType(J.Lambda lambda, JavaType.Method originalMethod) {
+    private static J.Lambda withMethodType(J.Lambda lambda, JavaType.Method originalMethod) {
         J.TypeCast cast = (J.TypeCast) lambda.getBody();
         J.MethodInvocation call = (J.MethodInvocation) cast.getExpression();
         return lambda.withBody(cast.withExpression(call.withMethodType(originalMethod)));
