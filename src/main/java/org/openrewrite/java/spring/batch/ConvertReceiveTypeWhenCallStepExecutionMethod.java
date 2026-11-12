@@ -114,7 +114,9 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                         if (method == null || !shouldConvertToLambda(memberReference, method)) {
                             return memberReference;
                         }
-                        return toIntLambda(memberReference, method, getCursor(), ctx);
+                        J lambda = toIntLambda(memberReference, method, getCursor(), ctx);
+                        maybeRemoveImport("org.springframework.batch.core.StepExecution");
+                        return lambda;
                     }
                 }
         );
@@ -152,7 +154,13 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
     // StepExecution::getX has a class name before `::` (no field type).
     private static boolean isClassReference(Expression containing) {
-        return containing instanceof J.Identifier && ((J.Identifier) containing).getFieldType() == null;
+        if (containing instanceof J.Identifier) {
+            return ((J.Identifier) containing).getFieldType() == null;
+        }
+        if (containing instanceof J.FieldAccess) {
+            return ((J.FieldAccess) containing).getName().getFieldType() == null;
+        }
+        return false;
     }
 
     private static boolean isWhenCount(@Nullable Expression expression) {
