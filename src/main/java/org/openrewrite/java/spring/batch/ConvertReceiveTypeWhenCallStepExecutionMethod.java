@@ -16,23 +16,28 @@
 package org.openrewrite.java.spring.batch;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.*;
+import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.JavadocVisitor;
+import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Javadoc;
+import org.openrewrite.java.tree.MethodCall;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.Set;
 
 public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
 
@@ -42,227 +47,183 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
     @Getter
     final String description = "Convert receive type in some invocation of StepExecution.xx().";
 
-
-    private static final MethodMatcher CommitCount = new MethodMatcher("org.springframework.batch.core.StepExecution getCommitCount()");
-    private static final MethodMatcher ReadCount = new MethodMatcher("org.springframework.batch.core.StepExecution getReadCount()");
-    private static final MethodMatcher WriteCount = new MethodMatcher("org.springframework.batch.core.StepExecution getWriteCount()");
-    private static final MethodMatcher RollbackCount = new MethodMatcher("org.springframework.batch.core.StepExecution getRollbackCount()");
-    private static final MethodMatcher FilterCount = new MethodMatcher("org.springframework.batch.core.StepExecution getFilterCount()");
-    private static final MethodMatcher SkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getSkipCount()");
-    private static final MethodMatcher ReadSkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getReadSkipCount()");
-    private static final MethodMatcher WriteSkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getWriteSkipCount()");
-    private static final MethodMatcher ProcessSkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getProcessSkipCount()");
+    private static final MethodMatcher STEP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution get*Count()");
 
     private static final MethodMatcher WHEN_MATCHER = new MethodMatcher("org.mockito.Mockito when(..)");
     private static final MethodMatcher THEN_RETURN_MATCHER = new MethodMatcher("org.mockito.stubbing.OngoingStubbing thenReturn(..)");
+    private static final Set<J.Binary.Type> ARITHMETIC = EnumSet.of(
+            J.Binary.Type.Addition, J.Binary.Type.Subtraction, J.Binary.Type.Division, J.Binary.Type.Multiplication, J.Binary.Type.Modulo
+    );
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                new UsesMethod<>("org.springframework.batch.core.StepExecution get*Count()"),
-                new JavaIsoVisitor<ExecutionContext>() {
+                new UsesMethod<>(STEP_COUNT),
+                new JavaVisitor<ExecutionContext>() {
+                    /**
+                     * Do not visit method reference from the Javadoc
+                     */
                     @Override
-                    public J.MemberReference visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
-                        memberRef = super.visitMemberReference(memberRef, ctx);
-                        final J.MemberReference mr = memberRef;
-                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount)
-                                .anyMatch(methodMatcher -> methodMatcher.matches(mr))) {
-                            doAfterVisit(new MemberReferenceToMethodInvocation(memberRef));
-                        }
-                        return memberRef;
-                    }
-
-
-                    @Override
-                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                        method = super.visitMethodInvocation(method, ctx);
-                        final J.MethodInvocation md = method;
-                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount)
-                                .anyMatch(methodMatcher -> methodMatcher.matches(md))) {
-                            doAfterVisit(new AddCastToMethodInvocation(method));
-                        }
-                        return method;
-                    }
-                });
-    }
-
-    @RequiredArgsConstructor
-    private static class AddCastToMethodInvocation extends JavaVisitor<ExecutionContext> {
-
-        private final J.MethodInvocation selfMethodInvocation;
-
-        @Override
-        public J visitVariableDeclarations(J.VariableDeclarations multiVariable, ExecutionContext ctx) {
-            J j = super.visitVariableDeclarations(multiVariable, ctx);
-            VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
-            visitMethodInvocation.visit(multiVariable, ctx, getCursor().getParentTreeCursor());
-            if (visitMethodInvocation.isFound) {
-                doAfterVisit(new AddCast());
-            }
-            return j;
-        }
-
-        @Override
-        public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            J j = super.visitMethodInvocation(method, ctx);
-            if (method != selfMethodInvocation) {
-                if (THEN_RETURN_MATCHER.matches(method)) {
-                    if (method.getArguments().get(0).getType() != null &&
-                            ("int".equals(method.getArguments().get(0).getType().toString()) ||
-                                    method.getArguments().get(0).getType().isAssignableFrom(Pattern.compile("java.lang.Integer")))) {
-
-                        final AtomicBoolean findWhen = new AtomicBoolean(false);
-                        new JavaIsoVisitor<ExecutionContext>() {
+                    protected JavadocVisitor<ExecutionContext> getJavadocVisitor() {
+                        return new JavadocVisitor<ExecutionContext>(this) {
                             @Override
-                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                                if (WHEN_MATCHER.matches(method)) {
-                                    findWhen.set(true);
-                                }
-                                return super.visitMethodInvocation(method, ctx);
+                            public Javadoc visitReference(Javadoc.Reference reference, ExecutionContext ctx) {
+                                return reference;
                             }
-                        }.visit(method, ctx);
-                        if (findWhen.get()) {
-                            j = JavaTemplate.builder("#{any(org.mockito.stubbing.OngoingStubbing)}.thenReturn((long) #{})")
-                                    .contextSensitive()
-                                    .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect(), method.getArguments().get(0))
-                                    .withPrefix(method.getPrefix());
-                        }
+                        };
                     }
-                    return j;
 
-                }
-                if (WHEN_MATCHER.matches(method)) {
-                    return j;
-                }
-                VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
-                visitMethodInvocation.visit(method, ctx, getCursor().getParentTreeCursor());
-                if (visitMethodInvocation.isFound) {
-                    doAfterVisit(new AddCast());
-                }
-
-            }
-            return j;
-
-        }
-
-        @Override
-        public J visitReturn(J.Return return_, ExecutionContext ctx) {
-            J j = super.visitReturn(return_, ctx);
-            VisitMethodInvocation visitMethodInvocation = new VisitMethodInvocation(selfMethodInvocation);
-            visitMethodInvocation.visit(return_, ctx, getCursor().getParentTreeCursor());
-            if (visitMethodInvocation.isFound) {
-                doAfterVisit(new AddCast());
-            }
-            return j;
-        }
-
-        private class AddCast extends JavaVisitor<ExecutionContext> {
-            @Override
-            protected JavadocVisitor<ExecutionContext> getJavadocVisitor() {
-                return new JavadocVisitor<ExecutionContext>(this) {
                     @Override
-                    public Javadoc visitReference(Javadoc.Reference reference, ExecutionContext ctx) {
-                        return reference;
+                    public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        // Mockito stub check
+                        if (isWhenCount(method)) {
+                            return method;
+                        }
+                        J j = super.visitMethodInvocation(method, ctx);
+                        if (!(j instanceof J.MethodInvocation)) {
+                            return j;
+                        }
+                        J.MethodInvocation methodInvocation = (J.MethodInvocation) j;
+
+                        // int count = stepExecution.getXCount(); -> int count = (int) stepExecution.getXCount();
+                        if (STEP_COUNT.matches(methodInvocation) && isInt(methodInvocation.getType())) {
+                            return expectsInt(getCursor()) ? cast("int", methodInvocation, getCursor().getParentOrThrow()) : methodInvocation;
+                        }
+
+                        // Handle only StepExecution mock
+                        if (THEN_RETURN_MATCHER.matches(methodInvocation) && isWhenCount(methodInvocation.getSelect())) {
+                            return methodInvocation.withArguments(
+                                    ListUtils.map(methodInvocation.getArguments(),
+                                            arg -> isInt(arg.getType()) ? cast("long", arg, getCursor()) : arg)
+                            );
+                        }
+
+                        return methodInvocation;
                     }
-                };
-            }
 
-            @Override
-            public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                J parent = getCursor().getParentTreeCursor().getValue();
-                if (selfMethodInvocation == method &&
-                        !(parent instanceof J.TypeCast) &&
-                        !(parent instanceof Expression && WHEN_MATCHER.matches((Expression) parent)) &&
-                        contextExpectsInt(getCursor())) {
-                    return JavaTemplate.builder("(int) #{any(int)}")
-                            .contextSensitive()
-                            .build().apply(getCursor(), method.getCoordinates().replace(), method)
-                            .withPrefix(method.getPrefix());
-                }
-                return super.visitMethodInvocation(method, ctx);
-            }
+                    @Override
+                    public J visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
+                        J j = super.visitMemberReference(memberRef, ctx);
+                        if (!(j instanceof J.MemberReference)) {
+                            return j;
+                        }
+                        J.MemberReference memberReference = (J.MemberReference) j;
 
-            private boolean contextExpectsInt(org.openrewrite.Cursor cursor) {
-                J parent = cursor.getParentTreeCursor().getValue();
+                        if (!STEP_COUNT.matches(memberReference) || !isInt(memberReference.getMethodType().getReturnType())
+                                || !wantsInt(memberReference.getType()) || !isClassReference(memberReference.getContaining())) {
+                            return memberReference;
+                        }
 
-                if (parent instanceof J.VariableDeclarations.NamedVariable) {
-                    JavaType.Variable varType = ((J.VariableDeclarations.NamedVariable) parent).getVariableType();
-                    return varType != null && TypeUtils.isOfType(varType.getType(), JavaType.Primitive.Int);
-                }
+                        String templateCode = String.format("_stepExecution -> (int) _stepExecution.%s()",
+                                memberReference.getReference().getSimpleName());
 
-                if (parent instanceof J.Return) {
-                    J.MethodDeclaration enclosingMethod = cursor.firstEnclosing(J.MethodDeclaration.class);
-                    if (enclosingMethod != null && enclosingMethod.getMethodType() != null) {
-                        return TypeUtils.isOfType(enclosingMethod.getMethodType().getReturnType(), JavaType.Primitive.Int);
-                    }
-                    return true;
-                }
+                        J.Lambda lambda = JavaTemplate.builder(templateCode)
+                                .contextSensitive()
+                                .imports("org.springframework.batch.core.StepExecution")
+                                .javaParser(JavaParser.fromJavaVersion()
+                                        .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
+                                .build()
+                                .apply(getCursor(), memberReference.getCoordinates().replace());
 
-                if (parent instanceof J.MethodInvocation) {
-                    J.MethodInvocation parentMethod = (J.MethodInvocation) parent;
-                    if (parentMethod.getMethodType() != null) {
-                        List<Expression> args = parentMethod.getArguments();
-                        int argIndex = -1;
-                        for (int i = 0; i < args.size(); i++) {
-                            if (args.get(i) == selfMethodInvocation) {
-                                argIndex = i;
-                                break;
+                        JavaType.Method original = memberReference.getMethodType();
+                        if (lambda.getBody() instanceof J.TypeCast) {
+                            J.TypeCast cast = (J.TypeCast) lambda.getBody();
+                            if (cast.getExpression() instanceof J.MethodInvocation) {
+                                J.MethodInvocation call = (J.MethodInvocation) cast.getExpression();
+                                if (call.getSelect() instanceof J.Identifier) {
+                                    call = call.withSelect(((J.Identifier) call.getSelect())
+                                            .withType(original.getDeclaringType()));
+                                }
+                                call = call.withMethodType(original)
+                                        .withName(call.getName().withType(original));
+                                return lambda.withBody(cast.withExpression(call));
                             }
                         }
-                        if (argIndex >= 0) {
-                            List<JavaType> paramTypes = parentMethod.getMethodType().getParameterTypes();
-                            if (argIndex < paramTypes.size()) {
-                                return TypeUtils.isOfType(paramTypes.get(argIndex), JavaType.Primitive.Int);
-                            }
-                        }
+                        return lambda;
                     }
-                    return true;
                 }
+        );
+    }
 
-                return true;
+    // StepExecution::getX has a class name before `::` (no field type).
+    private static boolean isClassReference(Expression containing) {
+        return containing instanceof J.Identifier && ((J.Identifier) containing).getFieldType() == null;
+    }
+
+    private static boolean isWhenCount(Expression expression) {
+        if (!(expression instanceof J.MethodInvocation) || !WHEN_MATCHER.matches(expression)) {
+            return false;
+        }
+        List<Expression> args = ((J.MethodInvocation) expression).getArguments();
+        return !args.isEmpty() && STEP_COUNT.matches(args.get(0));
+    }
+
+    // expression -> (int) expression or (long) expression
+    private static Expression cast(String type, Expression expression, Cursor parent) {
+        return JavaTemplate.builder("(" + type + ") #{any(int)}")
+                .build()
+                .apply(new Cursor(parent, expression), expression.getCoordinates().replace(), expression)
+                .withPrefix(expression.getPrefix());
+    }
+
+    // Verify if (int) cast is needed else return false by default
+    private static boolean expectsInt(Cursor call) {
+        // Handling long total = stepExecution.getXCount() + 1
+        Cursor self = call;
+        Object parent = self.getParentTreeCursor().getValue();
+        while (parent instanceof J.Parentheses || parent instanceof J.Binary && ARITHMETIC.contains(((J.Binary) parent).getOperator())) {
+            self = self.getParentTreeCursor();
+            parent = self.getParentTreeCursor().getValue();
+        }
+
+        // Cast if int count = stepExecution.getXCount(), else skip
+        if (parent instanceof J.VariableDeclarations.NamedVariable) {
+            return isInt(((J.VariableDeclarations.NamedVariable) parent).getType());
+        }
+
+        // If assignment (count = stepExecution.getXCount()) check type before cast
+        if (parent instanceof J.Assignment) {
+            return isInt(((J.Assignment) parent).getType());
+        }
+
+        // return count -> cast if method or lambda returns int
+        if (parent instanceof J.Return) {
+            Object enclosing = self.getParentTreeCursor().dropParentUntil(t -> t instanceof J.MethodDeclaration || t instanceof J.Lambda).getValue();
+            return enclosing instanceof J.Lambda ? wantsInt(((J.Lambda) enclosing).getType()) : isInt(((J.MethodDeclaration) enclosing).getType());
+        }
+
+        // If stepExecution.getXCount() is passed as an argument check corresponding parameter type
+        if (parent instanceof MethodCall) {
+            MethodCall outer = (MethodCall) parent;
+            JavaType.Method target = outer.getMethodType();
+            int position = outer.getArguments().indexOf(self.getValue());
+            if (target != null && position >= 0 && position < target.getParameterTypes().size()) {
+                return isInt(target.getParameterTypes().get(position));
             }
         }
 
+        return false;
     }
 
-    @RequiredArgsConstructor
-    private static class VisitMethodInvocation extends JavaIsoVisitor<ExecutionContext> {
-
-        private final J.MethodInvocation selfMethodInvocation;
-
-        private boolean isFound = false;
-
-        @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            method = super.visitMethodInvocation(method, ctx);
-            if (method == selfMethodInvocation) {
-                isFound = true;
-            }
-            return method;
+    private static boolean wantsInt(JavaType type) {
+        if (type == null || TypeUtils.isOfClassType(type, "java.util.function.ToLongFunction")
+                || TypeUtils.isOfClassType(type, "java.util.function.ToDoubleFunction")) {
+            return false;
         }
-    }
-
-    @RequiredArgsConstructor
-    private static class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionContext> {
-
-        private final J.MemberReference selfMemberRef;
-
-        @Override
-        public J visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
-            if (selfMemberRef == memberRef) {
-                J.MemberReference mr = (J.MemberReference) super.visitMemberReference(memberRef, ctx);
-                if (mr.getMethodType() == null) {
-                    return mr;
-                }
-
-                String templateCode = String.format("_stepExecution -> (int)_stepExecution.%s()",
-                        mr.getReference().getSimpleName());
-                return JavaTemplate.builder(templateCode)
-                        .contextSensitive()
-                        .build().apply(getCursor(), mr.getCoordinates().replace())
-                        .withPrefix(mr.getPrefix());
-            }
-            return super.visitMemberReference(memberRef, ctx);
+        if (TypeUtils.isOfClassType(type, "java.util.function.ToIntFunction")) {
+            return true;
         }
+        if (!(type instanceof JavaType.Parameterized)) {
+            return true;
+        }
+        // The result type is last type argument of Function<T, R>, Supplier<R> or ? extends Long
+        List<JavaType> args = ((JavaType.Parameterized) type).getTypeParameters();
+        return !args.isEmpty() && !TypeUtils.isAssignableTo("java.lang.Long", args.get(args.size() - 1));
     }
+
+    // int or Integer
+    private static boolean isInt(JavaType type) {
+        return TypeUtils.isOfType(type, JavaType.Primitive.Int) || TypeUtils.isOfClassType(type, "java.lang.Integer");
+    }
+
 }
