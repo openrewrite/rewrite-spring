@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.batch;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -27,6 +28,7 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.JavadocVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.VariableNameUtils;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -97,7 +99,6 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                                             arg -> isInt(arg.getType()) ? cast("long", arg, getCursor()) : arg)
                             );
                         }
-
                         return methodInvocation;
                     }
 
@@ -108,41 +109,44 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                             return j;
                         }
                         J.MemberReference memberReference = (J.MemberReference) j;
-
-                        if (!STEP_COUNT.matches(memberReference) || !isInt(memberReference.getMethodType().getReturnType())
-                                || !wantsInt(memberReference.getType()) || !isClassReference(memberReference.getContaining())) {
+                        JavaType.Method method = memberReference.getMethodType();
+                        if (method == null || !shouldConvertToLambda(memberReference, method)) {
                             return memberReference;
                         }
-
-                        String templateCode = String.format("_stepExecution -> (int) _stepExecution.%s()",
-                                memberReference.getReference().getSimpleName());
-
-                        J.Lambda lambda = JavaTemplate.builder(templateCode)
-                                .contextSensitive()
-                                .imports("org.springframework.batch.core.StepExecution")
-                                .javaParser(JavaParser.fromJavaVersion()
-                                        .classpathFromResources(ctx, "spring-batch-core-5.+", "spring-batch-infrastructure-5.+"))
-                                .build()
-                                .apply(getCursor(), memberReference.getCoordinates().replace());
-
-                        JavaType.Method original = memberReference.getMethodType();
-                        if (lambda.getBody() instanceof J.TypeCast) {
-                            J.TypeCast cast = (J.TypeCast) lambda.getBody();
-                            if (cast.getExpression() instanceof J.MethodInvocation) {
-                                J.MethodInvocation call = (J.MethodInvocation) cast.getExpression();
-                                if (call.getSelect() instanceof J.Identifier) {
-                                    call = call.withSelect(((J.Identifier) call.getSelect())
-                                            .withType(original.getDeclaringType()));
-                                }
-                                call = call.withMethodType(original)
-                                        .withName(call.getName().withType(original));
-                                return lambda.withBody(cast.withExpression(call));
-                            }
-                        }
-                        return lambda;
+                        return toIntLambda(memberReference, method, getCursor(), ctx);
                     }
                 }
         );
+    }
+
+    // StepExecution::getXCount where result must be int
+    private static boolean shouldConvertToLambda(J.MemberReference memberReference, JavaType.Method method) {
+        return STEP_COUNT.matches(memberReference)
+                && isInt(method.getReturnType())
+                && wantsInt(memberReference.getType())
+                && isClassReference(memberReference.getContaining());
+    }
+
+    private static J toIntLambda(J.MemberReference memberReference, JavaType.Method method, Cursor cursor, ExecutionContext ctx) {
+        String param = VariableNameUtils.generateVariableName(
+                "stepExecution", cursor, VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER
+        );
+        String template = String.format("%s -> (int) %s.%s()", param, param, memberReference.getReference().getSimpleName());
+
+        J.Lambda lambda = JavaTemplate.builder(template)
+                .contextSensitive()
+                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5.+",
+                        "spring-batch-infrastructure-5.+"))
+                .build()
+                .apply(cursor, memberReference.getCoordinates().replace());
+        return withOriginalMethodType(lambda, method);
+    }
+
+    // Get type info for generic calls like map(...)
+    private static J.Lambda withOriginalMethodType(J.Lambda lambda, JavaType.Method originalMethod) {
+        J.TypeCast cast = (J.TypeCast) lambda.getBody();
+        J.MethodInvocation call = (J.MethodInvocation) cast.getExpression();
+        return lambda.withBody(cast.withExpression(call.withMethodType(originalMethod)));
     }
 
     // StepExecution::getX has a class name before `::` (no field type).
@@ -150,7 +154,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         return containing instanceof J.Identifier && ((J.Identifier) containing).getFieldType() == null;
     }
 
-    private static boolean isWhenCount(Expression expression) {
+    private static boolean isWhenCount(@Nullable Expression expression) {
         if (!(expression instanceof J.MethodInvocation) || !WHEN_MATCHER.matches(expression)) {
             return false;
         }
@@ -189,14 +193,14 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         // return count -> cast if method or lambda returns int
         if (parent instanceof J.Return) {
             Object enclosing = self.getParentTreeCursor().dropParentUntil(t -> t instanceof J.MethodDeclaration || t instanceof J.Lambda).getValue();
-            return enclosing instanceof J.Lambda ? wantsInt(((J.Lambda) enclosing).getType()) : isInt(((J.MethodDeclaration) enclosing).getType());
+            return enclosing instanceof J.Lambda ? wantsInt((((J.Lambda) enclosing).getType())) : isInt(((J.MethodDeclaration) enclosing).getType());
         }
 
         // If stepExecution.getXCount() is passed as an argument check corresponding parameter type
         if (parent instanceof MethodCall) {
             MethodCall outer = (MethodCall) parent;
             JavaType.Method target = outer.getMethodType();
-            int position = outer.getArguments().indexOf(self.getValue());
+            int position = outer.getArguments().indexOf((Expression) self.getValue());
             if (target != null && position >= 0 && position < target.getParameterTypes().size()) {
                 return isInt(target.getParameterTypes().get(position));
             }
@@ -205,7 +209,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
         return false;
     }
 
-    private static boolean wantsInt(JavaType type) {
+    private static boolean wantsInt(@Nullable JavaType type) {
         if (type == null || TypeUtils.isOfClassType(type, "java.util.function.ToLongFunction")
                 || TypeUtils.isOfClassType(type, "java.util.function.ToDoubleFunction")) {
             return false;
@@ -222,8 +226,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
     }
 
     // int or Integer
-    private static boolean isInt(JavaType type) {
+    private static boolean isInt(@Nullable JavaType type) {
         return TypeUtils.isOfType(type, JavaType.Primitive.Int) || TypeUtils.isOfClassType(type, "java.lang.Integer");
     }
-
 }
