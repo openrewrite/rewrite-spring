@@ -61,7 +61,6 @@ class ConvertReceiveTypeWhenCallStepExecutionMethodTest implements RewriteTest {
               package test;
 
               import org.springframework.batch.core.JobExecution;
-              import org.springframework.batch.core.StepExecution;
               import java.util.function.Function;
 
               public class ProfileUpdateWriter {
