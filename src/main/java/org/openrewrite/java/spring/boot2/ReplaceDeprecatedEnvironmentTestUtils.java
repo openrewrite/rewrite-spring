@@ -248,7 +248,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 m = JavaTemplate.builder(marker.templateString)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-boot-test-2.*", "spring-boot-2.*", "spring-core-5.*", "spring-context-5.*", "spring-beans-5.*"))
+                                .classpathFromResources(ctx, "spring-boot-test-2", "spring-boot-2", "spring-core-5", "spring-context-5", "spring-beans-5"))
                         .imports("org.springframework.boot.test.util.TestPropertyValues")
                         .build().apply(
                                 getCursor(),
