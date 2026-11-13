@@ -140,6 +140,17 @@ public class MigrateJobParameter extends Recipe {
                         return null;
                     }
 
+                    private String[] templateImports(@Nullable JavaType javaType) {
+                        if (javaType instanceof JavaType.Class) {
+                            JavaType.FullyQualified topLevel = (JavaType.Class) javaType;
+                            while (topLevel.getOwningClass() != null) {
+                                topLevel = topLevel.getOwningClass();
+                            }
+                            return new String[]{"org.springframework.batch.core.JobParameter", topLevel.getFullyQualifiedName()};
+                        }
+                        return new String[]{"org.springframework.batch.core.JobParameter"};
+                    }
+
                     @Override
                     public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                         J.NewClass nc = super.visitNewClass(newClass, ctx);
@@ -154,10 +165,14 @@ public class MigrateJobParameter extends Recipe {
                             if (typeString == null) {
                                 return nc;
                             }
+                            String[] imports = templateImports(javaType);
+                            for (String fqn : imports) {
+                                maybeAddImport(fqn);
+                            }
 
                             if (nc.getArguments().size() > 1) {
                                 return JavaTemplate.builder("new JobParameter<>(#{any()}, #{}.class, #{any()})")
-                                        .imports("org.springframework.batch.core.JobParameter")
+                                        .imports(imports)
                                         .javaParser(JavaParser.fromJavaVersion()
                                                 .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                                         .build()
@@ -167,7 +182,7 @@ public class MigrateJobParameter extends Recipe {
                                                 nc.getArguments().get(1));
                             }
                             return JavaTemplate.builder("new JobParameter<>(#{any()}, #{}.class)")
-                                    .imports("org.springframework.batch.core.JobParameter")
+                                    .imports(imports)
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
                                     .build()
