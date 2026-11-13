@@ -210,7 +210,8 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/KubernetesClientProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.KubernetesClientProperties".equals(row.getClassType()))
                 .matches(row -> "spring.cloud.kubernetes.client".equals(row.getPrefix()));
-          }).typeValidationOptions(TypeValidation.none()),
+          // The constant reference `PREFIX` has no type.
+          }).typeValidationOptions(TypeValidation.all().identifiers(false)),
           //language=java
           java(
             """
@@ -263,7 +264,8 @@ class FindConfigurationPropertiesTest implements RewriteTest {
                 .matches(row -> separatorsToSystem("test/AppProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.AppProperties".equals(row.getClassType()))
                 .matches(row -> "app.config".equals(row.getPrefix()));
-          }).typeValidationOptions(TypeValidation.none()),
+          // The constant reference `PREFIX` has no type.
+          }).typeValidationOptions(TypeValidation.all().identifiers(false)),
           //language=java
           java(
             """

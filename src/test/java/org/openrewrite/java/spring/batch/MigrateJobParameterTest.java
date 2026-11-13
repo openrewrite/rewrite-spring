@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -42,8 +43,9 @@ class MigrateJobParameterTest implements RewriteTest {
         //language=java
         rewriteRun(
           spec -> spec
+            // The input's `new JobParameter(new Integer[]{1})` has no constructor type, and some identifiers in the output have no type.
             .typeValidationOptions(TypeValidation.all().constructorInvocations(false))
-            .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+            .recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
           java(
             """
               import org.springframework.batch.core.JobParameter;

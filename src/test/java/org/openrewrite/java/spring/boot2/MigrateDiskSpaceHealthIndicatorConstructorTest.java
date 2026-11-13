@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -39,7 +40,8 @@ class MigrateDiskSpaceHealthIndicatorConstructorTest implements RewriteTest {
     void changeDeprecatedConstructor() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          // The recipe's output `new DiskSpaceHealthIndicator(..)` calls have no constructor type.
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().constructorInvocations(false))),
           java(
             """
               import org.springframework.boot.actuate.system.DiskSpaceHealthIndicator;

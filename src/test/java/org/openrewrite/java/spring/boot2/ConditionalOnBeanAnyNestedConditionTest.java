@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -43,7 +44,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void twoConditionalAnnotationsWithSameMultipleClassCandidatesReversed() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          // The input refers to `Aa`, which is not on the classpath, so it has no type.
+          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -111,6 +113,7 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationSingleClassCandidateNoChange() {
         //language=java
         rewriteRun(
+          // The input refers to `Aa`, which is not declared, so its identifiers, the `@Bean` method and a constructor call have no type.
           spec -> spec.typeValidationOptions(TypeValidation.builder()
             .methodDeclarations(false)
             .constructorInvocations(false)
@@ -251,7 +254,6 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void simpleConditionalAnnotationMultipleTypeClassNames() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -426,7 +428,6 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
         void noChangeOnSpringBoot2() {
             rewriteRun(
               spec -> spec
-                .typeValidationOptions(TypeValidation.none())
                 .parser(JavaParser.fromJavaVersion()
                   .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7", "spring-context-5.+")),
               mavenProject("project",
@@ -460,7 +461,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
         @Test
         void transformsOnSpringBoot1() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              // The input refers to `Aa`, which is not on the classpath, so it has no type.
+              spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
               mavenProject("project",
                 pomXml(POM_BOOT_1),
                 //language=java

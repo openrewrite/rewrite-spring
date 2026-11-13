@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.boot2;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -44,7 +45,8 @@ class LegacyHttpSecurityTest implements RewriteTest {
     void dontUseUnavailableMethods() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          // The methods the test calls on `http` are unavailable on the classpath, so the `http` identifier has no type.
+          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;
