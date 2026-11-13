@@ -219,3 +219,7 @@ recipeList:
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.JobRepository
 
   - org.openrewrite.java.spring.batch.MigrateToChunkOrientedStepBuilder
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor
+      newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistrySmartInitializingSingleton
