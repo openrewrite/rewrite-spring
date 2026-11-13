@@ -22,7 +22,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.*;
+import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeSpringFramework_7_0Test implements RewriteTest {
 
@@ -183,6 +184,76 @@ class UpgradeSpringFramework_7_0Test implements RewriteTest {
                   }
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void migratesSpringButKeepsJackson2InModuleWithSpringBootJackson2() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion()
+            .classpathFromResources(new InMemoryExecutionContext(), "jackson-databind-2.19", "spring-web-6.2")),
+          mavenProject("api",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>4.0.6</version>
+                        <relativePath/>
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>api</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-jackson2</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            srcMainJava(
+              //language=java
+              java(
+                """
+                  import com.fasterxml.jackson.databind.ObjectMapper;
+                  import org.springframework.http.HttpStatus;
+
+                  class JsonApiConfig {
+                      private final ObjectMapper objectMapper;
+
+                      JsonApiConfig(ObjectMapper objectMapper) {
+                          this.objectMapper = objectMapper;
+                      }
+
+                      HttpStatus invalidDocument() {
+                          return HttpStatus.UNPROCESSABLE_ENTITY;
+                      }
+                  }
+                  """,
+                """
+                  import com.fasterxml.jackson.databind.ObjectMapper;
+                  import org.springframework.http.HttpStatus;
+
+                  class JsonApiConfig {
+                      private final ObjectMapper objectMapper;
+
+                      JsonApiConfig(ObjectMapper objectMapper) {
+                          this.objectMapper = objectMapper;
+                      }
+
+                      HttpStatus invalidDocument() {
+                          return HttpStatus.UNPROCESSABLE_CONTENT;
+                      }
+                  }
+                  """
+              )
+            )
           )
         );
     }
