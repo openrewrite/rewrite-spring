@@ -29,6 +29,7 @@ class OAuth2ClientLambdaDslTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
+          // Some `client(..)` invocations have no method type.
           .typeValidationOptions(TypeValidation.all().methodInvocations(false))
           .recipe(new OAuth2ClientLambdaDsl())
           .parser(JavaParser.fromJavaVersion()

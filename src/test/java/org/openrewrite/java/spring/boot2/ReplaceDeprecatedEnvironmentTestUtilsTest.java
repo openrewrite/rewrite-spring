@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -43,7 +44,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenHasStringVariableWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -81,7 +81,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenHasSingleStringWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -118,7 +117,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenConstructsStringAndContextWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -152,7 +150,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsReplacesThemWithAFluentSetOfCalls() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -194,7 +191,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsWithDifferentContextsCoalescesThemCorrectly() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -244,7 +240,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsWithGeneratedContextsCoalescesThemCorrectly() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -282,7 +277,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsWithMixOfContextsCoalescesThemCorrectly() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -327,7 +321,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsThatReferToTheSameObjectUnfortunatelyDoesntChainThem() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -380,7 +373,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenEnvironmentAddEnvironmentChainsThemCorrectly() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -431,7 +423,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenNamedEnvironmentAddEnvironmentChainsThemCorrectly() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
@@ -479,7 +470,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenSameNameForDifferentEnvironmentsDoesNotChainThem() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.web.context.support.StandardServletEnvironment;
@@ -511,7 +501,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenVarargsAddEnvironmentChainsThemCorrectly() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               package com.mycompany;
