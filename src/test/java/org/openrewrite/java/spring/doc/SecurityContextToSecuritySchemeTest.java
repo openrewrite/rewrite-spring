@@ -19,9 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class SecurityContextToSecuritySchemeTest implements RewriteTest {
@@ -220,7 +224,12 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
                               .addString("admin", "Admin access");
                   }
               }
-              """
+              """,
+            spec -> spec.afterRecipe(cu -> assertThat(cu.getClasses().get(0).getBody().getStatements().get(0))
+              .isInstanceOfSatisfying(J.MethodDeclaration.class, md ->
+                assertThat(TypeUtils.asFullyQualified(md.getMethodType().getReturnType()))
+                  .extracting(JavaType.FullyQualified::getFullyQualifiedName)
+                  .isEqualTo("io.swagger.v3.oas.models.security.Scopes")))
           )
         );
     }

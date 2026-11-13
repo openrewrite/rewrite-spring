@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
+
 public class SecurityContextToSecurityScheme extends Recipe {
     private static final MethodMatcher APIKEY_MATCHER = new MethodMatcher("springfox.documentation.service.ApiKey <constructor>(String, String, String)");
     private static final MethodMatcher AUTHORIZATION_SCOPE_MATCHER = new MethodMatcher("springfox.documentation.service.AuthorizationScope <constructor>(String, String)");
@@ -152,9 +154,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                     maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                                     maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
 
-                                    md = md.withReturnTypeExpression(
-                                            TypeTree.build("Scopes")
-                                                    .withPrefix(md.getReturnTypeExpression().getPrefix()));
+                                    md = returningScopes(md);
                                 }
                             }
 
@@ -165,13 +165,18 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                     maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
                                     maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
 
-                                    md = md.withReturnTypeExpression(
-                                            TypeTree.build("Scopes")
-                                                    .withPrefix(md.getReturnTypeExpression().getPrefix()));
+                                    md = returningScopes(md);
                                 }
                             }
                         }
                         return md;
+                    }
+
+                    private J.MethodDeclaration returningScopes(J.MethodDeclaration md) {
+                        //noinspection DataFlowIssue
+                        return withReturnTypeExpression(md, TypeTree.build("Scopes")
+                                .withType(JavaType.ShallowClass.build("io.swagger.v3.oas.models.security.Scopes"))
+                                .withPrefix(md.getReturnTypeExpression().getPrefix()));
                     }
 
                     @Override
