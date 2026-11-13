@@ -186,7 +186,6 @@ public class OutputCaptureExtension extends Recipe {
                         emptyList(),
                         new J.Identifier(Tree.randomId(), Space.EMPTY, Markers.EMPTY, emptyList(), "CapturedOutput", CAPTURED_OUTPUT_TYPE, null),
                         null,
-                        emptyList(),
                         singletonList(new JRightPadded<>(
                                 new J.VariableDeclarations.NamedVariable(Tree.randomId(),
                                         Space.format(" "),
