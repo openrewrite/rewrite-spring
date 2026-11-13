@@ -564,4 +564,41 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
         );
     }
 
+    @Test
+    void returnTypeChangedWhenBodyReturnsCallToConvertedMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+              import java.util.List;
+
+              class Test {
+                  List<AuthorizationScope> authorizationScopes() {
+                      return defaultScopes();
+                  }
+
+                  List<AuthorizationScope> defaultScopes() {
+                      return List.of(new AuthorizationScope("read", "Read access"));
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+
+              class Test {
+                  Scopes authorizationScopes() {
+                      return defaultScopes();
+                  }
+
+                  Scopes defaultScopes() {
+                      return new Scopes()
+                              .addString("read", "Read access");
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }

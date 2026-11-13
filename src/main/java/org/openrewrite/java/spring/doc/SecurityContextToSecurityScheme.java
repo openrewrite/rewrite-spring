@@ -111,7 +111,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
                 TreeVisitor<?, ExecutionContext> precondition = Preconditions.or(
                         new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER),
                         findArrayParametersOfType(AUTHORIZATION_SCOPE));
-                return Preconditions.check(precondition, new JavaVisitor<ExecutionContext>() {
+                JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+                    private final List<JavaType.Method> convertedMethods = new ArrayList<>();
                     private final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(springfox.documentation.service.AuthorizationScope...)");
                     private final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(springfox.documentation.service.AuthorizationScope...)");
 
@@ -124,6 +125,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
                             List<ScopeInfo> scopes = extractAuthorizationScopes(mi.getArguments());
                             if (!scopes.isEmpty()) {
                                 return replaceWithChainedScopes(mi, scopes, ctx);
+                            }
+                        }
+                        for (JavaType.Method converted : convertedMethods) {
+                            if (TypeUtils.isOfType(mi.getMethodType(), converted)) {
+                                JavaType.Method methodType = converted.withReturnType(SCOPES_TYPE);
+                                return mi.withMethodType(methodType).withName(mi.getName().withType(methodType));
                             }
                         }
                         return mi;
@@ -156,6 +163,10 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         if (md.getReturnTypeExpression() != null &&
                                 isAuthorizationScopeListOrArray(md.getReturnTypeExpression().getType()) &&
                                 returnsOnlyScopes(md)) {
+                            if (md.getMethodType() != null) {
+                                convertedMethods.add(md.getMethodType());
+                            }
+                            maybeRemoveImport("java.util.List");
                             maybeRemoveImport(AUTHORIZATION_SCOPE);
                             maybeAddImport(SCOPES);
                             return withReturnTypeExpression(md, TypeTree.build("Scopes")
@@ -284,7 +295,15 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         final Expression description;
                     }
 
-                }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
+                };
+                Tree before = t;
+                Tree after = Preconditions.check(precondition, visitor).visitNonNull(t, ctx, getCursor().getParentOrThrow());
+                // A method returning a call to a converted method qualifies once that call is retyped
+                while (after != before) {
+                    before = after;
+                    after = visitor.visitNonNull(before, ctx, getCursor().getParentOrThrow());
+                }
+                return after;
             }
 
             private Tree replaceSecurityReference(ExecutionContext ctx, Tree t) {
