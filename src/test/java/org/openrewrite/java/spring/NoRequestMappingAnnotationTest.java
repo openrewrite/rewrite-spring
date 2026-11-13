@@ -23,7 +23,6 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -41,13 +40,14 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
     void requestMapping() {
         //language=java
         rewriteRun(
-          // The input uses `@RestController` and `@PathVariable` without importing them, so they have no type.
-          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import java.util.*;
               import org.springframework.http.ResponseEntity;
+              import org.springframework.web.bind.annotation.PathVariable;
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RequestMethod;
+              import org.springframework.web.bind.annotation.RestController;
               import static org.springframework.web.bind.annotation.RequestMethod.GET;
               import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
@@ -79,7 +79,9 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import java.util.*;
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.GetMapping;
+              import org.springframework.web.bind.annotation.PathVariable;
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
               import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
               @RestController
@@ -193,14 +195,13 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
     void hasValueParameter() {
         //language=java
         rewriteRun(
-          // The input uses `@RestController` without importing it, so it has no type.
-          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import java.util.*;
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.RequestMapping;
               import org.springframework.web.bind.annotation.RequestMethod;
+              import org.springframework.web.bind.annotation.RestController;
 
               @RestController
               @RequestMapping("/users")
@@ -216,6 +217,7 @@ class NoRequestMappingAnnotationTest implements RewriteTest {
               import org.springframework.http.ResponseEntity;
               import org.springframework.web.bind.annotation.PostMapping;
               import org.springframework.web.bind.annotation.RequestMapping;
+              import org.springframework.web.bind.annotation.RestController;
 
               @RestController
               @RequestMapping("/users")

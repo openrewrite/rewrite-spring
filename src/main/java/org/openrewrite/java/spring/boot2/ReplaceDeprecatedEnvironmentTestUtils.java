@@ -212,14 +212,18 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
             boolean appendOf = true;
             for (J.MethodInvocation methodInvocation : collectedMethods) {
                 for (int j = isNamedEnvironmentMethod(methodInvocation) ? 2 : 1; j < methodInvocation.getArguments().size(); j++) {
-                    template.append(".").append(appendOf ? "of" : "and").append("(#{any()})");
+                    template.append(".").append(appendOf ? "of" : "and").append("(#{any(java.lang.String)})");
                     appendOf = false;
                 }
             }
+            // Typed placeholders, so that the template can resolve the applyTo overload for the context or environment
+            JavaType contextType = getContextOrEnvironmentArgument(collectedMethods.get(0)).getType();
+            String context = contextType instanceof JavaType.FullyQualified ?
+                    "#{any(" + ((JavaType.FullyQualified) contextType).getFullyQualifiedName() + ")}" : "#{any()}";
             if (isNamedEnvironmentMethod(collectedMethods.get(0))) {
-                template.append(".applyTo(#{any()}, TestPropertyValues.Type.MAP, #{any()})");
+                template.append(".applyTo(").append(context).append(", TestPropertyValues.Type.MAP, #{any(java.lang.String)})");
             } else {
-                template.append(".applyTo(#{any()})");
+                template.append(".applyTo(").append(context).append(")");
             }
             return template.toString();
         }
@@ -244,7 +248,7 @@ public class ReplaceDeprecatedEnvironmentTestUtils extends Recipe {
                 m = JavaTemplate.builder(marker.templateString)
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
-                                .classpathFromResources(ctx, "spring-boot-test-2.*"))
+                                .classpathFromResources(ctx, "spring-boot-test-2.*", "spring-boot-2.*", "spring-core-5.*", "spring-context-5.*", "spring-beans-5.*"))
                         .imports("org.springframework.boot.test.util.TestPropertyValues")
                         .build().apply(
                                 getCursor(),

@@ -44,8 +44,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenHasStringVariableWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -83,8 +81,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenHasSingleStringWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -121,8 +117,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenConstructsStringAndContextWhenRemovingDeprecatedThenReplacesAddEnvironmentWithSetProperties() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -156,8 +150,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsReplacesThemWithAFluentSetOfCalls() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -199,8 +191,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsWithDifferentContextsCoalescesThemCorrectly() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -250,8 +240,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsWithGeneratedContextsCoalescesThemCorrectly() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -289,8 +277,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsWithMixOfContextsCoalescesThemCorrectly() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -335,8 +321,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenChainedCallsThatReferToTheSameObjectUnfortunatelyDoesntChainThem() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -389,8 +373,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenEnvironmentAddEnvironmentChainsThemCorrectly() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -441,8 +423,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenNamedEnvironmentAddEnvironmentChainsThemCorrectly() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
@@ -521,8 +501,6 @@ class ReplaceDeprecatedEnvironmentTestUtilsTest implements RewriteTest {
     void givenVarargsAddEnvironmentChainsThemCorrectly() {
         //language=java
         rewriteRun(
-          // The recipe's output `TestPropertyValues.of(..).applyTo(..)` calls have no method type.
-          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))),
           java(
             """
               package com.mycompany;
