@@ -328,6 +328,129 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
                       return new SecurityRequirement().addList("petstore-auth", scopes.keySet().stream().collect(Collectors.toList()));
                   }
               }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                J.MethodDeclaration md = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(0);
+                J.VariableDeclarations param = (J.VariableDeclarations) md.getParameters().get(0);
+                assertThat(param.getVariables().get(0).getType()).hasToString("io.swagger.v3.oas.models.security.Scopes");
+            })
+          )
+        );
+    }
+
+    @Test
+    void securityReferenceWithScopesFromMethodCall() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+              import springfox.documentation.service.SecurityReference;
+
+              class Test {
+                  SecurityReference securityReference() {
+                      return new SecurityReference("petstore-auth", scopes());
+                  }
+
+                  AuthorizationScope[] scopes() {
+                      return new AuthorizationScope[] {
+                          new AuthorizationScope("read:pets", "Read access")
+                      };
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.SecurityRequirement;
+
+              import java.util.stream.Collectors;
+
+              class Test {
+                  SecurityRequirement securityReference() {
+                      return new SecurityRequirement().addList("petstore-auth", scopes().keySet().stream().collect(Collectors.toList()));
+                  }
+
+                  Scopes scopes() {
+                      return new Scopes()
+                              .addString("read:pets", "Read access");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void returnTypeKeptWhenBodyIsNotConvertedToScopes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+              import java.util.Collections;
+              import java.util.List;
+
+              class Test {
+                  List<AuthorizationScope> authorizationScopes() {
+                      return Collections.singletonList(new AuthorizationScope("read", "Read access"));
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+              import java.util.Collections;
+              import java.util.List;
+
+              class Test {
+                  List<Scopes> authorizationScopes() {
+                      return Collections.singletonList(new Scopes().addString("read", "Read access"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void returnTypeChangedWhenBodyReturnsConvertedField() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+              import springfox.documentation.service.SecurityReference;
+              import java.util.List;
+
+              class Test {
+                  List<AuthorizationScope> cached = List.of(new AuthorizationScope("read", "Read access"));
+
+                  List<AuthorizationScope> authorizationScopes() {
+                      return this.cached;
+                  }
+
+                  SecurityReference securityReference(AuthorizationScope[] scopes) {
+                      return new SecurityReference("petstore-auth", scopes);
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+              import io.swagger.v3.oas.models.security.SecurityRequirement;
+
+              import java.util.stream.Collectors;
+
+              class Test {
+                  Scopes cached = new Scopes()
+                          .addString("read", "Read access");
+
+                  Scopes authorizationScopes() {
+                      return this.cached;
+                  }
+
+                  SecurityRequirement securityReference(Scopes scopes) {
+                      return new SecurityRequirement().addList("petstore-auth", scopes.keySet().stream().collect(Collectors.toList()));
+                  }
+              }
               """
           )
         );
