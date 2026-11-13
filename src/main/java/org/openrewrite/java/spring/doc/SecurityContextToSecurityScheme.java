@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
@@ -28,10 +29,16 @@ import org.openrewrite.marker.SearchResult;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Collections.emptyList;
 import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
 
 public class SecurityContextToSecurityScheme extends Recipe {
+    private static final String AUTHORIZATION_SCOPE = "springfox.documentation.service.AuthorizationScope";
+    private static final String SCOPES = "io.swagger.v3.oas.models.security.Scopes";
+    private static final JavaType.FullyQualified SCOPES_TYPE = JavaType.ShallowClass.build(SCOPES);
+
     private static final MethodMatcher APIKEY_MATCHER = new MethodMatcher("springfox.documentation.service.ApiKey <constructor>(String, String, String)");
     private static final MethodMatcher AUTHORIZATION_SCOPE_MATCHER = new MethodMatcher("springfox.documentation.service.AuthorizationScope <constructor>(String, String)");
     private static final MethodMatcher SECURITY_REFERENCE_MATCHER = new MethodMatcher("springfox.documentation.service.SecurityReference <constructor>(String, springfox.documentation.service.AuthorizationScope[])");
@@ -57,8 +64,9 @@ public class SecurityContextToSecurityScheme extends Recipe {
                 stopAfterPreVisit();
 
                 Tree t = replaceApiKey(ctx, tree);
-                t = replaceAuthorizationScope(ctx, t);
+                // Retypes variable references first, as the return type conversion looks at the types a body returns
                 t = replaceScopeArraysAndLists(ctx, t);
+                t = replaceAuthorizationScope(ctx, t);
                 return replaceSecurityReference(ctx, t);
 
             }
@@ -99,7 +107,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
             }
 
             private Tree replaceAuthorizationScope(ExecutionContext ctx, Tree t) {
-                return Preconditions.check(new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER), new JavaVisitor<ExecutionContext>() {
+                // Return types follow variables converted to Scopes, even where no AuthorizationScope is constructed
+                TreeVisitor<?, ExecutionContext> precondition = Preconditions.or(
+                        new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER),
+                        findArrayParametersOfType(AUTHORIZATION_SCOPE));
+                JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
+                    private final List<JavaType.Method> convertedMethods = new ArrayList<>();
                     private final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(springfox.documentation.service.AuthorizationScope...)");
                     private final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(springfox.documentation.service.AuthorizationScope...)");
 
@@ -112,6 +125,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
                             List<ScopeInfo> scopes = extractAuthorizationScopes(mi.getArguments());
                             if (!scopes.isEmpty()) {
                                 return replaceWithChainedScopes(mi, scopes, ctx);
+                            }
+                        }
+                        for (JavaType.Method converted : convertedMethods) {
+                            if (TypeUtils.isOfType(mi.getMethodType(), converted)) {
+                                JavaType.Method methodType = converted.withReturnType(SCOPES_TYPE);
+                                return mi.withMethodType(methodType).withName(mi.getName().withType(methodType));
                             }
                         }
                         return mi;
@@ -140,53 +159,67 @@ public class SecurityContextToSecurityScheme extends Recipe {
                     public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration md = (J.MethodDeclaration) super.visitMethodDeclaration(method, ctx);
 
-                        // Handle return types
-                        if (md.getReturnTypeExpression() != null) {
-                            JavaType returnType = md.getReturnTypeExpression().getType();
-
-                            // Check for List<AuthorizationScope>
-                            if (returnType instanceof JavaType.Parameterized) {
-                                JavaType.Parameterized pt = (JavaType.Parameterized) returnType;
-                                if (TypeUtils.isOfClassType(pt, "java.util.List") &&
-                                        pt.getTypeParameters().size() == 1 &&
-                                        TypeUtils.isOfClassType(pt.getTypeParameters().get(0), "springfox.documentation.service.AuthorizationScope")) {
-
-                                    maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
-                                    maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
-
-                                    md = returningScopes(md);
-                                }
+                        // A body returning a list or an array compiles only with the declared return type
+                        if (md.getReturnTypeExpression() != null &&
+                                isAuthorizationScopeListOrArray(md.getReturnTypeExpression().getType()) &&
+                                returnsOnlyScopes(md)) {
+                            if (md.getMethodType() != null) {
+                                convertedMethods.add(md.getMethodType());
                             }
-
-                            // Check for AuthorizationScope[]
-                            if (returnType instanceof JavaType.Array) {
-                                JavaType.Array at = (JavaType.Array) returnType;
-                                if (TypeUtils.isOfClassType(at.getElemType(), "springfox.documentation.service.AuthorizationScope")) {
-                                    maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
-                                    maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
-
-                                    md = returningScopes(md);
-                                }
-                            }
+                            maybeRemoveImport("java.util.List");
+                            maybeRemoveImport(AUTHORIZATION_SCOPE);
+                            maybeAddImport(SCOPES);
+                            return withReturnTypeExpression(md, TypeTree.build("Scopes")
+                                    .withType(SCOPES_TYPE)
+                                    .withPrefix(md.getReturnTypeExpression().getPrefix()));
                         }
                         return md;
                     }
 
-                    private J.MethodDeclaration returningScopes(J.MethodDeclaration md) {
-                        //noinspection DataFlowIssue
-                        return withReturnTypeExpression(md, TypeTree.build("Scopes")
-                                .withType(JavaType.ShallowClass.build("io.swagger.v3.oas.models.security.Scopes"))
-                                .withPrefix(md.getReturnTypeExpression().getPrefix()));
+                    private boolean returnsOnlyScopes(J.MethodDeclaration md) {
+                        return md.getBody() == null || new JavaIsoVisitor<AtomicBoolean>() {
+                            @Override
+                            public J.Return visitReturn(J.Return return_, AtomicBoolean onlyScopes) {
+                                if (return_.getExpression() == null || !isScopesOrNull(return_.getExpression())) {
+                                    onlyScopes.set(false);
+                                }
+                                return return_;
+                            }
+
+                            private boolean isScopesOrNull(Expression expression) {
+                                Expression e = expression.unwrap();
+                                if (e instanceof J.Ternary) {
+                                    // A ternary keeps the type it was parsed with when its branches are replaced
+                                    return isScopesOrNull(((J.Ternary) e).getTruePart()) && isScopesOrNull(((J.Ternary) e).getFalsePart());
+                                }
+                                return e.getType() == JavaType.Primitive.Null || TypeUtils.isOfClassType(e.getType(), SCOPES);
+                            }
+
+                            @Override
+                            public J.Lambda visitLambda(J.Lambda lambda, AtomicBoolean onlyScopes) {
+                                return lambda;
+                            }
+
+                            @Override
+                            public J.NewClass visitNewClass(J.NewClass newClass, AtomicBoolean onlyScopes) {
+                                return newClass;
+                            }
+
+                            @Override
+                            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, AtomicBoolean onlyScopes) {
+                                return classDecl;
+                            }
+                        }.reduce(md.getBody(), new AtomicBoolean(true)).get();
                     }
 
                     @Override
                     public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                         // Handle single AuthorizationScope (not in a collection)
                         if (AUTHORIZATION_SCOPE_MATCHER.matches(newClass) && !isPartOfCollection(getCursor())) {
-                            maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
-                            maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
+                            maybeRemoveImport(AUTHORIZATION_SCOPE);
+                            maybeAddImport(SCOPES);
                             return JavaTemplate.builder("new Scopes().addString(#{any(String)}, #{any(String)})")
-                                    .imports("io.swagger.v3.oas.models.security.Scopes")
+                                    .imports(SCOPES)
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                                     .build()
                                     .apply(getCursor(), newClass.getCoordinates().replace(),
@@ -197,11 +230,17 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
                     private boolean isPartOfCollection(Cursor cursor) {
                         // Check if this AuthorizationScope is part of a List.of, Arrays.asList, or array initializer
+                        // that is replaced as a whole
                         J parentTree = cursor.getParentTreeCursor().getValue();
-                        return parentTree instanceof J.NewArray ||
-                                parentTree instanceof Expression &&
-                                        (LIST_OF.matches((Expression) parentTree) ||
-                                                ARRAYS_AS_LIST.matches((Expression) parentTree));
+                        List<Expression> elements = null;
+                        if (parentTree instanceof J.NewArray) {
+                            elements = ((J.NewArray) parentTree).getInitializer();
+                        } else if (parentTree instanceof J.MethodInvocation &&
+                                (LIST_OF.matches((J.MethodInvocation) parentTree) ||
+                                        ARRAYS_AS_LIST.matches((J.MethodInvocation) parentTree))) {
+                            elements = ((J.MethodInvocation) parentTree).getArguments();
+                        }
+                        return elements != null && !extractAuthorizationScopes(elements).isEmpty();
                     }
 
                     private boolean isPartOfSecurityReference(Cursor cursor) {
@@ -214,24 +253,25 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return false;
                     }
 
+                    // Empty unless every element is an AuthorizationScope constructor call, as a chain of
+                    // addString calls has no place for any other element
                     private List<ScopeInfo> extractAuthorizationScopes(List<Expression> expressions) {
                         List<ScopeInfo> scopes = new ArrayList<>();
                         for (Expression expr : expressions) {
-                            if (expr instanceof J.NewClass) {
-                                J.NewClass nc = (J.NewClass) expr;
-                                if (AUTHORIZATION_SCOPE_MATCHER.matches(nc) && nc.getArguments().size() == 2) {
-                                    scopes.add(new ScopeInfo(nc.getArguments().get(0), nc.getArguments().get(1)));
-                                }
+                            if (!(expr instanceof J.NewClass) || !AUTHORIZATION_SCOPE_MATCHER.matches((J.NewClass) expr)) {
+                                return emptyList();
                             }
+                            List<Expression> arguments = ((J.NewClass) expr).getArguments();
+                            scopes.add(new ScopeInfo(arguments.get(0), arguments.get(1)));
                         }
                         return scopes;
                     }
 
                     private Expression replaceWithChainedScopes(Expression node, List<ScopeInfo> scopes, ExecutionContext ctx) {
-                        maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
+                        maybeRemoveImport(AUTHORIZATION_SCOPE);
                         maybeRemoveImport("java.util.Arrays");
                         maybeRemoveImport("java.util.List");
-                        maybeAddImport("io.swagger.v3.oas.models.security.Scopes");
+                        maybeAddImport(SCOPES);
 
                         StringBuilder templateBuilder = new StringBuilder("new Scopes()");
                         List<Expression> templateArgs = new ArrayList<>();
@@ -243,7 +283,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         }
 
                         return JavaTemplate.builder(templateBuilder.toString())
-                                .imports("io.swagger.v3.oas.models.security.Scopes")
+                                .imports(SCOPES)
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                                 .build()
                                 .apply(getCursor(), node.getCoordinates().replace(), templateArgs.toArray());
@@ -255,7 +295,15 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         final Expression description;
                     }
 
-                }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
+                };
+                Tree before = t;
+                Tree after = Preconditions.check(precondition, visitor).visitNonNull(t, ctx, getCursor().getParentOrThrow());
+                // A method returning a call to a converted method qualifies once that call is retyped
+                while (after != before) {
+                    before = after;
+                    after = visitor.visitNonNull(before, ctx, getCursor().getParentOrThrow());
+                }
+                return after;
             }
 
             private Tree replaceSecurityReference(ExecutionContext ctx, Tree t) {
@@ -273,7 +321,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
                                 if (!scopeNames.isEmpty()) {
                                     maybeRemoveImport("springfox.documentation.service.SecurityReference");
-                                    maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
+                                    maybeRemoveImport(AUTHORIZATION_SCOPE);
                                     maybeAddImport("io.swagger.v3.oas.models.security.SecurityRequirement");
                                     maybeAddImport("java.util.Arrays");
 
@@ -298,14 +346,12 @@ public class SecurityContextToSecurityScheme extends Recipe {
                                             .apply(getCursor(), newClass.getCoordinates().replace(), templateArgs.toArray());
                                 }
                             } else {
-                                // Case 2: Variable reference - convert to Scopes and use keySet()
+                                // Case 2: Any other expression - use keySet(), as declarations of this type become Scopes
                                 maybeRemoveImport("springfox.documentation.service.SecurityReference");
-                                maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
+                                maybeRemoveImport(AUTHORIZATION_SCOPE);
                                 maybeAddImport("io.swagger.v3.oas.models.security.SecurityRequirement");
                                 maybeAddImport("java.util.stream.Collectors");
-                                scopesArg = ((J.Identifier) scopesArg).withType(JavaType.buildType("io.swagger.v3.oas.models.security.Scopes"))
-                                        .withFieldType(((J.Identifier) scopesArg).getFieldType().withType(JavaType.buildType("io.swagger.v3.oas.models.security.Scopes")));
-                                return JavaTemplate.builder("new SecurityRequirement().addList(#{any(String)}, #{any()}.keySet().stream().collect(Collectors.toList()))")
+                                return JavaTemplate.builder("new SecurityRequirement().addList(#{any(String)}, #{any(" + SCOPES + ")}.keySet().stream().collect(Collectors.toList()))")
                                         .imports("io.swagger.v3.oas.models.security.SecurityRequirement", "java.util.stream.Collectors")
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "swagger-models"))
                                         .build()
@@ -336,48 +382,52 @@ public class SecurityContextToSecurityScheme extends Recipe {
             }
 
             private Tree replaceScopeArraysAndLists(ExecutionContext ctx, Tree t) {
-                return Preconditions.check(findArrayParametersOfType("springfox.documentation.service.AuthorizationScope"), new JavaVisitor<ExecutionContext>() {
+                return Preconditions.check(findArrayParametersOfType(AUTHORIZATION_SCOPE), new JavaVisitor<ExecutionContext>() {
                     @Override
                     public J visitVariableDeclarations(J.VariableDeclarations declarations, ExecutionContext ctx) {
                         J.VariableDeclarations decls = (J.VariableDeclarations) super.visitVariableDeclarations(declarations, ctx);
-                        JavaType varType = decls.getType();
-
-                        // Check if type is Scopes[]
-                        if (varType instanceof JavaType.Array && decls.getTypeExpression() != null) {
-                            JavaType.Array arrayType = (JavaType.Array) varType;
-                            if (TypeUtils.isOfClassType(arrayType.getElemType(), "springfox.documentation.service.AuthorizationScope")) {
-                                // Replace Scopes[] with Scopes (both syntax and type)
-                                JavaType scopesType = arrayType.getElemType();
-                                maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
-                                maybeAddImport("springfox.documentation.service.Scopes");
-                                return decls.withTypeExpression(
-                                                TypeTree.build("Scopes")
-                                                        .withPrefix(decls.getTypeExpression().getPrefix()))
-                                        .withType(scopesType);
-                            }
+                        if (decls.getTypeExpression() == null || !isAuthorizationScopeListOrArray(decls.getType())) {
+                            return decls;
                         }
+                        maybeRemoveImport("java.util.List");
+                        maybeRemoveImport(AUTHORIZATION_SCOPE);
+                        maybeAddImport(SCOPES);
+                        return decls
+                                .withTypeExpression(TypeTree.build("Scopes")
+                                        .withType(SCOPES_TYPE)
+                                        .withPrefix(decls.getTypeExpression().getPrefix()))
+                                .withVariables(ListUtils.map(decls.getVariables(), v -> v.getVariableType() == null ? v :
+                                        v.withVariableType(v.getVariableType().withType(SCOPES_TYPE))));
+                    }
 
-                        // Check if type is List<Scopes>
-                        if (varType instanceof JavaType.Parameterized && decls.getTypeExpression() != null) {
-                            JavaType.Parameterized paramType = (JavaType.Parameterized) varType;
-                            if (TypeUtils.isOfClassType(paramType, "java.util.List") &&
-                                    paramType.getTypeParameters().size() == 1 &&
-                                    TypeUtils.isOfClassType(paramType.getTypeParameters().get(0), "springfox.documentation.service.AuthorizationScope")) {
-                                // Replace List<Scopes> with Scopes (both syntax and type)
-                                JavaType scopesType = paramType.getTypeParameters().get(0);
-                                maybeRemoveImport("java.util.List");
-                                maybeRemoveImport("springfox.documentation.service.AuthorizationScope");
-                                maybeAddImport("springfox.documentation.service.Scopes");
-                                return decls.withTypeExpression(
-                                                TypeTree.build("Scopes")
-                                                        .withPrefix(decls.getTypeExpression().getPrefix()))
-                                        .withType(scopesType);
-                            }
+                    @Override
+                    public J visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {
+                        JavaType.Variable fieldType = identifier.getFieldType();
+                        if (fieldType != null && isAuthorizationScopeListOrArray(fieldType.getType())) {
+                            return identifier.withType(SCOPES_TYPE).withFieldType(fieldType.withType(SCOPES_TYPE));
                         }
+                        return identifier;
+                    }
 
-                        return decls;
+                    @Override
+                    public J visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
+                        J.FieldAccess fa = (J.FieldAccess) super.visitFieldAccess(fieldAccess, ctx);
+                        return fa.getName() == fieldAccess.getName() ? fa : fa.withType(fa.getName().getType());
                     }
                 }).visitNonNull(t, ctx, getCursor().getParentOrThrow());
+            }
+
+            private boolean isAuthorizationScopeListOrArray(@Nullable JavaType type) {
+                if (type instanceof JavaType.Array) {
+                    return TypeUtils.isOfClassType(((JavaType.Array) type).getElemType(), AUTHORIZATION_SCOPE);
+                }
+                if (type instanceof JavaType.Parameterized) {
+                    JavaType.Parameterized parameterized = (JavaType.Parameterized) type;
+                    return TypeUtils.isOfClassType(parameterized, "java.util.List") &&
+                            parameterized.getTypeParameters().size() == 1 &&
+                            TypeUtils.isOfClassType(parameterized.getTypeParameters().get(0), AUTHORIZATION_SCOPE);
+                }
+                return false;
             }
 
             private TreeVisitor<J, ExecutionContext> findArrayParametersOfType(String elementType) {
@@ -424,7 +474,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         true),
                 new ChangeType(
                         "springfox.documentation.service.AuthorizationScope",
-                        "io.swagger.v3.oas.models.security.Scopes",
+                        SCOPES,
                         true)
         );
     }
