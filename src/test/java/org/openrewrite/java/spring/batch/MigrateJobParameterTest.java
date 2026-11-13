@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -42,10 +41,8 @@ class MigrateJobParameterTest implements RewriteTest {
     void addClassArguments() {
         //language=java
         rewriteRun(
-          spec -> spec
-            // The input's `new JobParameter(new Integer[]{1})` has no constructor type, and some identifiers in the output have no type.
-            .typeValidationOptions(TypeValidation.all().constructorInvocations(false))
-            .recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
+          // The input's `new JobParameter(new Integer[]{1})` has no constructor type
+          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false)),
           java(
             """
               import org.springframework.batch.core.JobParameter;
@@ -218,6 +215,35 @@ class MigrateJobParameterTest implements RewriteTest {
                       return parameters;
                   }
 
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void importClassOfFullyQualifiedArgument() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  JobParameter foo() {
+                      return new JobParameter(new java.util.Date());
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.JobParameter;
+
+              import java.util.Date;
+
+              class Foo {
+                  JobParameter foo() {
+                      return new JobParameter<>(new Date(), Date.class);
+                  }
               }
               """
           )
