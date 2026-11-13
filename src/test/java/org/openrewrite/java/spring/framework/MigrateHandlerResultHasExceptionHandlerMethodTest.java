@@ -19,10 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -31,8 +29,6 @@ class MigrateHandlerResultHasExceptionHandlerMethodTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          // The recipe's output calls methods that spring-webflux on the test classpath does not have
-          .recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false)))
           .recipe(new MigrateHandlerResultHasExceptionHandlerMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "reactor-core-3.6.+", "spring-webflux-6.1.+"));
