@@ -48,10 +48,10 @@ class MigrateJacksonPropertyNamingStrategyTest implements RewriteTest {
               }
               """,
             """
-              import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+              import com.fasterxml.jackson.databind.PropertyNamingStrategies;
               import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
-              @JsonNaming(SnakeCaseStrategy.class)
+              @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
               class Test {
               }
               """
