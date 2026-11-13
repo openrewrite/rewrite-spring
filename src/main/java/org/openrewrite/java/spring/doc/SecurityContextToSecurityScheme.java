@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.Collections.emptyList;
 import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
 
 public class SecurityContextToSecurityScheme extends Recipe {
@@ -106,7 +107,11 @@ public class SecurityContextToSecurityScheme extends Recipe {
             }
 
             private Tree replaceAuthorizationScope(ExecutionContext ctx, Tree t) {
-                return Preconditions.check(new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER), new JavaVisitor<ExecutionContext>() {
+                // Return types follow variables converted to Scopes, even where no AuthorizationScope is constructed
+                TreeVisitor<?, ExecutionContext> precondition = Preconditions.or(
+                        new UsesMethod<>(AUTHORIZATION_SCOPE_MATCHER),
+                        findArrayParametersOfType(AUTHORIZATION_SCOPE));
+                return Preconditions.check(precondition, new JavaVisitor<ExecutionContext>() {
                     private final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(springfox.documentation.service.AuthorizationScope...)");
                     private final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(springfox.documentation.service.AuthorizationScope...)");
 
@@ -164,10 +169,19 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return md.getBody() == null || new JavaIsoVisitor<AtomicBoolean>() {
                             @Override
                             public J.Return visitReturn(J.Return return_, AtomicBoolean onlyScopes) {
-                                if (return_.getExpression() == null || !TypeUtils.isOfClassType(return_.getExpression().getType(), SCOPES)) {
+                                if (return_.getExpression() == null || !isScopesOrNull(return_.getExpression())) {
                                     onlyScopes.set(false);
                                 }
                                 return return_;
+                            }
+
+                            private boolean isScopesOrNull(Expression expression) {
+                                Expression e = expression.unwrap();
+                                if (e instanceof J.Ternary) {
+                                    // A ternary keeps the type it was parsed with when its branches are replaced
+                                    return isScopesOrNull(((J.Ternary) e).getTruePart()) && isScopesOrNull(((J.Ternary) e).getFalsePart());
+                                }
+                                return e.getType() == JavaType.Primitive.Null || TypeUtils.isOfClassType(e.getType(), SCOPES);
                             }
 
                             @Override
@@ -205,11 +219,17 @@ public class SecurityContextToSecurityScheme extends Recipe {
 
                     private boolean isPartOfCollection(Cursor cursor) {
                         // Check if this AuthorizationScope is part of a List.of, Arrays.asList, or array initializer
+                        // that is replaced as a whole
                         J parentTree = cursor.getParentTreeCursor().getValue();
-                        return parentTree instanceof J.NewArray ||
-                                parentTree instanceof Expression &&
-                                        (LIST_OF.matches((Expression) parentTree) ||
-                                                ARRAYS_AS_LIST.matches((Expression) parentTree));
+                        List<Expression> elements = null;
+                        if (parentTree instanceof J.NewArray) {
+                            elements = ((J.NewArray) parentTree).getInitializer();
+                        } else if (parentTree instanceof J.MethodInvocation &&
+                                (LIST_OF.matches((J.MethodInvocation) parentTree) ||
+                                        ARRAYS_AS_LIST.matches((J.MethodInvocation) parentTree))) {
+                            elements = ((J.MethodInvocation) parentTree).getArguments();
+                        }
+                        return elements != null && !extractAuthorizationScopes(elements).isEmpty();
                     }
 
                     private boolean isPartOfSecurityReference(Cursor cursor) {
@@ -222,15 +242,16 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         return false;
                     }
 
+                    // Empty unless every element is an AuthorizationScope constructor call, as a chain of
+                    // addString calls has no place for any other element
                     private List<ScopeInfo> extractAuthorizationScopes(List<Expression> expressions) {
                         List<ScopeInfo> scopes = new ArrayList<>();
                         for (Expression expr : expressions) {
-                            if (expr instanceof J.NewClass) {
-                                J.NewClass nc = (J.NewClass) expr;
-                                if (AUTHORIZATION_SCOPE_MATCHER.matches(nc) && nc.getArguments().size() == 2) {
-                                    scopes.add(new ScopeInfo(nc.getArguments().get(0), nc.getArguments().get(1)));
-                                }
+                            if (!(expr instanceof J.NewClass) || !AUTHORIZATION_SCOPE_MATCHER.matches((J.NewClass) expr)) {
+                                return emptyList();
                             }
+                            List<Expression> arguments = ((J.NewClass) expr).getArguments();
+                            scopes.add(new ScopeInfo(arguments.get(0), arguments.get(1)));
                         }
                         return scopes;
                     }

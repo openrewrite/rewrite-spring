@@ -456,4 +456,112 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
         );
     }
 
+    @Test
+    void returnTypeChangedWhenReturnsAreNullOrTernaryOfScopes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+              import java.util.List;
+
+              class Test {
+                  List<AuthorizationScope> authorizationScopes(boolean reader, boolean admin) {
+                      if (!reader) {
+                          return null;
+                      }
+                      return admin ? List.of(new AuthorizationScope("admin", "Admin access")) : List.of(new AuthorizationScope("read", "Read access"));
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+
+              class Test {
+                  Scopes authorizationScopes(boolean reader, boolean admin) {
+                      if (!reader) {
+                          return null;
+                      }
+                      return admin ? new Scopes()
+                              .addString("admin", "Admin access") : new Scopes()
+                              .addString("read", "Read access");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void returnTypeChangedInFileWithoutAuthorizationScopeConstructor() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+
+              class Test {
+                  private final AuthorizationScope[] scopes;
+
+                  Test(AuthorizationScope[] scopes) {
+                      this.scopes = scopes;
+                  }
+
+                  AuthorizationScope[] getScopes() {
+                      return scopes;
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+
+              class Test {
+                  private final Scopes scopes;
+
+                  Test(Scopes scopes) {
+                      this.scopes = scopes;
+                  }
+
+                  Scopes getScopes() {
+                      return scopes;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void collectionKeptWhenAnElementIsNotAnAuthorizationScopeConstructor() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.service.AuthorizationScope;
+              import java.util.List;
+
+              class Test {
+                  static final AuthorizationScope GLOBAL = new AuthorizationScope("global", "Global access");
+
+                  List<AuthorizationScope> authorizationScopes() {
+                      return List.of(new AuthorizationScope("read", "Read access"), GLOBAL);
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.security.Scopes;
+              import java.util.List;
+
+              class Test {
+                  static final Scopes GLOBAL = new Scopes().addString("global", "Global access");
+
+                  List<Scopes> authorizationScopes() {
+                      return List.of(new Scopes().addString("read", "Read access"), GLOBAL);
+                  }
+              }
+              """
+          )
+        );
+    }
+
 }
