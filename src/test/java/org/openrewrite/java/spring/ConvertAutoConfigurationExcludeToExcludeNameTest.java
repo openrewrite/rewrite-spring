@@ -168,6 +168,38 @@ class ConvertAutoConfigurationExcludeToExcludeNameTest implements RewriteTest {
     }
 
     @Test
+    void mergeIntoExistingExcludeNameConstant() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+              import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
+
+              @SpringBootApplication(exclude = SolrAutoConfiguration.class, excludeName = Names.SECURITY)
+              class Application {
+              }
+
+              class Names {
+                  static final String SECURITY = "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration";
+              }
+              """,
+            """
+              import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+              @SpringBootApplication(excludeName = { Names.SECURITY, "org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration" })
+              class Application {
+              }
+
+              class Names {
+                  static final String SECURITY = "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration";
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void mergeIntoExistingExcludeNameArray() {
         rewriteRun(
           //language=java
@@ -254,6 +286,25 @@ class ConvertAutoConfigurationExcludeToExcludeNameTest implements RewriteTest {
 
                   @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
                   class Application {
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void subclassOfTargetInExclude() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+                  import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
+
+                  @SpringBootApplication(exclude = Application.CustomSolrAutoConfiguration.class)
+                  class Application {
+                      static class CustomSolrAutoConfiguration extends SolrAutoConfiguration {
+                      }
                   }
                   """
               )
