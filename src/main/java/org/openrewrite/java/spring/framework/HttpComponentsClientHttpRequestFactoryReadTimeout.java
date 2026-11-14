@@ -88,7 +88,7 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                                 J.VariableDeclarations varDecl = (J.VariableDeclarations) statement;
                                 maybeAddImport("org.apache.hc.core5.http.io.SocketConfig");
                                 maybeAddImport("java.util.concurrent.TimeUnit");
-                                return JavaTemplate.builder("#{any()}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any()}, TimeUnit.MILLISECONDS).build());")
+                                return JavaTemplate.builder("#{any(org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager)}.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(#{any(int)}, TimeUnit.MILLISECONDS).build());")
                                         .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "httpcore5", "httpclient5"))
                                         .imports("java.util.concurrent.TimeUnit", "org.apache.hc.core5.http.io.SocketConfig")
                                         .build().apply(getCursor(), varDecl.getCoordinates().after(),

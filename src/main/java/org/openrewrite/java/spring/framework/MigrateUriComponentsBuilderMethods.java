@@ -64,7 +64,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
                 if (FROM_HTTP_REQUEST.matches(mi)) {
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");
                     maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
-                    return JavaTemplate.builder("ForwardedHeaderUtils.adaptFromForwardedHeaders(#{any()}.getURI(), #{any()}.getHeaders())")
+                    return JavaTemplate.builder("ForwardedHeaderUtils.adaptFromForwardedHeaders(#{any(org.springframework.http.HttpRequest)}.getURI(), #{any(org.springframework.http.HttpRequest)}.getHeaders())")
                             .imports("org.springframework.web.util.ForwardedHeaderUtils")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2"))
                             .build()
@@ -73,7 +73,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
                 if (PARSE_FORWARDED_FOR.matches(mi)) {
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");
                     maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
-                    return JavaTemplate.builder("ForwardedHeaderUtils.parseForwardedFor(#{any()}.getURI(), #{any()}.getHeaders(), #{any()})")
+                    return JavaTemplate.builder("ForwardedHeaderUtils.parseForwardedFor(#{any(org.springframework.http.HttpRequest)}.getURI(), #{any(org.springframework.http.HttpRequest)}.getHeaders(), #{any(java.net.InetSocketAddress)})")
                             .imports("org.springframework.web.util.ForwardedHeaderUtils")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2"))
                             .build()

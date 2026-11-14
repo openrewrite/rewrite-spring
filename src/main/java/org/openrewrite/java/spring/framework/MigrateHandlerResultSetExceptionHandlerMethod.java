@@ -47,7 +47,7 @@ public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
                 J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                 if (METHOD_MATCHER.matches(m)) {
                     if (m.getArguments().get(0) instanceof J.Identifier) {
-                        return JavaTemplate.apply("(exchange, ex) ->  #{any()}.apply(ex)", getCursor(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
+                        return JavaTemplate.apply("(exchange, ex) ->  #{any(java.util.function.Function)}.apply(ex)", getCursor(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
                     }
                     if (m.getArguments().get(0) instanceof J.Lambda) {
                         return JavaTemplate.apply("(exchange, ex) ->  #{any()}", getCursor(), m.getCoordinates().replaceArguments(), ((J.Lambda) m.getArguments().get(0)).getBody());

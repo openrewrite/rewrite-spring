@@ -52,7 +52,7 @@ public class MigrateResponseStatusExceptionGetStatusCodeMethod extends Recipe {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                 if (GET_STATUS_METHOD_MATCHER.matches(mi)) {
-                    return JavaTemplate.builder("#{any()}.getStatusCode()")
+                    return JavaTemplate.builder("#{any(org.springframework.web.server.ResponseStatusException)}.getStatusCode()")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx,
                                     "spring-core-6",
                                     "spring-beans-6",
