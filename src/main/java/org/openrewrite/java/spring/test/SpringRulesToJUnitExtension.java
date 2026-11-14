@@ -83,7 +83,6 @@ public class SpringRulesToJUnitExtension extends Recipe {
                                 }
                             });
 
-                            //noinspection DataFlowIssue
                             return null;
                         }
                         return vd;
