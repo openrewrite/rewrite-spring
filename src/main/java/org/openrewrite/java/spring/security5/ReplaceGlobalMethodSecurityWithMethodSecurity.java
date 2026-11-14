@@ -36,8 +36,8 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
     private static final AnnotationMatcher ENABLE_GLOBAL_METHOD_SECURITY_MATCHER =
             new AnnotationMatcher("@org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity");
 
-    private static final String EnableGlobalMethodSecurityFqn = "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity";
-    private static final String EnableMethodSecurityFqn = "org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity";
+    private static final String ENABLE_GLOBAL_METHOD_SECURITY_FQN = "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity";
+    private static final String ENABLE_METHOD_SECURITY_FQN = "org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity";
 
     @Getter
     final String displayName = "Replace global method security with method security";
@@ -56,12 +56,12 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                         annotation = super.visitAnnotation(annotation, ctx);
                         if (ENABLE_GLOBAL_METHOD_SECURITY_MATCHER.matches(annotation)) {
-                            maybeRemoveImport(EnableGlobalMethodSecurityFqn);
-                            maybeAddImport(EnableMethodSecurityFqn);
+                            maybeRemoveImport(ENABLE_GLOBAL_METHOD_SECURITY_FQN);
+                            maybeAddImport(ENABLE_METHOD_SECURITY_FQN);
                             J.Annotation replacementAnnotation = JavaTemplate.builder("@EnableMethodSecurity(prePostEnabled = false)")
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-security-config-5.8.+"))
-                                    .imports(EnableMethodSecurityFqn)
+                                    .imports(ENABLE_METHOD_SECURITY_FQN)
                                     .build()
                                     .apply(getCursor(), annotation.getCoordinates().replace());
 
