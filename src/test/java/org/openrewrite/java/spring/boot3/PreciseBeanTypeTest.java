@@ -253,4 +253,131 @@ class PreciseBeanTypeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void anonymousClass() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              interface TenantAware {
+                  String currentTenant();
+              }
+
+              @Configuration
+              class TestContext {
+                  @Bean
+                  TenantAware tenantAware() {
+                      return new TenantAware() {
+                          @Override
+                          public String currentTenant() {
+                              return "example";
+                          }
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void memberClass() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              class Outer {
+                  static class Inner {}
+              }
+
+              @Configuration
+              class TestContext {
+                  @Bean
+                  Object bean() {
+                      return new Outer.Inner();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              class Outer {
+                  static class Inner {}
+              }
+
+              @Configuration
+              class TestContext {
+                  @Bean
+                  Outer.Inner bean() {
+                      return new Outer.Inner();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void anonymousClassArray() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+
+              interface TenantAware {
+                  String currentTenant();
+              }
+
+              @Configuration
+              class TestContext {
+                  @Bean
+                  TenantAware[] tenantAwares() {
+                      return new TenantAware[] {
+                          new TenantAware() {
+                              @Override
+                              public String currentTenant() {
+                                  return "example";
+                              }
+                          }
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void anonymousClassExtendingGeneric() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import java.util.ArrayList;
+              import java.util.List;
+
+              @Configuration
+              class TestContext {
+                  @Bean
+                  List<String> list() {
+                      return new ArrayList<String>() {
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
 }
