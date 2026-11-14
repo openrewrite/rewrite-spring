@@ -50,6 +50,10 @@ preconditions:
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-database-postgresql
+  - org.openrewrite.gradle.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-database-postgresql
+      acceptTransitive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModuleMySQL
@@ -73,6 +77,10 @@ preconditions:
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-mysql
+  - org.openrewrite.gradle.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-mysql
+      acceptTransitive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModuleOracle
@@ -96,6 +104,10 @@ preconditions:
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-database-oracle
+  - org.openrewrite.gradle.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-database-oracle
+      acceptTransitive: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.flyway.AddFlywayModuleSqlServer
@@ -119,3 +131,7 @@ preconditions:
 recipeList:
   - org.openrewrite.java.flyway.AddFlywayModuleWithScope:
       artifactId: flyway-sqlserver
+  - org.openrewrite.gradle.AddDependency:
+      groupId: org.flywaydb
+      artifactId: flyway-sqlserver
+      acceptTransitive: true

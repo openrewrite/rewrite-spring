@@ -20,6 +20,8 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class MigrateToFlyway10Test implements RewriteTest {
@@ -386,6 +388,41 @@ class MigrateToFlyway10Test implements RewriteTest {
                   </dependency>
                 </dependencies>
               </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void addPostgresDependencyToGradleBuild() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  implementation 'org.flywaydb:flyway-core:10.10.0'
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
+              """,
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  implementation 'org.flywaydb:flyway-core:10.10.0'
+                  implementation "org.flywaydb:flyway-database-postgresql"
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
               """
           )
         );
