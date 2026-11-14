@@ -80,7 +80,6 @@ public class ConfigurationOverEnableSecurity extends Recipe {
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
                 // Avoid searching within the class declaration's body, lest we accidentally find an inner class's annotation
-                //noinspection DataFlowIssue
                 J.ClassDeclaration bodiless = c.withBody(null);
 
                 Set<J.Annotation> securityAnnotations = FindAnnotations.find(bodiless,
