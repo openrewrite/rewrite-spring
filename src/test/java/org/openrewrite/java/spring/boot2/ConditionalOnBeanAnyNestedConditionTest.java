@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -43,7 +45,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void twoConditionalAnnotationsWithSameMultipleClassCandidatesReversed() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          // The `Aa.class` and `Bb.class` references in the annotations the recipe writes are typed by a template that cannot resolve the user's classes
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -52,6 +55,10 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
               class ThingOne {}
 
               class ThingTwo {}
+
+              class Aa {}
+
+              class Bb {}
 
               class ConfigClass {
                   @Bean
@@ -75,6 +82,10 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
               class ThingOne {}
 
               class ThingTwo {}
+
+              class Aa {}
+
+              class Bb {}
 
               class ConfigClass {
                   @Bean
@@ -111,15 +122,16 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationSingleClassCandidateNoChange() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.builder()
-            .methodDeclarations(false)
-            .constructorInvocations(false)
-            .identifiers(false)
-            .build()),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
               import org.springframework.context.annotation.Bean;
+
+              class Aa {}
+
+              class ThingOne {}
+
+              class ThingTwo {}
 
               class ConfigClass {
                   @Bean
@@ -143,8 +155,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void conditionalAnnotationMultipleClassCandidates() {
         //language=java
         rewriteRun(
-          // FIXME type validation for identifiers disabled, as the `Aa.class` reference and others are not type attributed
-          spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
+          // The `Aa.class` references in the annotations the recipe writes are typed by a template that cannot resolve the user's classes
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
           java(
             """
               class Aa {}
@@ -251,7 +263,6 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void simpleConditionalAnnotationMultipleTypeClassNames() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -426,7 +437,6 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
         void noChangeOnSpringBoot2() {
             rewriteRun(
               spec -> spec
-                .typeValidationOptions(TypeValidation.none())
                 .parser(JavaParser.fromJavaVersion()
                   .classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.7", "spring-context-5.+")),
               mavenProject("project",
@@ -460,7 +470,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
         @Test
         void transformsOnSpringBoot1() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
+              // The `Aa.class` and `Bb.class` references in the annotations the recipe writes are typed by a template that cannot resolve the user's classes
+              spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
               mavenProject("project",
                 pomXml(POM_BOOT_1),
                 //language=java
@@ -470,6 +481,10 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
                     import org.springframework.context.annotation.Bean;
 
                     class ThingOne {}
+
+                    class Aa {}
+
+                    class Bb {}
 
                     class ConfigClass {
                         @Bean
@@ -486,6 +501,10 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
                     import org.springframework.context.annotation.Conditional;
 
                     class ThingOne {}
+
+                    class Aa {}
+
+                    class Bb {}
 
                     class ConfigClass {
                         @Bean

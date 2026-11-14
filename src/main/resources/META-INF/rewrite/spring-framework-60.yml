@@ -26,6 +26,7 @@ preconditions:
 recipeList:
   - org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_3
   - org.openrewrite.java.migrate.jakarta.JakartaEE10
+  - org.openrewrite.hibernate.MigrateToHibernate56Jakarta
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework
       artifactId: "*"

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -30,7 +31,7 @@ class MigrateResourceHttpMessageWriterAddHeadersMethodTest implements RewriteTes
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .afterTypeValidationOptions(TypeValidation.all().methodInvocations(false)) // Attempts to fix so far fail
+          .recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().methodInvocations(false))) // Attempts to fix so far fail
           .recipe(new MigrateResourceHttpMessageWriterAddHeadersMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-web-6.1", "spring-core-6"));

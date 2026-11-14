@@ -85,6 +85,45 @@ class UpgradeSpringFramework_6_0Test implements RewriteTest {
         );
     }
 
+    @Test
+    void switchesHibernateToJakartaArtifacts() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>app</artifactId>
+                  <version>1.0.0</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.hibernate</groupId>
+                          <artifactId>hibernate-core</artifactId>
+                          <version>5.4.33.Final</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                  <modelVersion>4.0.0</modelVersion>
+                  <groupId>com.example</groupId>
+                  <artifactId>app</artifactId>
+                  <version>1.0.0</version>
+                  <dependencies>
+                      <dependency>
+                          <groupId>org.hibernate</groupId>
+                          <artifactId>hibernate-core-jakarta</artifactId>
+                          <version>5.6.15.Final</version>
+                      </dependency>
+                  </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
     // Spring Boot 2 and dependency management 1.0 plugins use the `Upload` task, which Gradle 9 removed
     @Test
     @SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "8.14.5")
