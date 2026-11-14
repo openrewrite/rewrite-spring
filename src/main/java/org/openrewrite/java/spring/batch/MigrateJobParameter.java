@@ -171,7 +171,7 @@ public class MigrateJobParameter extends Recipe {
                             }
 
                             if (nc.getArguments().size() > 1) {
-                                return JavaTemplate.builder("new JobParameter<>(#{any()}, #{}.class, #{any()})")
+                                return JavaTemplate.builder("new JobParameter<>(" + valuePlaceholder(javaType) + ", #{}.class, #{any(boolean)})")
                                         .imports(imports)
                                         .javaParser(JavaParser.fromJavaVersion()
                                                 .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
@@ -181,7 +181,7 @@ public class MigrateJobParameter extends Recipe {
                                                 typeString,
                                                 nc.getArguments().get(1));
                             }
-                            return JavaTemplate.builder("new JobParameter<>(#{any()}, #{}.class)")
+                            return JavaTemplate.builder("new JobParameter<>(" + valuePlaceholder(javaType) + ", #{}.class)")
                                     .imports(imports)
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
@@ -194,6 +194,56 @@ public class MigrateJobParameter extends Recipe {
                     }
                 }
         );
+    }
+
+    /**
+     * The fully qualified name of the type, or the keyword for a primitive type,
+     * when the type can be named in a typed {@code #{any(..)}} placeholder;
+     * {@code null} otherwise.
+     */
+    private static @Nullable String denotableTypeName(@Nullable JavaType javaType) {
+        if (javaType instanceof JavaType.Class) {
+            return ((JavaType.Class) javaType).getFullyQualifiedName();
+        }
+        if (javaType instanceof JavaType.Primitive) {
+            switch ((JavaType.Primitive) javaType) {
+                case Boolean:
+                    return "boolean";
+                case Byte:
+                    return "byte";
+                case Char:
+                    return "char";
+                case Double:
+                    return "double";
+                case Float:
+                    return "float";
+                case Int:
+                    return "int";
+                case Long:
+                    return "long";
+                case Short:
+                    return "short";
+                case String:
+                    return "java.lang.String";
+                default:
+                    return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Typed {@code #{any(..)}} placeholder for the JobParameter value, whose
+     * type varies per call site; falls back to untyped {@code #{any()}} when
+     * the type cannot be named.
+     */
+    private static String valuePlaceholder(@Nullable JavaType javaType) {
+        if (javaType instanceof JavaType.Array) {
+            String elemTypeName = denotableTypeName(((JavaType.Array) javaType).getElemType());
+            return elemTypeName == null ? "#{any()}" : "#{anyArray(" + elemTypeName + ")}";
+        }
+        String typeName = denotableTypeName(javaType);
+        return typeName == null ? "#{any()}" : "#{any(" + typeName + ")}";
     }
 
     /**
