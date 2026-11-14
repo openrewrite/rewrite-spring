@@ -102,12 +102,10 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
                     </dependencies>
                 </project>
                 """,
-              spec -> spec.after(actual -> {
-                  return assertThat(actual)
+              spec -> spec.after(actual -> assertThat(actual)
                     .containsPattern("<groupId>org.springframework.boot</groupId>\\s*<artifactId>spring-boot-starter-parent</artifactId>\\s*<version>4\\.0\\.\\d+</version>")
                     .containsPattern("<groupId>org.springframework.cloud</groupId>\\s*<artifactId>spring-cloud-dependencies</artifactId>\\s*<version>2025\\.1\\.\\d+</version>")
-                    .doesNotContain("spring-cloud-starter-parent").actual();
-              })
+                    .doesNotContain("spring-cloud-starter-parent").actual())
             )
           )
         );
