@@ -130,10 +130,10 @@ tags:
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
-  - org.openrewrite.maven.search.FindDependency:
+  - org.openrewrite.java.dependencies.FindDependency:
       groupId: org.springframework
       artifactId: spring-webmvc
-  - org.openrewrite.maven.search.FindDependency:
+  - org.openrewrite.java.dependencies.FindDependency:
       groupId: org.springframework
       artifactId: spring-webflux
 
