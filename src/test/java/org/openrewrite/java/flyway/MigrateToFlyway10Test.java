@@ -427,4 +427,39 @@ class MigrateToFlyway10Test implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void addTestScopedPostgresDependencyToGradleBuild() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  testImplementation 'org.flywaydb:flyway-core:10.10.0'
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
+              """,
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  testImplementation 'org.flywaydb:flyway-core:10.10.0'
+                  testImplementation "org.flywaydb:flyway-database-postgresql"
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
+              """
+          )
+        );
+    }
 }
