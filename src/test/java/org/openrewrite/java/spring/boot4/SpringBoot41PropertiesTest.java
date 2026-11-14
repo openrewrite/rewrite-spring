@@ -57,6 +57,21 @@ class SpringBoot41PropertiesTest implements RewriteTest {
     }
 
     @Test
+    void commentOutDeprecatedLiveReloadProperty() {
+        rewriteRun(
+          srcMainResources(
+            yaml(
+              "spring.devtools.livereload.enabled: true",
+              """
+                # This property is deprecated: Deprecated with no replacement
+                # spring.devtools.livereload.enabled: true
+                """
+            )
+          )
+        );
+    }
+
+    @Test
     void migrateYaml() {
         rewriteRun(
           srcMainResources(
