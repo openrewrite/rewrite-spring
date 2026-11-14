@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static java.util.Collections.singletonList;
+
 public class ReplaceExtendWithAndContextConfiguration extends Recipe {
     private static final String FQN_EXTEND_WITH = "org.junit.jupiter.api.extension.ExtendWith";
     private static final String FQN_CONTEXT_CONFIGURATION = "org.springframework.test.context.ContextConfiguration";
@@ -53,10 +55,6 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
         return Preconditions.check(Preconditions.and(new UsesType<>(FQN_EXTEND_WITH, false), new UsesType<>(FQN_CONTEXT_CONFIGURATION, false)),
                 new JavaIsoVisitor<ExecutionContext>() {
                     private final AnnotationMatcher CONTEXT_CONFIGURATION_ANNOTATION_MATCHER = new AnnotationMatcher("@" + FQN_CONTEXT_CONFIGURATION, true);
-
-                    {
-                        doAfterVisit(new UnnecessarySpringExtension().getVisitor());
-                    }
 
                     @Override
                     public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
@@ -123,6 +121,11 @@ public class ReplaceExtendWithAndContextConfiguration extends Recipe {
                                         )).getArguments().get(0);
                     }
                 });
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return singletonList(new UnnecessarySpringExtension());
     }
 
     private static Optional<J.Assignment> findLoaderArgument(J.Annotation annotation) {
