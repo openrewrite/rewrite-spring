@@ -30,8 +30,8 @@ import org.openrewrite.marker.Markers;
 import static java.util.Collections.emptyList;
 
 public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
-    private final String fromExtendingFqn = "org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter";
-    private final String toImplementsFqn = "org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor";
+    private static final String FROM_EXTENDING_FQN = "org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter";
+    private static final String TO_IMPLEMENTS_FQN = "org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor";
 
     @Getter
     final String displayName = "Convert `InstantiationAwareBeanPostProcessorAdapter` to `SmartInstantiationAwareBeanPostProcessor`";
@@ -41,14 +41,14 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(fromExtendingFqn, false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(FROM_EXTENDING_FQN, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
-                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), fromExtendingFqn)) {
+                if (cd.getExtends() != null && TypeUtils.isOfClassType(cd.getExtends().getType(), FROM_EXTENDING_FQN)) {
                     cd = cd.withExtends(null);
                     J.Identifier ident = new J.Identifier(Tree.randomId(), Space.format(" "), Markers.EMPTY, emptyList(),
-                            "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(toImplementsFqn), null);
+                            "SmartInstantiationAwareBeanPostProcessor", JavaType.buildType(TO_IMPLEMENTS_FQN), null);
                     cd = maybeAutoFormat(cd, cd.withImplements(ListUtils.concat(cd.getImplements(), ident)), ident, ctx, getCursor().getParentOrThrow());
                 }
                 return cd;
@@ -57,7 +57,7 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
             @Override
             public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
                 J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false).getVisitor());
+                doAfterVisit(new ChangeType(FROM_EXTENDING_FQN, TO_IMPLEMENTS_FQN, false).getVisitor());
                 return compilationUnit;
             }
         });
