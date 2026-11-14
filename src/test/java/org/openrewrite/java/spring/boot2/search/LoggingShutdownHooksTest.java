@@ -23,7 +23,10 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.SourceSpecs;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.java.Assertions.srcMainJava;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -38,18 +41,22 @@ class LoggingShutdownHooksTest implements RewriteTest {
       """;
 
     //language=java
-    private final SourceSpecs found = srcMainJava(
-      java(app, """
-            import org.springframework.boot.autoconfigure.SpringBootApplication;
+    private SourceSpecs found() {
+        return srcMainJava(
+          java(app, """
+                import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-            /*~~>*/@SpringBootApplication
-            class Application {}
-        """)
-    );
+                /*~~>*/@SpringBootApplication
+                class Application {}
+            """)
+        );
+    }
 
-    private final SourceSpecs notFound = srcMainJava(
-      java(app)
-    );
+    private SourceSpecs notFound() {
+        return srcMainJava(
+          java(app)
+        );
+    }
 
 
     @Override
@@ -61,28 +68,30 @@ class LoggingShutdownHooksTest implements RewriteTest {
     @Test
     void noExplicitPackagingType() {
         rewriteRun(
-          found,
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <parent>
-                      <groupId>org.springframework.boot</groupId>
-                      <artifactId>spring-boot-starter-parent</artifactId>
-                      <version>2.4.13</version>
-                      <relativePath/> <!-- lookup parent from repository -->
-                  </parent>
-                  <groupId>com.example</groupId>
-                  <artifactId>acme</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
+          mavenProject("acme",
+            found(),
+            //language=xml
+            pomXml(
               """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
           )
         );
     }
@@ -90,29 +99,31 @@ class LoggingShutdownHooksTest implements RewriteTest {
     @Test
     void explicitJarPackagingType() {
         rewriteRun(
-          found,
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <parent>
-                      <groupId>org.springframework.boot</groupId>
-                      <artifactId>spring-boot-starter-parent</artifactId>
-                      <version>2.4.13</version>
-                      <relativePath/> <!-- lookup parent from repository -->
-                  </parent>
-                  <groupId>com.example</groupId>
-                  <artifactId>acme</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <packaging>jar</packaging>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
+          mavenProject("acme",
+            found(),
+            //language=xml
+            pomXml(
               """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <packaging>jar</packaging>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
           )
         );
     }
@@ -120,29 +131,31 @@ class LoggingShutdownHooksTest implements RewriteTest {
     @Test
     void explicitWarPackagingType() {
         rewriteRun(
-          notFound,
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <parent>
-                      <groupId>org.springframework.boot</groupId>
-                      <artifactId>spring-boot-starter-parent</artifactId>
-                      <version>2.4.13</version>
-                      <relativePath/> <!-- lookup parent from repository -->
-                  </parent>
-                  <groupId>com.example</groupId>
-                  <artifactId>acme</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <packaging>war</packaging>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
+          mavenProject("acme",
+            notFound(),
+            //language=xml
+            pomXml(
               """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <packaging>war</packaging>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
           )
         );
     }
@@ -150,29 +163,31 @@ class LoggingShutdownHooksTest implements RewriteTest {
     @Test
     void lowerBootProject() {
         rewriteRun(
-          notFound,
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <parent>
-                      <groupId>org.springframework.boot</groupId>
-                      <artifactId>spring-boot-starter-parent</artifactId>
-                      <version>2.3.12.RELEASE</version>
-                      <relativePath/> <!-- lookup parent from repository -->
-                  </parent>
-                  <groupId>com.example</groupId>
-                  <artifactId>acme</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <packaging>war</packaging>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
+          mavenProject("acme",
+            notFound(),
+            //language=xml
+            pomXml(
               """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.3.12.RELEASE</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <packaging>war</packaging>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
           )
         );
     }
@@ -180,29 +195,146 @@ class LoggingShutdownHooksTest implements RewriteTest {
     @Test
     void higherBootProject() {
         rewriteRun(
-          notFound,
-          //language=xml
-          pomXml(
-            """
-              <project>
-                  <parent>
-                      <groupId>org.springframework.boot</groupId>
-                      <artifactId>spring-boot-starter-parent</artifactId>
-                      <version>2.5.7</version>
-                      <relativePath/> <!-- lookup parent from repository -->
-                  </parent>
-                  <groupId>com.example</groupId>
-                  <artifactId>acme</artifactId>
-                  <version>0.0.1-SNAPSHOT</version>
-                  <packaging>war</packaging>
-                  <dependencies>
-                      <dependency>
-                          <groupId>org.springframework.boot</groupId>
-                          <artifactId>spring-boot-starter</artifactId>
-                      </dependency>
-                  </dependencies>
-              </project>
+          mavenProject("acme",
+            notFound(),
+            //language=xml
+            pomXml(
               """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.5.7</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>acme</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <packaging>war</packaging>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void onlyApplicableModulesAreMarked() {
+        rewriteRun(
+          mavenProject("app-a",
+            found(),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>app-a</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          ),
+          mavenProject("app-b",
+            srcMainJava(
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  class OtherApplication {}
+                  """
+              )
+            ),
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <parent>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-parent</artifactId>
+                        <version>2.4.13</version>
+                        <relativePath/> <!-- lookup parent from repository -->
+                    </parent>
+                    <groupId>com.example</groupId>
+                    <artifactId>app-b</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <packaging>war</packaging>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void gradleJarProject() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            found(),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter:2.4.13'
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void gradleWarProject() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            notFound(),
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                    id 'war'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter:2.4.13'
+                }
+                """
+            )
           )
         );
     }

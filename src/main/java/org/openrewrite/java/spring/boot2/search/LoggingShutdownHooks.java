@@ -16,24 +16,35 @@
 package org.openrewrite.java.spring.boot2.search;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
+import org.openrewrite.SourceFile;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.gradle.marker.GradleDependencyConfiguration;
+import org.openrewrite.gradle.marker.GradlePluginDescriptor;
+import org.openrewrite.gradle.marker.GradleProject;
+import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.search.FindAnnotations;
-import org.openrewrite.maven.MavenVisitor;
+import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.ResolvedDependency;
 import org.openrewrite.maven.tree.Scope;
 import org.openrewrite.semver.DependencyMatcher;
-import org.openrewrite.xml.tree.Xml;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
-public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
+public class LoggingShutdownHooks extends ScanningRecipe<Set<JavaProject>> {
+
+    private static final DependencyMatcher SPRING_BOOT_24 = requireNonNull(
+            DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
 
     @Getter
     final String displayName = "Applications using logging shutdown hooks";
@@ -48,38 +59,81 @@ public class LoggingShutdownHooks extends ScanningRecipe<AtomicBoolean> {
             "property to do that.";
 
     @Override
-    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
-        return new AtomicBoolean(false);
+    public Set<JavaProject> getInitialValue(ExecutionContext ctx) {
+        return new HashSet<>();
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean acc) {
-        return new MavenVisitor<ExecutionContext>() {
+    public TreeVisitor<?, ExecutionContext> getScanner(Set<JavaProject> acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public Xml visitDocument(Xml.Document document, ExecutionContext ctx) {
-                if (acc.get()) {
-                    return document;
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (!(tree instanceof SourceFile)) {
+                    return tree;
                 }
-                MavenResolutionResult model = getResolutionResult();
-                //Default packaging, if not specified is "jar"
-                if (!"jar".equals(model.getPom().getPackaging())) {
-                    return document;
+                Optional<JavaProject> maybeJavaProject = tree.getMarkers().findFirst(JavaProject.class);
+                if (!maybeJavaProject.isPresent() || acc.contains(maybeJavaProject.get())) {
+                    return tree;
                 }
-                DependencyMatcher matcher = requireNonNull(DependencyMatcher.build("org.springframework.boot:spring-boot:2.4.X").getValue());
-                for (ResolvedDependency d : getResolutionResult().getDependencies().getOrDefault(Scope.Compile, emptyList())) {
-                    if (matcher.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
-                        acc.set(true);
+                Optional<MavenResolutionResult> maven = tree.getMarkers().findFirst(MavenResolutionResult.class);
+                if (maven.isPresent()) {
+                    if (isApplicableMavenProject(maven.get())) {
+                        acc.add(maybeJavaProject.get());
                     }
+                    return tree;
                 }
-                return document;
+                Optional<GradleProject> gradle = tree.getMarkers().findFirst(GradleProject.class);
+                if (gradle.isPresent() && isApplicableGradleProject(gradle.get())) {
+                    acc.add(maybeJavaProject.get());
+                }
+                return tree;
             }
         };
     }
 
+    private static boolean isApplicableMavenProject(MavenResolutionResult model) {
+        //Default packaging, if not specified is "jar"
+        if (!"jar".equals(model.getPom().getPackaging())) {
+            return false;
+        }
+        for (ResolvedDependency d : model.getDependencies().getOrDefault(Scope.Compile, emptyList())) {
+            if (SPRING_BOOT_24.matches(d.getGroupId(), d.getArtifactId(), d.getVersion())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isApplicableGradleProject(GradleProject gradleProject) {
+        for (GradlePluginDescriptor plugin : gradleProject.getPlugins()) {
+            if ("war".equals(plugin.getId()) ||
+                "org.gradle.war".equals(plugin.getId()) ||
+                plugin.getFullyQualifiedClassName().startsWith("org.gradle.api.plugins.WarPlugin")) {
+                return false;
+            }
+        }
+        GradleDependencyConfiguration configuration = gradleProject.getConfiguration("compileClasspath");
+        if (configuration == null) {
+            return false;
+        }
+        ResolvedDependency d = configuration.findResolvedDependency("org.springframework.boot", "spring-boot");
+        return d != null && SPRING_BOOT_24.matches(d.getGroupId(), d.getArtifactId(), d.getVersion());
+    }
+
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean acc) {
-        return Preconditions.check(acc.get(),
-                new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null).getVisitor());
+    public TreeVisitor<?, ExecutionContext> getVisitor(Set<JavaProject> acc) {
+        return Preconditions.check(new TreeVisitor<Tree, ExecutionContext>() {
+            @Override
+            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                if (tree instanceof SourceFile) {
+                    Optional<JavaProject> javaProject = tree.getMarkers().findFirst(JavaProject.class);
+                    if (javaProject.isPresent() && acc.contains(javaProject.get())) {
+                        return SearchResult.found(tree);
+                    }
+                }
+                return tree;
+            }
+        }, new FindAnnotations("@org.springframework.boot.autoconfigure.SpringBootApplication", null).getVisitor());
     }
 
 }
