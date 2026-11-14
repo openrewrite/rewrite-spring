@@ -37,6 +37,14 @@ import java.util.List;
 public class DatabaseComponentAndBeanInitializationOrderingUnconditionally extends Recipe {
 
     private static final String JAVAX_SQL_DATA_SOURCE = "javax.sql.DataSource";
+    private static final AnnotationMatcher DATA_SOURCE_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
+    private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
+    private static final List<AnnotationMatcher> COMPONENT_ANNOTATION_MATCHERS = Arrays.asList(
+            new AnnotationMatcher("@org.springframework.stereotype.Repository"),
+            new AnnotationMatcher("@org.springframework.stereotype.Component"),
+            new AnnotationMatcher("@org.springframework.stereotype.Service"),
+            new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
+
     private static final List<String> WELL_KNOWN_DATA_SOURCE_TYPES = Arrays.asList(
             "com.zaxxer.hikari.HikariDataSource",
             "javax.persistence.EntityManagerFactory",
@@ -62,14 +70,6 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        AnnotationMatcher dataSourceAnnotationMatcher = new AnnotationMatcher("@org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization");
-        AnnotationMatcher beanAnnotationMatcher = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
-        List<AnnotationMatcher> componentAnnotationMatchers = Arrays.asList(
-                new AnnotationMatcher("@org.springframework.stereotype.Repository"),
-                new AnnotationMatcher("@org.springframework.stereotype.Component"),
-                new AnnotationMatcher("@org.springframework.stereotype.Service"),
-                new AnnotationMatcher("@org.springframework.boot.test.context.TestComponent"));
-
         return Preconditions.check(Preconditions.or(
                 new UsesType<>("org.springframework.stereotype.Repository", false),
                 new UsesType<>("org.springframework.stereotype.Repository", false),
@@ -120,7 +120,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
 
             private boolean isComponent(J.ClassDeclaration cd) {
                 for (J.Annotation classAnno : cd.getLeadingAnnotations()) {
-                    for (AnnotationMatcher componentMatcher : componentAnnotationMatchers) {
+                    for (AnnotationMatcher componentMatcher : COMPONENT_ANNOTATION_MATCHERS) {
                         if (componentMatcher.matches(classAnno)) {
                             return true;
                         }
@@ -131,7 +131,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
 
             private boolean isBean(J.MethodDeclaration methodDeclaration) {
                 for (J.Annotation leadingAnnotation : methodDeclaration.getLeadingAnnotations()) {
-                    if (beanAnnotationMatcher.matches(leadingAnnotation)) {
+                    if (BEAN_ANNOTATION_MATCHER.matches(leadingAnnotation)) {
                         return true;
                     }
                 }
@@ -140,7 +140,7 @@ public class DatabaseComponentAndBeanInitializationOrderingUnconditionally exten
 
             @SuppressWarnings("BooleanMethodIsAlwaysInverted")
             private boolean isInitializationAnnoPresent(@Nullable List<J.Annotation> annotations) {
-                return annotations != null && annotations.stream().anyMatch(dataSourceAnnotationMatcher::matches);
+                return annotations != null && annotations.stream().anyMatch(DATA_SOURCE_ANNOTATION_MATCHER::matches);
             }
 
             private boolean requiresInitializationAnnotation(@Nullable JavaType type) {

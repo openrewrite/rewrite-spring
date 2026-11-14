@@ -43,6 +43,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE = JavaType.ShallowClass.build(FQN_CUSTOMIZER);
 
     private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
+    private static final MethodMatcher DISABLE_MATCHER = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true);
 
     private final String securityFqn;
     private final Collection<String> convertableMethods;
@@ -380,7 +381,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
-        if (new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true).matches(method)) {
+        if (DISABLE_MATCHER.matches(method)) {
             return true;
         }
         // Also match reactive disable() methods that return the security builder type (e.g., ServerHttpSecurity.CsrfSpec.disable())
