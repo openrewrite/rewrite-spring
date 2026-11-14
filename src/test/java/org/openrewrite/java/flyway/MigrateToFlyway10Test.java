@@ -20,6 +20,8 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class MigrateToFlyway10Test implements RewriteTest {
@@ -280,6 +282,182 @@ class MigrateToFlyway10Test implements RewriteTest {
               		</dependency>
               	</dependencies>
               </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void preserveTestScopeForPostgresFlywayModule() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                <modelVersion>4.0.0</modelVersion>
+                <parent>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-parent</artifactId>
+                  <version>3.3.12</version>
+                  <relativePath/>
+                </parent>
+                <groupId>com.example</groupId>
+                <artifactId>demo</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-core</artifactId>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <scope>runtime</scope>
+                  </dependency>
+                </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                <modelVersion>4.0.0</modelVersion>
+                <parent>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-parent</artifactId>
+                  <version>3.3.12</version>
+                  <relativePath/>
+                </parent>
+                <groupId>com.example</groupId>
+                <artifactId>demo</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-core</artifactId>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-database-postgresql</artifactId>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <scope>runtime</scope>
+                  </dependency>
+                </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void preserveExistingTestScopeForPostgresFlywayModule() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                <modelVersion>4.0.0</modelVersion>
+                <parent>
+                  <groupId>org.springframework.boot</groupId>
+                  <artifactId>spring-boot-starter-parent</artifactId>
+                  <version>3.3.12</version>
+                  <relativePath/>
+                </parent>
+                <groupId>com.example</groupId>
+                <artifactId>demo</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-core</artifactId>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.flywaydb</groupId>
+                    <artifactId>flyway-database-postgresql</artifactId>
+                    <scope>test</scope>
+                  </dependency>
+                  <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <scope>runtime</scope>
+                  </dependency>
+                </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void addPostgresDependencyToGradleBuild() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  implementation 'org.flywaydb:flyway-core:10.10.0'
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
+              """,
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  implementation 'org.flywaydb:flyway-core:10.10.0'
+                  implementation "org.flywaydb:flyway-database-postgresql"
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void addTestScopedPostgresDependencyToGradleBuild() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          //language=groovy
+          buildGradle(
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  testImplementation 'org.flywaydb:flyway-core:10.10.0'
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
+              """,
+            """
+              plugins {
+                  id 'java'
+              }
+              repositories {
+                  mavenCentral()
+              }
+              dependencies {
+                  testImplementation 'org.flywaydb:flyway-core:10.10.0'
+                  testImplementation "org.flywaydb:flyway-database-postgresql"
+                  runtimeOnly 'org.postgresql:postgresql:42.7.3'
+              }
               """
           )
         );
