@@ -27,7 +27,10 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 
+import java.util.List;
+
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
     private final String fromExtendingFqn = "org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter";
@@ -53,13 +56,11 @@ public class MigrateInstantiationAwareBeanPostProcessorAdapter extends Recipe {
                 }
                 return cd;
             }
-
-            @Override
-            public J.CompilationUnit visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                J.CompilationUnit compilationUnit = super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(fromExtendingFqn, toImplementsFqn, false).getVisitor());
-                return compilationUnit;
-            }
         });
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return singletonList(new ChangeType(fromExtendingFqn, toImplementsFqn, false));
     }
 }
