@@ -73,7 +73,6 @@ class ListenableFutureCallbackToBiConsumerVisitor extends JavaVisitor<ExecutionC
                         failureParam,
                         successCallback.getBody(),
                         failureCallback.getBody());
-        //noinspection DataFlowIssue
         TypeTree biConsumer = biConsumerClass.getImplements().get(0);
         Statement accept = biConsumerClass.getBody().getStatements().get(0);
 

@@ -108,7 +108,6 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
 
     private static String generateParamNameFromMethodName(String n) {
         int i = n.length() - 1;
-        //noinspection StatementWithEmptyBody
         for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {
         }
         if (i >= 0) {

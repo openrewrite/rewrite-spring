@@ -91,7 +91,6 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
     }
 
     private PlainText generateManifest(List<String> apis) {
-        //noinspection OptionalGetWithoutIsPresent
         return new PlainTextParser()
                 .parse(String.join("\n", apis))
                 .findFirst()
@@ -117,12 +116,10 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                             return ((J.Identifier) arg.getAssignment()).getSimpleName();
                         }
                         if (arg.getAssignment() instanceof J.Literal) {
-                            //noinspection ConstantConditions
                             return (String) ((J.Literal) arg.getAssignment()).getValue();
                         }
                     }
                 } else if (argument instanceof J.Literal && keyNames.contains("value")) {
-                    //noinspection ConstantConditions
                     return (String) ((J.Literal) argument).getValue();
                 }
             }

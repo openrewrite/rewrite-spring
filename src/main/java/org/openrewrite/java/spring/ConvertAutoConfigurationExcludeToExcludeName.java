@@ -154,7 +154,6 @@ public class ConvertAutoConfigurationExcludeToExcludeName extends Recipe {
                             }
                             List<JRightPadded<Expression>> newPadded = ListUtils.filter(padded,
                                     rp -> !isTargetClassReference(rp.getElement()));
-                            //noinspection DataFlowIssue
                             if (newPadded.isEmpty()) {
                                 return null;
                             }

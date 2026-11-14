@@ -72,7 +72,6 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
                     }
                 }.visitNonNull(compilationUnit, ctx);
 
-                //noinspection ConstantValue
                 if (readTimeout.get() == null || incompatibilityFound.get()) {
                     return cuWithComment;
                 }
@@ -112,7 +111,6 @@ public class HttpComponentsClientHttpRequestFactoryReadTimeout extends Recipe {
             @Override
             public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 if (SET_READ_TIMEOUT_METHOD_MATCHER.matches(method)) {
-                    //noinspection DataFlowIssue
                     return null;
                 }
                 return super.visitMethodInvocation(method, ctx);

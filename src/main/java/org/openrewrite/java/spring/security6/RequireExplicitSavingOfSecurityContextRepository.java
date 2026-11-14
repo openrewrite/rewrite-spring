@@ -136,7 +136,6 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
                     changed = true;
-                    //noinspection DataFlowIssue
                     return block.withStatements(statements.stream()
                             .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)
                             .map(s -> s instanceof J.MethodInvocation && ToBeRemoved.hasMarker(s) ? ((J.MethodInvocation) s).getSelect().withPrefix(s.getPrefix()) : s)
