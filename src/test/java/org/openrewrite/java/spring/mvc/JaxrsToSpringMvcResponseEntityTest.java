@@ -116,7 +116,6 @@ class JaxrsToSpringMvcResponseEntityTest implements RewriteTest {
                           import javax.ws.rs.core.MediaType;
                           import org.springframework.http.HttpStatus;
                           import org.springframework.http.ResponseEntity;
-                          import org.springframework.http.ResponseEntity.BodyBuilder;
                           
                           class TestExample {
                           
@@ -179,7 +178,7 @@ class JaxrsToSpringMvcResponseEntityTest implements RewriteTest {
                                   return ResponseEntity.noContent().build();
                               }
                           
-                              BodyBuilder test11() {
+                              ResponseEntity.BodyBuilder test11() {
                                   return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                               }
                           
@@ -271,7 +270,6 @@ class JaxrsToSpringMvcResponseEntityTest implements RewriteTest {
                           import jakarta.ws.rs.core.MediaType;
                           import org.springframework.http.HttpStatus;
                           import org.springframework.http.ResponseEntity;
-                          import org.springframework.http.ResponseEntity.BodyBuilder;
                           
                           class TestExample {
                           
@@ -334,7 +332,7 @@ class JaxrsToSpringMvcResponseEntityTest implements RewriteTest {
                                   return ResponseEntity.noContent().build();
                               }
                           
-                              BodyBuilder test11() {
+                              ResponseEntity.BodyBuilder test11() {
                                   return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                               }
                           
