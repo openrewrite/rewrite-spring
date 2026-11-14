@@ -41,12 +41,11 @@ class FindConfigurationPropertiesTest implements RewriteTest {
     void findConfigurationPropertiesWithValue() {
         rewriteRun(
           // The parser leaves the reference `PREFIX` to a constant of the annotated class, inside the annotation, without a type.
-          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
+          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows ->
               assertThat(rows).singleElement()
                 .matches(row -> separatorsToSystem("test/MyProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.MyProperties".equals(row.getClassType()))
-                .matches(row -> "my.service".equals(row.getPrefix()));
-          }),
+                .matches(row -> "my.service".equals(row.getPrefix()))),
           //language=java
           java(
             """
@@ -109,12 +108,11 @@ class FindConfigurationPropertiesTest implements RewriteTest {
     void findConfigurationPropertiesWithExplicitValue() {
         rewriteRun(
           // The parser leaves the reference `PREFIX` to a constant of the annotated class, inside the annotation, without a type.
-          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
+          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows ->
               assertThat(rows).singleElement()
                 .matches(row -> separatorsToSystem("test/ServerProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.ServerProperties".equals(row.getClassType()))
-                .matches(row -> "app.server".equals(row.getPrefix()));
-          }),
+                .matches(row -> "app.server".equals(row.getPrefix()))),
           //language=java
           java(
             """
@@ -159,12 +157,11 @@ class FindConfigurationPropertiesTest implements RewriteTest {
     void findConfigurationPropertiesWithPrefix() {
         rewriteRun(
           // The parser leaves the reference `PREFIX` to a constant of the annotated class, inside the annotation, without a type.
-          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
+          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows ->
               assertThat(rows).singleElement()
                 .matches(row -> separatorsToSystem("test/DatabaseProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.DatabaseProperties".equals(row.getClassType()))
-                .matches(row -> "database.config".equals(row.getPrefix()));
-          }),
+                .matches(row -> "database.config".equals(row.getPrefix()))),
           //language=java
           java(
             """
@@ -209,12 +206,11 @@ class FindConfigurationPropertiesTest implements RewriteTest {
     void findConfigurationPropertiesWithConstantReference() {
         rewriteRun(
           // The parser leaves the reference `PREFIX` to a constant of the annotated class, inside the annotation, without a type.
-          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
+          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows ->
               assertThat(rows).singleElement()
                 .matches(row -> separatorsToSystem("test/KubernetesClientProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.KubernetesClientProperties".equals(row.getClassType()))
-                .matches(row -> "spring.cloud.kubernetes.client".equals(row.getPrefix()));
-          }).typeValidationOptions(TypeValidation.all().identifiers(false)),
+                .matches(row -> "spring.cloud.kubernetes.client".equals(row.getPrefix()))).typeValidationOptions(TypeValidation.all().identifiers(false)),
           //language=java
           java(
             """
@@ -263,12 +259,11 @@ class FindConfigurationPropertiesTest implements RewriteTest {
     void findConfigurationPropertiesWithConstantReferenceInValueParam() {
         rewriteRun(
           // The parser leaves the reference `PREFIX` to a constant of the annotated class, inside the annotation, without a type.
-          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows -> {
+          spec -> spec.dataTable(ConfigurationPropertiesTable.Row.class, rows ->
               assertThat(rows).singleElement()
                 .matches(row -> separatorsToSystem("test/AppProperties.java").equals(row.getSourcePath()))
                 .matches(row -> "test.AppProperties".equals(row.getClassType()))
-                .matches(row -> "app.config".equals(row.getPrefix()));
-          }).typeValidationOptions(TypeValidation.all().identifiers(false)),
+                .matches(row -> "app.config".equals(row.getPrefix()))).typeValidationOptions(TypeValidation.all().identifiers(false)),
           //language=java
           java(
             """
