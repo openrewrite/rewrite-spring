@@ -46,7 +46,7 @@ public class JobParameterToString extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
                         if (JOB_PARAMETER_TO_STRING_MATCHER.matches(method)) {
-                            return JavaTemplate.builder("#{any()}.getValue().toString()")
+                            return JavaTemplate.builder("#{any(org.springframework.batch.core.JobParameter)}.getValue().toString()")
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-4.3.+"))
                                     .build().apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
                         }

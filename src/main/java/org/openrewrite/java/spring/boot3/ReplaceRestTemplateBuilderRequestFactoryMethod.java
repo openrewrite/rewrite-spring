@@ -41,7 +41,7 @@ public class ReplaceRestTemplateBuilderRequestFactoryMethod extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (REQUEST_FACTORY_MATCHER.matches(mi) && mi.getSelect() != null) {
-                    J replacement = JavaTemplate.builder("#{any()}.requestFactoryBuilder(settings -> #{any()}.apply(ClientHttpRequestFactorySettings.of(settings)))")
+                    J replacement = JavaTemplate.builder("#{any(org.springframework.boot.web.client.RestTemplateBuilder)}.requestFactoryBuilder(settings -> #{any(java.util.function.Function)}.apply(ClientHttpRequestFactorySettings.of(settings)))")
                             .imports("org.springframework.boot.web.client.ClientHttpRequestFactorySettings")
                             .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-web-6.2", "spring-boot-3.+"))
                             .build()

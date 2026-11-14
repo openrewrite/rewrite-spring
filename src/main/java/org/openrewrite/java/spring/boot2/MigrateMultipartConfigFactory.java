@@ -51,7 +51,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                         if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
-                            m = JavaTemplate.builder("DataSize.ofBytes(#{any()})")
+                            m = JavaTemplate.builder("DataSize.ofBytes(#{any(long)})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(JavaParser.fromJavaVersion()
                                             .classpathFromResources(ctx, "spring-core-5.*", "spring-boot-2.*"))

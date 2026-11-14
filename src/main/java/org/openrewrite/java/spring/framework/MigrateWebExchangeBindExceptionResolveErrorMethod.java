@@ -47,7 +47,7 @@ public class MigrateWebExchangeBindExceptionResolveErrorMethod extends Recipe {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (RESOLVE_ERROR_MESSAGES.matches(m)) {
                     maybeAddImport("org.springframework.web.util.BindErrorUtils");
-                    return JavaTemplate.builder("BindErrorUtils.resolve(#{any()}.getAllErrors(), #{any()}, #{any()})")
+                    return JavaTemplate.builder("BindErrorUtils.resolve(#{any(org.springframework.web.bind.support.WebExchangeBindException)}.getAllErrors(), #{any(org.springframework.context.MessageSource)}, #{any(java.util.Locale)})")
                             .imports("org.springframework.web.util.BindErrorUtils")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx,
