@@ -706,9 +706,8 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     @Test
     void id_field_invalid_DomainId_1() {
         //language=java
-        rewriteRun(spec -> {
-              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(true)));
-          },
+        rewriteRun(spec ->
+              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(true))),
           java(
             """
               public class Employee {
@@ -737,9 +736,8 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     @Test
     void id_field_invalid_DomainId_2() {
         //language=java
-        rewriteRun(spec -> {
-              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(true)));
-          },
+        rewriteRun(spec ->
+              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(true))),
           java(
             """
               public class Person {
@@ -773,9 +771,8 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     @Test
     void id_field_no_validation() {
         //language=java
-        rewriteRun(spec -> {
-              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(false)));
-          },
+        rewriteRun(spec ->
+              spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>(false))),
           java(
             """
               public class Employee {
@@ -797,14 +794,13 @@ class EntityIdForRepositoryVisitorTest implements RewriteTest {
     @Test
     void customMarker() {
         //language=java
-        rewriteRun(spec -> {
+        rewriteRun(spec ->
               spec.recipe(toRecipe(() -> new EntityIdForRepositoryVisitor<>() {
                   @Override
                   protected Marker createMarker(JavaType domainIdType) {
                       return new SearchResult(Tree.randomId(), "[Overridden marker]  DomainType ID must be '" + domainIdType + "'");
                   }
-              }));
-          },
+              })),
           java(
             """
               import org.springframework.data.annotation.Id;
