@@ -30,8 +30,15 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+
 
 public class MigrateQuerydslJpaRepository extends Recipe {
+
+    private static final String ORIGINAL_FQN = "org.springframework.data.jpa.repository.support.QuerydslJpaRepository";
+    private static final String TARGET_FQN = "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor";
 
     @Getter
     final String displayName = "Use `QuerydslPredicateExecutor<T>`";
@@ -41,22 +48,13 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository", false), new JavaVisitor<ExecutionContext>() {
-            final String originalFqn = "org.springframework.data.jpa.repository.support.QuerydslJpaRepository";
-            final String targetFqn = "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor";
-
-            @Override
-            public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(originalFqn, targetFqn, false).getVisitor());
-                return c;
-            }
+        return Preconditions.check(new UsesType<>(ORIGINAL_FQN, false), new JavaVisitor<ExecutionContext>() {
 
             @Override
             public J visitParameterizedType(J.ParameterizedType type, ExecutionContext ctx) {
                 J.ParameterizedType t = (J.ParameterizedType) super.visitParameterizedType(type, ctx);
                 if (t.getClazz() instanceof J.Identifier && TypeUtils.isOfType(TypeUtils.asFullyQualified(t.getClazz().getType()),
-                        TypeUtils.asFullyQualified(JavaType.ShallowClass.build(originalFqn))) &&
+                        TypeUtils.asFullyQualified(JavaType.ShallowClass.build(ORIGINAL_FQN))) &&
                         t.getTypeParameters() != null && t.getTypeParameters().size() == 2) {
                     t = t.withTypeParameters(t.getTypeParameters().subList(0, 1));
                 }
@@ -65,14 +63,14 @@ public class MigrateQuerydslJpaRepository extends Recipe {
 
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
-                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), originalFqn)) {
+                if (newClass.getClazz() != null && TypeUtils.isOfClassType(newClass.getClazz().getType(), ORIGINAL_FQN)) {
                     String template = "new QuerydslJpaPredicateExecutor(#{any(org.springframework.data.jpa.repository.support.JpaEntityInformation)}, " +
                             "#{any(javax.persistence.EntityManager)}, " +
                             "#{any(org.springframework.data.querydsl.EntityPathResolver)}, null)";
 
                     J.FieldAccess entityPathResolver = TypeTree.build("SimpleEntityPathResolver.INSTANCE");
                     return JavaTemplate.builder(template)
-                            .imports(targetFqn)
+                            .imports(TARGET_FQN)
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx,
                                             "javax.persistence-api-2.*",
@@ -89,5 +87,10 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                 return super.visitNewClass(newClass, ctx);
             }
         });
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return singletonList(new ChangeType(ORIGINAL_FQN, TARGET_FQN, false));
     }
 }
