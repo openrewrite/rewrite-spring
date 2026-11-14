@@ -43,15 +43,15 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
     final String description = "Convert receive type in some invocation of StepExecution.xx().";
 
 
-    private static final MethodMatcher CommitCount = new MethodMatcher("org.springframework.batch.core.StepExecution getCommitCount()");
-    private static final MethodMatcher ReadCount = new MethodMatcher("org.springframework.batch.core.StepExecution getReadCount()");
-    private static final MethodMatcher WriteCount = new MethodMatcher("org.springframework.batch.core.StepExecution getWriteCount()");
-    private static final MethodMatcher RollbackCount = new MethodMatcher("org.springframework.batch.core.StepExecution getRollbackCount()");
-    private static final MethodMatcher FilterCount = new MethodMatcher("org.springframework.batch.core.StepExecution getFilterCount()");
-    private static final MethodMatcher SkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getSkipCount()");
-    private static final MethodMatcher ReadSkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getReadSkipCount()");
-    private static final MethodMatcher WriteSkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getWriteSkipCount()");
-    private static final MethodMatcher ProcessSkipCount = new MethodMatcher("org.springframework.batch.core.StepExecution getProcessSkipCount()");
+    private static final MethodMatcher COMMIT_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getCommitCount()");
+    private static final MethodMatcher READ_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getReadCount()");
+    private static final MethodMatcher WRITE_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getWriteCount()");
+    private static final MethodMatcher ROLLBACK_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getRollbackCount()");
+    private static final MethodMatcher FILTER_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getFilterCount()");
+    private static final MethodMatcher SKIP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getSkipCount()");
+    private static final MethodMatcher READ_SKIP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getReadSkipCount()");
+    private static final MethodMatcher WRITE_SKIP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getWriteSkipCount()");
+    private static final MethodMatcher PROCESS_SKIP_COUNT = new MethodMatcher("org.springframework.batch.core.StepExecution getProcessSkipCount()");
 
     private static final MethodMatcher WHEN_MATCHER = new MethodMatcher("org.mockito.Mockito when(..)");
     private static final MethodMatcher THEN_RETURN_MATCHER = new MethodMatcher("org.mockito.stubbing.OngoingStubbing thenReturn(..)");
@@ -65,7 +65,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                     public J.MemberReference visitMemberReference(J.MemberReference memberRef, ExecutionContext ctx) {
                         memberRef = super.visitMemberReference(memberRef, ctx);
                         final J.MemberReference mr = memberRef;
-                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount)
+                        if (Stream.of(COMMIT_COUNT, READ_COUNT, WRITE_COUNT, ROLLBACK_COUNT, FILTER_COUNT, SKIP_COUNT, READ_SKIP_COUNT, WRITE_SKIP_COUNT, PROCESS_SKIP_COUNT)
                                 .anyMatch(methodMatcher -> methodMatcher.matches(mr))) {
                             doAfterVisit(new MemberReferenceToMethodInvocation(memberRef));
                         }
@@ -77,7 +77,7 @@ public class ConvertReceiveTypeWhenCallStepExecutionMethod extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
                         final J.MethodInvocation md = method;
-                        if (Stream.of(CommitCount, ReadCount, WriteCount, RollbackCount, FilterCount, SkipCount, ReadSkipCount, WriteSkipCount, ProcessSkipCount)
+                        if (Stream.of(COMMIT_COUNT, READ_COUNT, WRITE_COUNT, ROLLBACK_COUNT, FILTER_COUNT, SKIP_COUNT, READ_SKIP_COUNT, WRITE_SKIP_COUNT, PROCESS_SKIP_COUNT)
                                 .anyMatch(methodMatcher -> methodMatcher.matches(md))) {
                             doAfterVisit(new AddCastToMethodInvocation(method));
                         }

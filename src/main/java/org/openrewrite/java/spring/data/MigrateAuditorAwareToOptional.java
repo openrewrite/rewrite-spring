@@ -30,9 +30,9 @@ import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturn
 
 public class MigrateAuditorAwareToOptional extends Recipe {
 
-    private static final TypeMatcher isAuditorAware = new TypeMatcher("org.springframework.data.domain.AuditorAware", true);
-    private static final MethodMatcher isCurrentAuditor = new MethodMatcher("org.springframework.data.domain.AuditorAware getCurrentAuditor()", true);
-    private static final TypeMatcher isOptional = new TypeMatcher("java.util.Optional");
+    private static final TypeMatcher IS_AUDITOR_AWARE = new TypeMatcher("org.springframework.data.domain.AuditorAware", true);
+    private static final MethodMatcher IS_CURRENT_AUDITOR = new MethodMatcher("org.springframework.data.domain.AuditorAware getCurrentAuditor()", true);
+    private static final TypeMatcher IS_OPTIONAL = new TypeMatcher("java.util.Optional");
 
     @Getter
     final String displayName = "Make AuditorAware.getCurrentAuditor return `Optional`";
@@ -59,8 +59,8 @@ public class MigrateAuditorAwareToOptional extends Recipe {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
             TypeTree returnType = method.getReturnTypeExpression();
-            if (method.getMethodType() == null || !isCurrentAuditor.matches(method.getMethodType()) ||
-                    returnType == null || returnType.getType() == null || isOptional.matches(returnType.getType())) {
+            if (method.getMethodType() == null || !IS_CURRENT_AUDITOR.matches(method.getMethodType()) ||
+                    returnType == null || returnType.getType() == null || IS_OPTIONAL.matches(returnType.getType())) {
                 return method;
             }
             // `java.util.Optional<T>` around the declared type, which the parser makes a parameterized type of
@@ -106,7 +106,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
 
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            if (!isAuditorAware.matches(method.getReturnTypeExpression()) || method.getBody() == null || method.getBody().getStatements().size() != 1) {
+            if (!IS_AUDITOR_AWARE.matches(method.getReturnTypeExpression()) || method.getBody() == null || method.getBody().getStatements().size() != 1) {
                 return method;
             }
             Statement statement = method.getBody().getStatements().get(0);
@@ -122,7 +122,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             if (expression instanceof J.MemberReference) {
                 J.MemberReference memberReference = (J.MemberReference) expression;
                 JavaType.Method methodType = memberReference.getMethodType();
-                if (methodType == null || isOptional.matches(methodType.getReturnType())) {
+                if (methodType == null || IS_OPTIONAL.matches(methodType.getReturnType())) {
                     return return_;
                 }
                 expression = (Expression) new MemberReferenceToMethodInvocation().visitNonNull(memberReference, ctx, new Cursor(getCursor(), expression).getParent());
@@ -131,7 +131,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                 J.Lambda lambda = (J.Lambda) expression;
                 J body = lambda.getBody();
                 if (body instanceof J.MethodInvocation &&
-                        (((J.MethodInvocation) body).getMethodType() != null && isOptional.matches(((J.MethodInvocation) body).getMethodType().getReturnType()))) {
+                        (((J.MethodInvocation) body).getMethodType() != null && IS_OPTIONAL.matches(((J.MethodInvocation) body).getMethodType().getReturnType()))) {
                     return return_;
                 }
                 if (body instanceof J.Literal || body instanceof J.MethodInvocation) {
@@ -152,7 +152,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
             }
             if (expression instanceof J.MethodInvocation) {
                 JavaType.Method methodType = ((J.MethodInvocation) expression).getMethodType();
-                if (methodType != null && (isOptional.matches(methodType.getReturnType()) || isAuditorAware.matches(methodType.getReturnType()))) {
+                if (methodType != null && (IS_OPTIONAL.matches(methodType.getReturnType()) || IS_AUDITOR_AWARE.matches(methodType.getReturnType()))) {
                     return return_;
                 }
                 maybeAddImport("java.util.Optional");
@@ -161,7 +161,7 @@ public class MigrateAuditorAwareToOptional extends Recipe {
                         .build()
                         .apply(new Cursor(getCursor(), expression), expression.getCoordinates().replace(), expression));
             }
-            if (expression instanceof J.NewClass && isAuditorAware.matches(((J.NewClass) expression).getClazz().getType())) {
+            if (expression instanceof J.NewClass && IS_AUDITOR_AWARE.matches(((J.NewClass) expression).getClazz().getType())) {
                 implementationVisitor.setCursor(new Cursor(getCursor(), expression));
                 maybeAddImport("java.util.Optional");
                 return return_.withExpression((J.NewClass) implementationVisitor.visit(expression, ctx, getCursor().getParentTreeCursor()));
