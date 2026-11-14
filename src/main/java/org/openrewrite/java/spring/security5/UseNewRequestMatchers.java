@@ -26,6 +26,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -42,6 +43,27 @@ public class UseNewRequestMatchers extends Recipe {
     private static final MethodMatcher REGEX_MATCHERS = new MethodMatcher(CLAZZ + " regexMatchers(..)");
     private static final String REQUEST_MATCHER = "org.springframework.security.web.util.matcher.RequestMatcher";
     private static final MethodMatcher CSRF_MATCHERS = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.CsrfConfigurer ignoringAntMatchers(..)");
+
+    /**
+     * Typed {@code #{any(..)}} placeholder for a matcher argument, whose type
+     * varies per call site (e.g. {@code HttpMethod} constants, {@code String}
+     * literals, {@code String[]} variables); falls back to untyped
+     * {@code #{any()}} when the type cannot be named.
+     */
+    private static String typedPlaceholder(Expression arg) {
+        JavaType type = arg.getType();
+        if (type instanceof JavaType.Array) {
+            JavaType elemType = ((JavaType.Array) type).getElemType();
+            if (elemType instanceof JavaType.Class) {
+                return "#{anyArray(" + ((JavaType.Class) elemType).getFullyQualifiedName() + ")}";
+            }
+            return "#{any()}";
+        }
+        if (type instanceof JavaType.Class) {
+            return "#{any(" + ((JavaType.Class) type).getFullyQualifiedName() + ")}";
+        }
+        return "#{any()}";
+    }
 
     String displayName = "Use the new `requestMatchers` methods";
 
@@ -66,7 +88,7 @@ public class UseNewRequestMatchers extends Recipe {
                         boolean isCsrfMatcher = CSRF_MATCHERS.matches(mi);
                         if ((ANT_MATCHERS.matches(mi) || MVC_MATCHERS.matches(mi) || isCsrfMatcher) &&
                                 mi.getSelect() != null) {
-                            String parametersTemplate = mi.getArguments().stream().map(arg -> "#{any()}").collect(joining(", "));
+                            String parametersTemplate = mi.getArguments().stream().map(UseNewRequestMatchers::typedPlaceholder).collect(joining(", "));
                             String replacementMethodName = isCsrfMatcher ? "ignoringRequestMatchers" : "requestMatchers";
                             J.MethodInvocation applied = JavaTemplate.builder(String.format("%s(%s)", replacementMethodName, parametersTemplate))
                                     .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-security-config-5.8"))
