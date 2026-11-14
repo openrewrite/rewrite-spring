@@ -60,7 +60,6 @@ public class MigrateResponseEntityExceptionHandlerHttpStatusToHttpStatusCode ext
                         J.MethodDeclaration m = method;
                         if (HANDLER_METHOD.matches(m.getMethodType()) && overridesHandlerMethod(m.getMethodType())) {
                             JavaType javaTypeHttpStatusCode = JavaType.buildType(HTTP_STATUS_CODE_FQ);
-                            //noinspection DataFlowIssue
                             JavaType.Method met = m.getMethodType().withParameterTypes(ListUtils.map(m.getMethodType().getParameterTypes(),
                                     type -> TypeUtils.isAssignableTo(HTTP_STATUS_FQ, type) ? javaTypeHttpStatusCode : type));
                             if (met == m.getMethodType()) {
