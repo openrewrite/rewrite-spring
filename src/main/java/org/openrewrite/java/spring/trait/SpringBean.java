@@ -69,19 +69,20 @@ public class SpringBean implements Trait<Tree> {
     }
 
     public static class Matcher extends SimpleTraitMatcher<SpringBean> {
+        private static final XPathMatcher SPRING_BEAN_MATCHER = new XPathMatcher("/beans/bean");
+        private static final AnnotationMatcher BEAN_ANNOTATION_MATCHER = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
+
         @Override
         protected @Nullable SpringBean test(Cursor cursor) {
             Object value = cursor.getValue();
             if (value instanceof Xml.Tag) {
-                XPathMatcher springBean = new XPathMatcher("/beans/bean");
-                if (springBean.matches(cursor)) {
+                if (SPRING_BEAN_MATCHER.matches(cursor)) {
                     return new SpringBean(cursor);
                 }
             }
             if (value instanceof J.MethodDeclaration) {
                 AnnotationService annotationService = new AnnotationService();
-                AnnotationMatcher beanAnnotation = new AnnotationMatcher("@org.springframework.context.annotation.Bean");
-                if (annotationService.matches(cursor, beanAnnotation)) {
+                if (annotationService.matches(cursor, BEAN_ANNOTATION_MATCHER)) {
                     return new SpringBean(cursor);
                 }
             }
