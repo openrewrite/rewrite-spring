@@ -23,11 +23,7 @@ import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ApiInfoBuilderToInfo extends Recipe {
     private static final MethodMatcher BUILD_MATCHER = new MethodMatcher("springfox.documentation.builders.ApiInfoBuilder build()");

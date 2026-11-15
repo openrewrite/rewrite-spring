@@ -285,8 +285,8 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @MethodSource("yamlPaths")
+    @ParameterizedTest
     void rewriteSingleDocketWithLiteralValuesToApplicationYml(String path, String yamlPath) {
         rewriteRun(
           //language=yaml
@@ -355,8 +355,8 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @MethodSource("propertiesPaths")
+    @ParameterizedTest
     void rewriteSingleWithLiteralValuesToApplicationProperties(String javaPath, String propertiesPath) {
         rewriteRun(
           //language=properties

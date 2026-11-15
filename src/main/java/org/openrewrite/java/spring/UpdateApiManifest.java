@@ -27,11 +27,7 @@ import org.openrewrite.text.PlainTextParser;
 import org.openrewrite.text.PlainTextVisitor;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;

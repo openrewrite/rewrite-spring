@@ -34,7 +34,10 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -112,9 +115,9 @@ public class MigrateMethodAnnotatedByBatchAPI extends Recipe {
                     .withType(JavaType.buildType("org.springframework.batch.item.Chunk"));
             TypeTree listType = parameter.getTypeExpression();
             J.VariableDeclarations chunkParam = parameter
-                    .withTypeExpression(listType instanceof J.ParameterizedType
-                            ? ((J.ParameterizedType) listType).withClazz(chunk)
-                            : chunk.withPrefix(listType == null ? Space.EMPTY : listType.getPrefix()))
+                    .withTypeExpression(listType instanceof J.ParameterizedType ?
+                            ((J.ParameterizedType) listType).withClazz(chunk) :
+                            chunk.withPrefix(listType == null ? Space.EMPTY : listType.getPrefix()))
                     .withVariables(parameter.getVariables().stream()
                             .map(v -> v.withName(v.getName().withSimpleName(chunkName)))
                             .collect(toList()));
