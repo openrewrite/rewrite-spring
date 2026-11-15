@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -31,6 +32,7 @@ class SpringBoot33BestPracticesTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-context-6"));
     }
 
+    @DocumentExample
     @Test
     void beanMethodsNotPublic() {
         rewriteRun(

@@ -23,9 +23,9 @@ import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.gradle.Assertions.buildGradle;
 import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
+import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 class UpgradeSpringCloud2025_1Test implements RewriteTest {
@@ -166,8 +166,8 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
           )
         );
     }
-    @ParameterizedTest
     @CsvSource({"2024,2024.0", "2025,2025.0", "2025_1,2025.1"})
+    @ParameterizedTest
     void retainsRemovedRsaVersionInMaven(String cloudVersion, String releaseVersion) {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.cloud" + cloudVersion.substring(0, 4) + ".UpgradeSpringCloud_" + cloudVersion),
@@ -212,8 +212,8 @@ class UpgradeSpringCloud2025_1Test implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @CsvSource({"2024,2024.0", "2025,2025.0", "2025_1,2025.1"})
+    @ParameterizedTest
     void retainsRemovedRsaVersionInGradle(String cloudVersion, String releaseVersion) {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.cloud" + cloudVersion.substring(0, 4) + ".UpgradeSpringCloud_" + cloudVersion)

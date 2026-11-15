@@ -173,8 +173,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
     private List<String> exceptedYamlSubKeys(Yaml.Documents documents) {
         Pattern exceptPattern = Pattern.compile("(?:" + String.join("|", requireNonNull(except)) + ")\\b");
         int subKeyIndex = oldPropertyKey.split("\\.").length;
-        Set<String> subKeys = new LinkedHashSet<>();
-        new YamlIsoVisitor<Set<String>>() {
+        Set<String> subKeys = new YamlIsoVisitor<Set<String>>() {
             @Override
             public Yaml.Mapping.Entry visitMappingEntry(Yaml.Mapping.Entry entry, Set<String> acc) {
                 String path = getCursor().getPathAsStream()
@@ -190,7 +189,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
                 }
                 return super.visitMappingEntry(entry, acc);
             }
-        }.visit(documents, subKeys);
+        }.reduce(documents, new LinkedHashSet<>());
         return new ArrayList<>(subKeys);
     }
 

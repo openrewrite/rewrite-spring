@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -32,6 +33,7 @@ class SpringBoot3BestPracticesOnlyTest implements RewriteTest {
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-test-6.+"));
     }
 
+    @DocumentExample
     @Test
     void simplifyMediaTypeParseCallsOutsideController() {
         rewriteRun(

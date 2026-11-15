@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.cloud2024;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -30,6 +31,7 @@ class AddExplicitGradleSpringSecurityRsaVersionTest implements RewriteTest {
         spec.recipe(new AddExplicitGradleSpringSecurityRsaVersion()).beforeRecipe(withToolingApi());
     }
 
+    @DocumentExample
     @Test
     void kotlinPlatform() {
         rewriteRun(
