@@ -45,7 +45,7 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
     final String displayName = "Use `spring.reactor.context-propagation` property";
 
     @Getter
-    final String description = "Replace `Hooks.enableAutomaticContextPropagation()` with `spring.reactor.context-propagation=auto`.";
+    final String description = "Replace `Hooks.enableAutomaticContextPropagation()` with `spring.reactor.context-propagation=auto` in a module that has an application configuration file to add the property to. A module without one keeps the call, so `Hooks.enableAutomaticContextPropagation()` is not lost.";
 
     @Override
     public ProjectsWithHooks getInitialValue(ExecutionContext ctx) {
