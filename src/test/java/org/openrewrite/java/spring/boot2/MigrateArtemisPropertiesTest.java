@@ -230,6 +230,29 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void migratesDottedKeysAlongsideNestedSpringMapping() {
+        rewriteRun(
+          //language=yaml
+          yaml(
+            """
+              spring:
+                datasource:
+                  url: jdbc:postgresql://localhost/db
+              spring.artemis.host: myhost
+              spring.artemis.port: 1234
+              """,
+            """
+              spring:
+                datasource:
+                  url: jdbc:postgresql://localhost/db
+              spring.artemis.broker-url: tcp://myhost:1234
+              """
+          )
+        );
+    }
+
     @Test
     void doesNotAddBrokerUrlToDocumentsWithoutArtemisConfiguration() {
         rewriteRun(
