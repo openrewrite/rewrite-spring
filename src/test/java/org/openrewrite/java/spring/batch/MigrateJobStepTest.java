@@ -188,4 +188,84 @@ class MigrateJobStepTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void jobStepBuilderLauncherRenamedToOperator() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.launch.JobLauncher;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+
+              class MyJobConfig {
+
+                  Step jobStep(StepBuilder stepBuilder, Job job, JobLauncher jobLauncher) {
+                      return stepBuilder.job(job)
+                              .launcher(jobLauncher)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.job.Job;
+              import org.springframework.batch.core.launch.JobOperator;
+              import org.springframework.batch.core.step.Step;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+
+              class MyJobConfig {
+
+                  Step jobStep(StepBuilder stepBuilder, Job job, JobOperator jobLauncher) {
+                      return stepBuilder.job(job)
+                              .operator(jobLauncher)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void jobStepBuilderLauncherOnLocalVariable() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Job;
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.launch.JobLauncher;
+              import org.springframework.batch.core.step.builder.JobStepBuilder;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+
+              class MyJobConfig {
+
+                  Step jobStep(StepBuilder stepBuilder, Job job, JobLauncher jobLauncher) {
+                      JobStepBuilder jobStepBuilder = stepBuilder.job(job);
+                      jobStepBuilder.launcher(jobLauncher);
+                      return jobStepBuilder.build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.job.Job;
+              import org.springframework.batch.core.launch.JobOperator;
+              import org.springframework.batch.core.step.Step;
+              import org.springframework.batch.core.step.builder.JobStepBuilder;
+              import org.springframework.batch.core.step.builder.StepBuilder;
+
+              class MyJobConfig {
+
+                  Step jobStep(StepBuilder stepBuilder, Job job, JobOperator jobLauncher) {
+                      JobStepBuilder jobStepBuilder = stepBuilder.job(job);
+                      jobStepBuilder.operator(jobLauncher);
+                      return jobStepBuilder.build();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
