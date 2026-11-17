@@ -213,25 +213,6 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
     @Test
-    void migratesDottedMappingKeyInYaml() {
-        rewriteRun(
-          //language=yaml
-          yaml(
-            """
-              spring.artemis:
-                host: myhost
-                port: 1234
-              """,
-            """
-              spring.artemis:
-                broker-url: tcp://myhost:1234
-              """
-          )
-        );
-    }
-
-    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
-    @Test
     void migratesDottedKeysAlongsideNestedSpringMapping() {
         rewriteRun(
           //language=yaml

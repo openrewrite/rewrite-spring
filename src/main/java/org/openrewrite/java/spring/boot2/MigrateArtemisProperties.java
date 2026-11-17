@@ -114,11 +114,16 @@ public class MigrateArtemisProperties extends ScanningRecipe<SpringConfigFiles> 
                     String brokerUrl = "tcp://" + (effectiveHost == null ? "localhost" : effectiveHost) +
                             ":" + (effectivePort == null ? "61616" : effectivePort);
 
-                    // Scope the merge and the deletes to this one document, so that each document keeps its own
-                    // broker URL rather than every document ending up with the first document's host and port.
-                    Yaml.Documents singleDocument = documents.withDocuments(singletonList(document));
-                    singleDocument = (Yaml.Documents) new MergeYaml(mergeKey(document), mergeSnippet(document, brokerUrl), true, null, null, null, null, null)
-                            .getVisitor().visitNonNull(singleDocument, ctx);
+                    // A dot-path only addresses `spring.artemis` when the document nests it, while `MergeYaml`'s
+                    // create-new-keys fallback reaches a dotted `spring.artemis:` key. Without either, a dotted
+                    // `spring.artemis.broker-url` keeps the style of the document, and the merge finds and keeps
+                    // one that is already set.
+                    boolean hasArtemisEntry = !FindProperty.find(document, "spring.artemis", true).isEmpty();
+                    Yaml.Documents singleDocument = (Yaml.Documents) new MergeYaml(
+                            hasArtemisEntry ? "$.spring.artemis" : "$",
+                            (hasArtemisEntry ? "broker-url: " : "spring.artemis.broker-url: ") + brokerUrl,
+                            true, null, null, null, null, null)
+                            .getVisitor().visitNonNull(documents.withDocuments(singletonList(document)), ctx);
                     if (!hostBlocks.isEmpty()) {
                         singleDocument = (Yaml.Documents) new org.openrewrite.yaml.DeleteProperty("spring.artemis.host", false, true, null)
                                 .getVisitor().visitNonNull(singleDocument, ctx);
@@ -131,36 +136,6 @@ public class MigrateArtemisProperties extends ScanningRecipe<SpringConfigFiles> 
                     changed = true;
                 }
                 return changed ? documents.withDocuments(migratedDocuments) : documents;
-            }
-
-            /**
-             * `spring.artemis` is a JsonPath only when the document nests it, one key per segment. Keys written as
-             * `spring.artemis.host` are merged at the document root, so that a document using dotted keys keeps using
-             * them and an existing `spring.artemis.broker-url` is still found and kept.
-             */
-            private String mergeKey(Yaml.Document document) {
-                return mapping(mapping(document.getBlock(), "spring"), "artemis") == null ? "$" : "$.spring.artemis";
-            }
-
-            private String mergeSnippet(Yaml.Document document, String brokerUrl) {
-                if ("$".equals(mergeKey(document))) {
-                    return mapping(document.getBlock(), "spring.artemis") == null ?
-                            "spring.artemis.broker-url: " + brokerUrl :
-                            "spring.artemis:\n  broker-url: " + brokerUrl;
-                }
-                return "broker-url: " + brokerUrl;
-            }
-
-            private Yaml.@Nullable Mapping mapping(Yaml.@Nullable Block block, String key) {
-                if (!(block instanceof Yaml.Mapping)) {
-                    return null;
-                }
-                for (Yaml.Mapping.Entry entry : ((Yaml.Mapping) block).getEntries()) {
-                    if (key.equals(entry.getKey().getValue()) && entry.getValue() instanceof Yaml.Mapping) {
-                        return (Yaml.Mapping) entry.getValue();
-                    }
-                }
-                return null;
             }
 
             private @Nullable String scalarValue(Set<Yaml.Block> blocks) {
