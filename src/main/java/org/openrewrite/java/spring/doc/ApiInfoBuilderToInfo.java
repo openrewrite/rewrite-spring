@@ -85,41 +85,77 @@ public class ApiInfoBuilderToInfo extends Recipe {
             private Tree replaceLicense(ExecutionContext ctx, Tree t) {
                 TreeVisitor<?, ExecutionContext> preconditions = Preconditions.or(new UsesMethod<>(LICENSE_MATCHER), new UsesMethod<>(LICENSEURL_MATCHER));
                 return Preconditions.check(preconditions, new JavaVisitor<ExecutionContext>() {
+                    private final Map<Object, Expression> licenses = new HashMap<>();
+                    private final Map<Object, Expression> licenseUrls = new HashMap<>();
+
                     @Override
-                    public J visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-                        new JavaIsoVisitor<Map<String, Expression>>() {
+                    public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
+                        new JavaIsoVisitor<ExecutionContext>() {
                             @Override
-                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, Map<String, Expression> licenseArguments) {
-                                J.MethodInvocation mi = super.visitMethodInvocation(method, licenseArguments);
+                            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                                J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
                                 if (LICENSE_MATCHER.matches(mi)) {
-                                    licenseArguments.put("LICENSE", mi.getArguments().get(0));
+                                    licenses.put(builderKey(getCursor()), mi.getArguments().get(0));
                                 } else if (LICENSEURL_MATCHER.matches(mi)) {
-                                    licenseArguments.put("LICENSE_URL", mi.getArguments().get(0));
+                                    licenseUrls.put(builderKey(getCursor()), mi.getArguments().get(0));
                                 }
                                 return mi;
                             }
-                        }.reduce(method, new HashMap<>(), getCursor().getParentOrThrow()).forEach(getCursor()::putMessage);
+                        }.visit(cu, ctx, getCursor().getParentOrThrow());
 
-                        // Now replace any downstream method invocations
-                        return super.visitMethodDeclaration(method, ctx);
+                        return super.visitCompilationUnit(cu, ctx);
                     }
 
                     @Override
                     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+                        Object key = (LICENSE_MATCHER.matches(method) || LICENSEURL_MATCHER.matches(method)) ?
+                                builderKey(getCursor()) : null;
                         J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
 
                         if (LICENSE_MATCHER.matches(mi)) {
-                            return replaceLicense(mi, ctx, mi.getArguments().get(0), getCursor().pollNearestMessage("LICENSE_URL"));
+                            return replaceLicense(mi, ctx, mi.getArguments().get(0), licenseUrls.remove(key));
                         }
                         if (LICENSEURL_MATCHER.matches(mi)) {
-                            Expression license = getCursor().pollNearestMessage("LICENSE");
-                            if (license == null) {
+                            if (licenses.remove(key) == null) {
                                 return replaceLicense(mi, ctx, null, mi.getArguments().get(0));
                             }
                             // Remove the method itself already
                             return mi.getSelect().withPrefix(mi.getPrefix());
                         }
                         return mi;
+                    }
+
+                    private Object builderKey(Cursor cursor) {
+                        J scope = cursor.firstEnclosing(J.MethodDeclaration.class);
+                        if (scope == null) {
+                            scope = cursor.firstEnclosing(J.ClassDeclaration.class);
+                        }
+                        UUID scopeId = scope != null ? scope.getId() : null;
+
+                        J.MethodInvocation mi = cursor.getValue();
+                        Expression root = mi.getSelect();
+                        while (root instanceof J.MethodInvocation) {
+                            root = ((J.MethodInvocation) root).getSelect();
+                        }
+                        if (root instanceof J.Identifier && ((J.Identifier) root).getFieldType() != null) {
+                            return Arrays.asList(scopeId, ((J.Identifier) root).getSimpleName());
+                        }
+                        if (root instanceof J.FieldAccess && ((J.FieldAccess) root).getName().getFieldType() != null) {
+                            return Arrays.asList(scopeId, ((J.FieldAccess) root).getSimpleName());
+                        }
+                        Cursor top = cursor;
+                        while (top.getParentTreeCursor().getValue() instanceof J.MethodInvocation &&
+                                ((J.MethodInvocation) top.getParentTreeCursor().getValue()).getSelect() == top.getValue()) {
+                            top = top.getParentTreeCursor();
+                        }
+                        Object parent = top.getParentTreeCursor().getValue();
+                        if (parent instanceof J.VariableDeclarations.NamedVariable) {
+                            return Arrays.asList(scopeId, ((J.VariableDeclarations.NamedVariable) parent).getSimpleName());
+                        }
+                        if (parent instanceof J.Assignment && ((J.Assignment) parent).getVariable() instanceof J.Identifier) {
+                            return Arrays.asList(scopeId, ((J.Identifier) ((J.Assignment) parent).getVariable()).getSimpleName());
+                        }
+                        return ((J) top.getValue()).getId();
                     }
 
                     private J.MethodInvocation replaceLicense(
