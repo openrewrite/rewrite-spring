@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -85,11 +86,132 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
                   """
               )
             ),
-            srcTestResources(
+            srcMainResources(
               properties(
                 "",
                 "spring.reactor.context-propagation=auto",
                 spec -> spec.path("application.properties")
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void keepsHookWhenThereIsNoApplicationConfigurationFile() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              java(
+                """
+                  import reactor.core.publisher.Hooks;
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          Hooks.enableAutomaticContextPropagation();
+                          SpringApplication.run(MyApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void keepsHookWhenConfigurationIsOnlyInTestSources() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              java(
+                """
+                  import reactor.core.publisher.Hooks;
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          Hooks.enableAutomaticContextPropagation();
+                          SpringApplication.run(MyApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            ),
+            srcTestResources(
+              properties(
+                "",
+                spec -> spec.path("application.properties")
+              )
+            )
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void replacesHookOnlyWhereAnApplicationConfigurationFileExists() {
+        rewriteRun(
+          mavenProject("configured",
+            srcMainJava(
+              java(
+                """
+                  import reactor.core.publisher.Hooks;
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class ConfiguredApplication {
+                      public static void main(String[] args) {
+                          Hooks.enableAutomaticContextPropagation();
+                          SpringApplication.run(ConfiguredApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class ConfiguredApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(ConfiguredApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            ),
+            srcMainResources(
+              properties(
+                "",
+                "spring.reactor.context-propagation=auto",
+                spec -> spec.path("application.properties")
+              )
+            )
+          ),
+          mavenProject("unconfigured",
+            srcMainJava(
+              java(
+                """
+                  import reactor.core.publisher.Hooks;
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class UnconfiguredApplication {
+                      public static void main(String[] args) {
+                          Hooks.enableAutomaticContextPropagation();
+                          SpringApplication.run(UnconfiguredApplication.class, args);
+                      }
+                  }
+                  """
               )
             )
           )
@@ -116,7 +238,7 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
                   """
               )
             ),
-            srcTestResources(
+            srcMainResources(
               properties(
                 """
                   server.port=8080
