@@ -17,6 +17,7 @@ package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
 import org.openrewrite.Tree;
 import org.openrewrite.java.marker.JavaSourceSet;
 import org.openrewrite.marker.Markers;
@@ -99,6 +100,106 @@ class MigrateArtemisPropertiesTest implements RewriteTest {
               spring:
                 artemis:
                   broker-url: tcp://myhost:1234
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void migratesEachDocumentInMultiDocumentYaml() {
+        rewriteRun(
+          //language=yaml
+          yaml(
+            """
+              spring:
+                artemis:
+                  host: myhost
+                  port: 1234
+              ---
+              spring:
+                config:
+                  activate:
+                    on-profile: cloud
+                artemis:
+                  host: cloudhost
+                  port: 5678
+              """,
+            """
+              spring:
+                artemis:
+                  broker-url: tcp://myhost:1234
+              ---
+              spring:
+                config:
+                  activate:
+                    on-profile: cloud
+                artemis:
+                  broker-url: tcp://cloudhost:5678
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void inheritsHostFromEarlierDocumentWhenLaterDocumentOnlyOverridesPort() {
+        rewriteRun(
+          //language=yaml
+          yaml(
+            """
+              spring:
+                artemis:
+                  host: myhost
+                  port: 1234
+              ---
+              spring:
+                config:
+                  activate:
+                    on-profile: cloud
+                artemis:
+                  port: 5678
+              """,
+            """
+              spring:
+                artemis:
+                  broker-url: tcp://myhost:1234
+              ---
+              spring:
+                config:
+                  activate:
+                    on-profile: cloud
+                artemis:
+                  broker-url: tcp://myhost:5678
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1201")
+    @Test
+    void doesNotAddBrokerUrlToDocumentsWithoutArtemisConfiguration() {
+        rewriteRun(
+          //language=yaml
+          yaml(
+            """
+              spring:
+                artemis:
+                  host: myhost
+                  port: 1234
+              ---
+              logging:
+                level:
+                  root: INFO
+              """,
+            """
+              spring:
+                artemis:
+                  broker-url: tcp://myhost:1234
+              ---
+              logging:
+                level:
+                  root: INFO
               """
           )
         );
