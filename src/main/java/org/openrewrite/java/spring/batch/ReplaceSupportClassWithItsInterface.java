@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.batch;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
@@ -65,8 +66,16 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                     // exception when the JavaTemplate visits class type.
                     JavaType.Class type = (JavaType.Class) cd.getType();
                     if (type != null) {
-                        cd = cd.withType(type.withSupertype(null));
+                        cd = cd.withType(type.withSupertype(null)
+                                .withInterfaces(ListUtils.concat(
+                                        type.getInterfaces(),
+                                        JavaType.ShallowClass.build(fullyQualifiedInterfaceName)
+                                )));
                         updateCursor(cd);
+                    }
+
+                    if (cd.getImplements() != null && cd.getImplements().stream().anyMatch(i -> TypeUtils.isOfClassType(i.getType(), fullyQualifiedInterfaceName))) {
+                        return cd;
                     }
 
                     cd = JavaTemplate
