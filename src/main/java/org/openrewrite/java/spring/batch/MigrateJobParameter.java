@@ -78,8 +78,7 @@ public class MigrateJobParameter extends Recipe {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
-                        if (method.getType() != null &&
-                                method.getType().isAssignableFrom(Pattern.compile("java.util.Map")) &&
+                        if (defineMapEntryTypeWithJobParameter(method.getType())&&
                                 "of".equals(method.getName().getSimpleName()) && method.getArguments().size() % 2 == 0) {
                             return method.withTypeParameters(null);
                         }
@@ -107,7 +106,10 @@ public class MigrateJobParameter extends Recipe {
                     @Override
                     public J.Assignment visitAssignment(J.Assignment assignment, ExecutionContext ctx) {
                         J.Assignment ass = super.visitAssignment(assignment, ctx);
-                        return (J.Assignment) new JNewClassOfMap().visit(ass, ctx, getCursor().getParentTreeCursor());
+                        if (defineMapTypeWithJobParameter(ass.getType())) {
+                            return (J.Assignment) new JNewClassOfMap().visit(ass, ctx, getCursor().getParentTreeCursor());
+                        }
+                        return ass;
                     }
 
                     @Override
@@ -190,7 +192,7 @@ public class MigrateJobParameter extends Recipe {
                                             nc.getArguments().get(0),
                                             typeString);
                         }
-                        return nc;
+                        return newClass;
                     }
                 }
         );
