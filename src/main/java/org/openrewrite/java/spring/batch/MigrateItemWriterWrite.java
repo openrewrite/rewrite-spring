@@ -32,7 +32,6 @@ import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -59,7 +58,10 @@ public class MigrateItemWriterWrite extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (!ITEM_WRITER_MATCHER.matches(mi) || mi.getSelect() == null) {
+                if (mi.getSelect() == null) {
+                    return method;
+                }
+                if (!ITEM_WRITER_MATCHER.matches(mi)) {
                     return mi;
                 }
                 Expression arg = mi.getArguments().get(0);
@@ -82,10 +84,10 @@ public class MigrateItemWriterWrite extends Recipe {
             }
 
             private boolean isEnclosingWriteParameter(J.Identifier ident) {
-                JavaType.Variable identVariable = ident.getFieldType();
-                if (identVariable == null) {
+                if (ident.getFieldType() == null) {
                     return false;
                 }
+                String identName = ident.getFieldType().getName();
                 Cursor c = getCursor();
                 while (c != null) {
                     if (c.getValue() instanceof J.MethodDeclaration) {
@@ -94,7 +96,7 @@ public class MigrateItemWriterWrite extends Recipe {
                             return false;
                         }
                         J.VariableDeclarations param = (J.VariableDeclarations) md.getParameters().get(0);
-                        return isSameVariable(identVariable, param.getVariables().get(0).getVariableType());
+                        return identName.equals(param.getVariables().get(0).getSimpleName());
                     }
                     c = c.getParent();
                 }
@@ -127,10 +129,8 @@ public class MigrateItemWriterWrite extends Recipe {
                         .distinct()
                         .collect(joining("\n"));
 
-                m = (J.MethodDeclaration) new UpdateListMethodInvocations(parameter.getVariables().get(0).getVariableType()).visit(m, ctx, getCursor().getParentTreeCursor());
+                m = (J.MethodDeclaration) new UpdateListMethodInvocations(paramName).visit(m, ctx, getCursor().getParentTreeCursor());
                 updateCursor(m);
-
-                JContainer<NameTree> declaredThrows = m.getPadding().getThrows();
 
                 // Should be able to replace just the parameters and have usages of those parameters get their types
                 // updated automatically. Since parameters usages do not have their type updated, must replace the whole
@@ -162,20 +162,16 @@ public class MigrateItemWriterWrite extends Recipe {
                 maybeRemoveImport("java.util.List");
                 maybeAddImport("org.springframework.batch.item.Chunk");
 
-                return m.getPadding().withThrows(declaredThrows);
+                return m.withThrows(method.getThrows());
             }
         });
-    }
-
-    private static boolean isSameVariable(JavaType.@Nullable Variable a, JavaType.@Nullable Variable b) {
-        return a != null && b != null && a.getName().equals(b.getName()) && Objects.equals(a.getOwner(), b.getOwner());
     }
 
     @RequiredArgsConstructor
     private static class UpdateListMethodInvocations extends JavaIsoVisitor<ExecutionContext> {
         private static final String ITERABLE_FQN = "java.lang.Iterable";
         private static final String GET_ITEMS_METHOD = "getItems";
-        private final JavaType.@Nullable Variable parameter;
+        private final String parameterName;
 
         private static final MethodMatcher COLLECTION_MATCHER = new MethodMatcher("java.util.Collection *(..)", true);
         private static final MethodMatcher LIST_MATCHER = new MethodMatcher("java.util.List *(..)", true);
@@ -242,7 +238,8 @@ public class MigrateItemWriterWrite extends Recipe {
 
         private boolean isParameter(@Nullable Expression maybeParameter) {
             return maybeParameter instanceof J.Identifier &&
-                    isSameVariable(((J.Identifier)maybeParameter).getFieldType(), parameter);
+                    ((J.Identifier) maybeParameter).getFieldType() != null &&
+                    ((J.Identifier) maybeParameter).getSimpleName().equals(parameterName);
         }
 
         private static J.MethodInvocation newGetItemsMethodInvocation(JRightPadded<Expression> select) {
