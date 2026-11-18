@@ -58,6 +58,9 @@ public class MigrateItemWriterWrite extends Recipe {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
+                if (mi.getSelect() == null) {
+                    return method;
+                }
                 if (!ITEM_WRITER_MATCHER.matches(mi)) {
                     return mi;
                 }
@@ -134,7 +137,7 @@ public class MigrateItemWriterWrite extends Recipe {
                 // method to ensure that type info is accurate / List import can potentially be removed
                 // See: https://github.com/openrewrite/rewrite/issues/2819
 
-                m = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) throws Exception #{}")
+                m = JavaTemplate.builder("#{}\n #{} void write(#{} Chunk<#{}> #{}) #{}")
                         .contextSensitive()
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-batch-core-5.1.+", "spring-batch-infrastructure-5.1.+"))
@@ -159,7 +162,7 @@ public class MigrateItemWriterWrite extends Recipe {
                 maybeRemoveImport("java.util.List");
                 maybeAddImport("org.springframework.batch.item.Chunk");
 
-                return m;
+                return m.withThrows(method.getThrows());
             }
         });
     }
@@ -236,7 +239,7 @@ public class MigrateItemWriterWrite extends Recipe {
         private boolean isParameter(@Nullable Expression maybeParameter) {
             return maybeParameter instanceof J.Identifier &&
                     ((J.Identifier) maybeParameter).getFieldType() != null &&
-                    ((J.Identifier) maybeParameter).getFieldType().getName().equals(parameterName);
+                    ((J.Identifier) maybeParameter).getSimpleName().equals(parameterName);
         }
 
         private static J.MethodInvocation newGetItemsMethodInvocation(JRightPadded<Expression> select) {
