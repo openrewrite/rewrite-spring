@@ -26,15 +26,8 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JContainer;
-import org.openrewrite.java.tree.JLeftPadded;
-import org.openrewrite.java.tree.JRightPadded;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.NameTree;
-import org.openrewrite.java.tree.Space;
+import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
 import java.util.Arrays;
@@ -55,19 +48,6 @@ public class MigrateJobParameter extends Recipe {
     @Getter
     final String description = "Migration Job Parameter, parameterized type is essential in Spring Batch 5.";
 
-    private static final MethodMatcher MAP_OF = new MethodMatcher("java.util.Map of(..)");
-
-    private static boolean defineMapTypeWithJobParameter(@Nullable JavaType type) {
-        if (type != null && type.isAssignableFrom(Pattern.compile("java.util.Map")) &&
-                type instanceof JavaType.Parameterized &&
-                ((JavaType.Parameterized)type).getTypeParameters().size() == 2) {
-            return ((JavaType.Parameterized) type).getTypeParameters().get(1).isAssignableFrom(Pattern.compile(JOBPARAMETER)) &&
-                    !(((JavaType.Parameterized) type).getTypeParameters().get(1) instanceof JavaType.Parameterized);
-        }
-        return false;
-    }
-
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
@@ -76,6 +56,15 @@ public class MigrateJobParameter extends Recipe {
                         new UsesType<>("org.springframework.batch.core.JobParameters", true)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
+
+                    private boolean defineMapTypeWithJobParameter(@Nullable JavaType type) {
+                        if (type != null && type.isAssignableFrom(Pattern.compile("java.util.Map")) &&
+                                type instanceof JavaType.Parameterized) {
+                            return ((JavaType.Parameterized) type).getTypeParameters().get(1).isAssignableFrom(Pattern.compile(JOBPARAMETER)) &&
+                                    !(((JavaType.Parameterized) type).getTypeParameters().get(1) instanceof JavaType.Parameterized);
+                        }
+                        return false;
+                    }
 
                     private boolean defineMapEntryTypeWithJobParameter(@Nullable JavaType type) {
                         if (type != null && type.isAssignableFrom(Pattern.compile("java.util.Map.Entry")) &&
@@ -89,9 +78,8 @@ public class MigrateJobParameter extends Recipe {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
-                        if (MAP_OF.matches(method) &&
-                                defineMapTypeWithJobParameter(method.getType()) &&
-                                method.getArguments().size() % 2 == 0) {
+                        if (defineMapEntryTypeWithJobParameter(method.getType())&&
+                                "of".equals(method.getName().getSimpleName()) && method.getArguments().size() % 2 == 0) {
                             return method.withTypeParameters(null);
                         }
                         return method;
@@ -171,8 +159,8 @@ public class MigrateJobParameter extends Recipe {
                         if (nc.getClazz() != null &&
                                 nc.getClazz().getType() != null &&
                                 nc.getClazz().getType().isAssignableFrom(Pattern.compile("org.springframework.batch.core.JobParameter"))) {
-                            if (nc.getArguments().stream().filter(expression -> expression.getType() != null).anyMatch(expression -> expression.getType().isAssignableFrom(Pattern.compile("java.lang.Class")))) {
-                                return nc;
+                            if (newClass.getArguments().stream().filter(expression -> expression.getType() != null).anyMatch(expression -> expression.getType().isAssignableFrom(Pattern.compile("java.lang.Class")))) {
+                                return newClass;
                             }
                             JavaType javaType = nc.getArguments().get(0).getType();
                             String typeString = typeString(javaType);
@@ -204,7 +192,7 @@ public class MigrateJobParameter extends Recipe {
                                             nc.getArguments().get(0),
                                             typeString);
                         }
-                        return nc;
+                        return newClass;
                     }
                 }
         );
@@ -241,7 +229,9 @@ public class MigrateJobParameter extends Recipe {
         @Override
         public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
             J.NewClass nc = super.visitNewClass(newClass, ctx);
-            if (nc.getClazz() instanceof J.ParameterizedType && defineMapTypeWithJobParameter(nc.getClazz().getType())) {
+            if (nc.getType() != null &&
+                    nc.getType().isAssignableFrom(Pattern.compile("java.util.Map")) &&
+                    nc.getClazz() instanceof J.ParameterizedType) {
                 // the diamond, which the parser holds as a parameterized type with an empty type argument
                 return nc.withClazz(((J.ParameterizedType) nc.getClazz())
                         .withTypeParameters(singletonList(new J.Empty(randomId(), Space.EMPTY, Markers.EMPTY))));
