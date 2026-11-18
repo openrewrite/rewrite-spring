@@ -21,7 +21,6 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.RemoveMethodInvocationsVisitor;
 import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.search.UsesType;
@@ -29,15 +28,17 @@ import org.openrewrite.java.spring.AddSpringProperty;
 import org.openrewrite.java.spring.SpringExecutionContextView;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
+import org.openrewrite.java.tree.Statement;
 import org.openrewrite.marker.SourceSet;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Collections.singletonList;
 import static org.openrewrite.Preconditions.and;
 
 public class MigrateHooksToReactorContextProperty extends ScanningRecipe<MigrateHooksToReactorContextProperty.ProjectsWithHooks> {
@@ -93,15 +94,17 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
     }
 
     /**
-     * Whether the property can be added to the configuration the application runs with. A file in a test
-     * source set would leave the application itself without the property, so there the `Hooks` call is kept.
+     * Whether the property can be added to the configuration the application runs with. A file in another
+     * source set, such as `test` or an integration test one, would leave the application itself without the
+     * property, so there the `Hooks` call is kept. Files parsed without build tooling carry no source set
+     * marker and are treated as the application's own configuration.
      */
     private static boolean isMainApplicationConfiguration(SourceFile sourceFile, ExecutionContext ctx) {
         if (!(sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File)) {
             return false;
         }
-        if (sourceFile.getMarkers().findFirst(SourceSet.class)
-                .map(SourceSet::getName).filter("test"::equals).isPresent()) {
+        Optional<SourceSet> sourceSet = sourceFile.getMarkers().findFirst(SourceSet.class);
+        if (sourceSet.isPresent() && !"main".equals(sourceSet.get().getName())) {
             return false;
         }
         for (String pathExpression : SpringExecutionContextView.view(ctx).getDefaultApplicationConfigurationPaths()) {
@@ -132,7 +135,21 @@ public class MigrateHooksToReactorContextProperty extends ScanningRecipe<Migrate
 
                 // Remove Hooks.enableAutomaticContextPropagation() calls from Java source files
                 if (tree instanceof JavaSourceFile) {
-                    return new RemoveMethodInvocationsVisitor(singletonList(HOOKS_PATTERN)).visitNonNull(tree, ctx);
+                    return new JavaIsoVisitor<ExecutionContext>() {
+                        @Override
+                        public J.Block visitBlock(J.Block block, ExecutionContext ctx) {
+                            J.Block b = super.visitBlock(block, ctx);
+                            List<Statement> statements = new ArrayList<>(b.getStatements());
+                            if (!statements.removeIf(s -> s instanceof J.MethodInvocation &&
+                                                           HOOKS_MATCHER.matches((J.MethodInvocation) s))) {
+                                return b;
+                            }
+                            // Drop only the statement itself: a lambda body that becomes empty must not
+                            // take the call around it, such as a registration, with it.
+                            maybeRemoveImport("reactor.core.publisher.Hooks");
+                            return b.withStatements(statements);
+                        }
+                    }.visitNonNull(tree, ctx);
                 }
 
                 return new AddSpringProperty("spring.reactor.context-propagation", "auto", null, null)
