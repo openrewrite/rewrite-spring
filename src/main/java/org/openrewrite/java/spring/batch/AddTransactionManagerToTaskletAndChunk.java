@@ -24,6 +24,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.trait.Scope;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
@@ -51,7 +52,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
     @Getter
     final String description = "Spring Batch 5.0 requires a `PlatformTransactionManager` as the second argument to " +
             "`StepBuilder.tasklet(Tasklet)` and `StepBuilder.chunk(int)` / `StepBuilder.chunk(CompletionPolicy)`. " +
-            "This recipe passes a `PlatformTransactionManager` parameter or field that is in scope, " +
+            "This recipe passes a `PlatformTransactionManager` variable that is in scope, " +
             "and otherwise adds a `transactionManager` method parameter.";
 
     @Override
@@ -74,9 +75,9 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         if (methodCursor == null) {
                             return mi;
                         }
-                        J.Identifier transactionManager = transactionManagerInScope(methodCursor);
+                        J.MethodDeclaration md = methodCursor.getValue();
+                        J.Identifier transactionManager = transactionManagerInScope(getCursor(), methodCursor);
                         if (transactionManager == null) {
-                            J.MethodDeclaration md = methodCursor.getValue();
                             if (md.isConstructor() || md.getMethodType() == null) {
                                 return mi;
                             }
@@ -147,22 +148,40 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
         return false;
     }
 
-    private static J.@Nullable Identifier transactionManagerInScope(Cursor methodCursor) {
-        J.MethodDeclaration md = methodCursor.getValue();
-        for (Statement parameter : md.getParameters()) {
-            if (parameter instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) parameter)) {
-                return ((J.VariableDeclarations) parameter).getVariables().get(0).getName();
-            }
-        }
-        J.Block classBody = methodCursor.getParentTreeCursor().getValue();
-        boolean staticMethod = md.hasModifier(J.Modifier.Type.Static);
-        for (Statement statement : classBody.getStatements()) {
-            if (statement instanceof J.VariableDeclarations && isTransactionManager((J.VariableDeclarations) statement) &&
-                    (!staticMethod || ((J.VariableDeclarations) statement).hasModifier(J.Modifier.Type.Static))) {
-                return ((J.VariableDeclarations) statement).getVariables().get(0).getName();
-            }
-        }
-        return null;
+    /**
+     * A transaction manager visible at the cursor, from the innermost scope first. A local counts only when it is
+     * initialized and never reassigned, so that the call can read it, also from inside a lambda or class. A field
+     * counts only when the step method's own class declares it, since a static nested class has no outer instance
+     * to read one from.
+     */
+    private static J.@Nullable Identifier transactionManagerInScope(Cursor cursor, Cursor methodCursor) {
+        boolean staticMethod = methodCursor.<J.MethodDeclaration>getValue().hasModifier(J.Modifier.Type.Static);
+        Object stepClass = methodCursor.getParentTreeCursor().getParentTreeCursor().getValue();
+        return Scope.at(cursor).visible()
+                .filter(binding -> binding.getNamespace() == Scope.Namespace.VARIABLE && binding.getTree() instanceof J.Identifier)
+                .filter(binding -> {
+                    Cursor declaring = binding.getCursor().getParentTreeCursor();
+                    if (!(declaring.getValue() instanceof J.VariableDeclarations.NamedVariable)) {
+                        return false;
+                    }
+                    J.VariableDeclarations declarations = declaring.getParentTreeCursor().getValue();
+                    if (!isTransactionManager(declarations)) {
+                        return false;
+                    }
+                    switch (binding.getKind()) {
+                        case PARAMETER:
+                            return true;
+                        case LOCAL:
+                            return declaring.<J.VariableDeclarations.NamedVariable>getValue().getInitializer() != null &&
+                                   binding.isEffectivelyFinal();
+                        default:
+                            return binding.getScope().getTree() == stepClass &&
+                                   (!staticMethod || declarations.hasModifier(J.Modifier.Type.Static));
+                    }
+                })
+                .map(binding -> (J.Identifier) binding.getTree())
+                .findFirst()
+                .orElse(null);
     }
 
     private static boolean isTransactionManager(J.VariableDeclarations variable) {

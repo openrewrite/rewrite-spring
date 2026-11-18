@@ -394,6 +394,177 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
     }
 
     @Test
+    void reuseLocalTransactionManager() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  Step myStep(Tasklet myTasklet) {
+                      PlatformTransactionManager transactionManager = find();
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet)
+                              .build();
+                  }
+
+                  PlatformTransactionManager find() {
+                      return null;
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+
+                  private StepBuilderFactory stepBuilderFactory;
+
+                  Step myStep(Tasklet myTasklet) {
+                      PlatformTransactionManager transactionManager = find();
+                      return stepBuilderFactory.get("myStep")
+                              .tasklet(myTasklet, transactionManager)
+                              .build();
+                  }
+
+                  PlatformTransactionManager find() {
+                      return null;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void reuseOnlyALocalAssignedOnceWhereDeclared() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              import java.util.function.Supplier;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Supplier<Step> reassigned(Tasklet tasklet) {
+                      PlatformTransactionManager existingManager = find();
+                      existingManager = find();
+                      return () -> stepBuilderFactory.get("reassigned").tasklet(tasklet).build();
+                  }
+
+                  Step unassigned(Tasklet tasklet, boolean found) {
+                      PlatformTransactionManager existingManager;
+                      if (found) {
+                          existingManager = find();
+                      }
+                      return stepBuilderFactory.get("unassigned").tasklet(tasklet).build();
+                  }
+
+                  PlatformTransactionManager find() {
+                      return null;
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              import java.util.function.Supplier;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Supplier<Step> reassigned(Tasklet tasklet, PlatformTransactionManager transactionManager) {
+                      PlatformTransactionManager existingManager = find();
+                      existingManager = find();
+                      return () -> stepBuilderFactory.get("reassigned").tasklet(tasklet, transactionManager).build();
+                  }
+
+                  Step unassigned(Tasklet tasklet, boolean found, PlatformTransactionManager transactionManager) {
+                      PlatformTransactionManager existingManager;
+                      if (found) {
+                          existingManager = find();
+                      }
+                      return stepBuilderFactory.get("unassigned").tasklet(tasklet, transactionManager).build();
+                  }
+
+                  PlatformTransactionManager find() {
+                      return null;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void staticNestedClassDoesNotReuseOuterInstanceField() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  PlatformTransactionManager existingManager;
+
+                  static class Steps {
+                      StepBuilderFactory stepBuilderFactory;
+
+                      Step myStep(Tasklet tasklet) {
+                          return stepBuilderFactory.get("myStep")
+                                  .tasklet(tasklet)
+                                  .build();
+                      }
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  PlatformTransactionManager existingManager;
+
+                  static class Steps {
+                      StepBuilderFactory stepBuilderFactory;
+
+                      Step myStep(Tasklet tasklet, PlatformTransactionManager transactionManager) {
+                          return stepBuilderFactory.get("myStep")
+                                  .tasklet(tasklet, transactionManager)
+                                  .build();
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void existingTransactionManagerParameter() {
         // language=java
         rewriteRun(
