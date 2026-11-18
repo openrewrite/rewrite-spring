@@ -24,6 +24,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.properties.Assertions.properties;
+import static org.openrewrite.yaml.Assertions.yaml;
 
 class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
 
@@ -91,6 +92,53 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
                 "",
                 "spring.reactor.context-propagation=auto",
                 spec -> spec.path("application.properties")
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void replaceMethodCallWithPropertyInYaml() {
+        rewriteRun(
+          mavenProject("project",
+            srcMainJava(
+              java(
+                """
+                  import reactor.core.publisher.Hooks;
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          Hooks.enableAutomaticContextPropagation();
+                          SpringApplication.run(MyApplication.class, args);
+                      }
+                  }
+                  """,
+                """
+                  import org.springframework.boot.SpringApplication;
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+                  @SpringBootApplication
+                  public class MyApplication {
+                      public static void main(String[] args) {
+                          SpringApplication.run(MyApplication.class, args);
+                      }
+                  }
+                  """
+              )
+            ),
+            srcMainResources(
+              yaml(
+                "",
+                """
+                  spring:
+                    reactor:
+                      context-propagation: auto
+                  """,
+                spec -> spec.path("application.yml")
               )
             )
           )
