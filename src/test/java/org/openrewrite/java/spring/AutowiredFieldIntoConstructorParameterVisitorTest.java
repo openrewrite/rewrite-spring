@@ -905,4 +905,46 @@ class AutowiredFieldIntoConstructorParameterVisitorTest implements RewriteTest {
         );
     }
 
+    @Test
+    void parameterAvoidsANameTheConstructorDeclares() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package demo;
+
+              import org.springframework.beans.factory.annotation.Autowired;
+
+              public class A {
+
+                  @Autowired
+                  private Integer a;
+
+                  private String name;
+
+                  A(String a) {
+                      this.name = a;
+                  }
+
+              }
+              """,
+            """
+              package demo;
+
+              public class A {
+
+                  private final Integer a;
+
+                  private String name;
+
+                  A(String a, Integer a1) {
+                      this.name = a;
+                      this.a = a1;
+                  }
+
+              }
+              """
+          )
+        );
+    }
 }
