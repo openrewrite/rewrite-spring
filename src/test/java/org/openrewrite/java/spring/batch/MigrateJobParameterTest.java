@@ -41,9 +41,8 @@ class MigrateJobParameterTest implements RewriteTest {
     void addClassArguments() {
         //language=java
         rewriteRun(
-          spec -> spec
-            .typeValidationOptions(TypeValidation.all().constructorInvocations(false))
-            .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+          // The input's `new JobParameter(new Integer[]{1})` has no constructor type
+          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false)),
           java(
             """
               import org.springframework.batch.core.JobParameter;
@@ -216,6 +215,35 @@ class MigrateJobParameterTest implements RewriteTest {
                       return parameters;
                   }
 
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void importClassOfFullyQualifiedArgument() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  JobParameter foo() {
+                      return new JobParameter(new java.util.Date());
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.JobParameter;
+
+              import java.util.Date;
+
+              class Foo {
+                  JobParameter foo() {
+                      return new JobParameter<>(new Date(), Date.class);
+                  }
               }
               """
           )

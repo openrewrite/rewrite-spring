@@ -28,7 +28,7 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.cassandra.ssl
       newPropertyKey: spring.cassandra.ssl.enabled
-      except: [bundle]
+      except: [bundle, verify-hostname]
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.data.cassandra.ssl
       newPropertyKey: spring.cassandra.ssl.enabled

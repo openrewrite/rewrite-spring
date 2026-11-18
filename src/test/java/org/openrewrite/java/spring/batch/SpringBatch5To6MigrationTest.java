@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.batch;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -34,6 +35,7 @@ class SpringBatch5To6MigrationTest implements RewriteTest {
           ));
     }
 
+    @DocumentExample
     @Test
     void moveIncrementersToJobParametersPackage() {
         rewriteRun(
@@ -55,6 +57,29 @@ class SpringBatch5To6MigrationTest implements RewriteTest {
               class MyJobConfig {
                   RunIdIncrementer runIdIncrementer;
                   DataFieldMaxValueJobParametersIncrementer dataFieldMaxValueIncrementer;
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void renameJobRegistryBeanPostProcessor() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+
+              class MyJobConfig {
+                  JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor;
+              }
+              """,
+            """
+              import org.springframework.batch.core.configuration.support.JobRegistrySmartInitializingSingleton;
+
+              class MyJobConfig {
+                  JobRegistrySmartInitializingSingleton jobRegistryBeanPostProcessor;
               }
               """
           )

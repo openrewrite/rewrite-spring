@@ -50,7 +50,7 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
 
                     maybeAddImport("org.springframework.util.unit.DataSize");
                     return JavaTemplate.builder("new DiskSpaceHealthIndicator(#{any(java.io.File)}, DataSize.ofBytes(#{any(long)}))")
-                            .imports("org.springframework.util.unit.DataSize")
+                            .imports(diskSpaceHealthIndicatorFqn, "org.springframework.util.unit.DataSize")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-boot-actuator-2", "spring-core-5"))
                             .build().apply(

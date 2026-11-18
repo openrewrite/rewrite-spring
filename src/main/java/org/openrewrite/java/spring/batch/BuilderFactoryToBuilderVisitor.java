@@ -218,8 +218,8 @@ class BuilderFactoryToBuilderVisitor extends JavaVisitor<ExecutionContext> {
             }
             J.MethodDeclaration constructor = (J.MethodDeclaration) statement;
             J.Block body = constructor.getBody();
-            J.MethodDeclaration cleaned = constructor.withBody(body.withStatements(ListUtils.map(body.getStatements(),
-                    s -> s instanceof J.Assignment && injectedField((J.Assignment) s, removedFields) != null ? null : s)));
+            J.MethodDeclaration cleaned = constructor.withBody(body.withStatements(ListUtils.filter(body.getStatements(),
+                    s -> !(s instanceof J.Assignment && injectedField((J.Assignment) s, removedFields) != null))));
             if (cleaned == constructor) {
                 return constructor;
             }

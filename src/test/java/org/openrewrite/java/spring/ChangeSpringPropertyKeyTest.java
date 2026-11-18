@@ -420,6 +420,33 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
         );
     }
 
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/1280")
+    @Test
+    void cassandraSslVerifyHostnameNotMangled() {
+        rewriteRun(
+          spec -> spec.recipeFromResource("/META-INF/rewrite/spring-boot-31-properties.yml", "org.openrewrite.java.spring.boot3.SpringBootProperties_3_1"),
+          mavenProject("project",
+            srcMainResources(
+              //language=properties
+              properties(
+                """
+                  spring.cassandra.ssl.verify-hostname=false
+                  """
+              ),
+              //language=yaml
+              yaml(
+                """
+                  spring:
+                    cassandra:
+                      ssl:
+                        verify-hostname: false
+                  """
+              )
+            )
+          )
+        );
+    }
+
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/1027")
     @Test
     void redisSslBooleanStillRenamed() {

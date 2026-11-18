@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -314,8 +315,9 @@ class ListenableToCompletableFutureTest implements RewriteTest {
         //language=java
         rewriteRun(
           spec -> spec
+            // Method invocations in the input have no method type, and the output's lambda parameter `ex` has no type.
             .typeValidationOptions(TypeValidation.all().methodInvocations(false))
-            .afterTypeValidationOptions(TypeValidation.all().identifiers(false)),
+            .recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
           java(
             """
               import org.springframework.util.concurrent.ListenableFuture;

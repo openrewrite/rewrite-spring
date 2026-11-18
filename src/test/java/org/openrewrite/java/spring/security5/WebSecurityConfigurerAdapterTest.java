@@ -313,8 +313,8 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     void configureAuthManagerMethod() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false))
-            .afterTypeValidationOptions(TypeValidation.all().constructorInvocations(false).methodDeclarations(false)),
+          // The input's `new PersonContextMapper()` has no constructor type.
+          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false)),
           java(
             """
               import org.springframework.context.annotation.Configuration;

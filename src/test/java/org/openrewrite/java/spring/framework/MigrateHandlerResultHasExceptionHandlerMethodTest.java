@@ -21,7 +21,6 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -30,7 +29,6 @@ class MigrateHandlerResultHasExceptionHandlerMethodTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .typeValidationOptions(TypeValidation.none())
           .recipe(new MigrateHandlerResultHasExceptionHandlerMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "reactor-core-3.6.+", "spring-webflux-6.1.+"));

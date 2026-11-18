@@ -41,6 +41,7 @@ class RestTemplateBuilderRequestFactoryTest implements RewriteTest {
     void useSupplierArgument() {
         //language=java
         rewriteRun(
+          // A method invocation on `new RestTemplateBuilder()` has no method type.
           spec -> spec.typeValidationOptions(TypeValidation.builder().methodInvocations(false).build()),
           java(
             """

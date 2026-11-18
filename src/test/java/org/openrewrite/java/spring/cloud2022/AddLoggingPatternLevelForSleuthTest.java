@@ -20,6 +20,8 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.openrewrite.gradle.Assertions.buildGradle;
+import static org.openrewrite.gradle.toolingapi.Assertions.withToolingApi;
 import static org.openrewrite.java.Assertions.mavenProject;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.properties.Assertions.properties;
@@ -101,6 +103,121 @@ class AddLoggingPatternLevelForSleuthTest implements RewriteTest {
                 """),
             properties("", s -> s.path("src/main/resources/application.properties")),
             yaml("", s -> s.path("src/main/resources/application.yml"))
+          )
+        );
+    }
+
+    @Test
+    void onlyAddToModuleUsingSleuth() {
+        rewriteRun(
+          mavenProject("sleuth-app",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>sleuth-app</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.springframework.cloud</groupId>
+                            <artifactId>spring-cloud-starter-sleuth</artifactId>
+                            <version>3.0.0</version>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """
+            ),
+            //language=properties
+            properties(
+              "foo=bar",
+              """
+                foo=bar
+                # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
+                logging.pattern.level=%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+                """,
+              s -> s.path("src/main/resources/application.properties")
+            )
+          ),
+          mavenProject("plain-app",
+            //language=xml
+            pomXml(
+              """
+                <project>
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.example</groupId>
+                    <artifactId>plain-app</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                </project>
+                """
+            ),
+            //language=properties
+            properties(
+              "foo=bar",
+              s -> s.path("src/main/resources/application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void gradleProjectUsingSleuth() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:3.1.11'
+                }
+                """
+            ),
+            //language=properties
+            properties(
+              "foo=bar",
+              """
+                foo=bar
+                # Logging pattern containing traceId and spanId; no longer provided through Sleuth by default
+                logging.pattern.level=%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+                """,
+              s -> s.path("src/main/resources/application.properties")
+            )
+          )
+        );
+    }
+
+    @Test
+    void gradleProjectNotUsingSleuth() {
+        rewriteRun(
+          spec -> spec.beforeRecipe(withToolingApi()),
+          mavenProject("project",
+            //language=groovy
+            buildGradle(
+              """
+                plugins {
+                    id 'java'
+                }
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    implementation 'io.micrometer:micrometer-tracing-bridge-brave:1.1.1'
+                }
+                """
+            ),
+            //language=properties
+            properties(
+              "foo=bar",
+              s -> s.path("src/main/resources/application.properties")
+            )
           )
         );
     }

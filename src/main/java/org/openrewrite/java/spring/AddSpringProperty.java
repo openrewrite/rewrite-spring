@@ -118,7 +118,6 @@ public class AddSpringProperty extends Recipe {
                 yaml.append("\n");
             }
             if (!StringUtils.isBlank(comment)) {
-                //noinspection StringEquality
                 if (part == propertyParts[propertyParts.length - 1]) {
                     yaml.append(indent).append("# ").append(comment).append("\n");
                 }

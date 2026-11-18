@@ -500,7 +500,7 @@ class MigrateStepBuilderFactoryTest implements RewriteTest {
               }
               """,
             spec -> spec.afterRecipe(cu -> {
-                J.MethodDeclaration myStep = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                var myStep = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
                 assertThat(myStep.getMethodType().getParameterNames()).containsExactly("repository", "myTasklet");
                 assertThat(myStep.getMethodType().getParameterTypes())
                   .extracting(t -> ((JavaType.FullyQualified) t).getFullyQualifiedName())

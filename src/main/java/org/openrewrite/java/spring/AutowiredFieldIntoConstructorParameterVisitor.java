@@ -243,7 +243,6 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 md = typeAddedParameter(md, fieldName, type);
                 updateCursor(md);
 
-                //noinspection ConstantConditions
                 md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")
                         .contextSensitive()
                         .build()

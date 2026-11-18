@@ -44,7 +44,8 @@ class LegacyHttpSecurityTest implements RewriteTest {
     void dontUseUnavailableMethods() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          // The methods the test calls on `http` are unavailable on the classpath, so the `http` identifier has no type.
+          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import org.springframework.security.config.annotation.web.builders.HttpSecurity;

@@ -28,7 +28,10 @@ class RemoveLegacyMetricsAutoConfigurationExclusionsTest implements RewriteTest 
     @Override
     public void defaults(RecipeSpec spec) {
         spec.parser(JavaParser.fromJavaVersion()
-          .classpathFromResources(new InMemoryExecutionContext(), "spring-beans-5", "spring-boot-autoconfigure-1.+", "spring-context-5.+")
+          .classpathFromResources(new InMemoryExecutionContext(),
+            "spring-beans-5",
+            "spring-boot-autoconfigure-1.+",
+            "spring-context-5.+")
           .dependsOn(
             "package org.springframework.boot.actuate.autoconfigure; public class MetricFilterAutoConfiguration {}",
             "package org.springframework.boot.actuate.autoconfigure; public class MetricRepositoryAutoConfiguration {}"

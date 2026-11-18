@@ -70,7 +70,8 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     void updateStaticConstant() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.none()),
+          // The input's static import of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` does not resolve on the test's spring-boot-2.7 classpath.
+          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import static org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME;
