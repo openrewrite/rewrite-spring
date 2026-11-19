@@ -28,9 +28,9 @@ import org.openrewrite.java.tree.J;
 
 public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
 
-    private static final String HandlerResult = "org.springframework.web.reactive.HandlerResult";
+    private static final String HANDLER_RESULT = "org.springframework.web.reactive.HandlerResult";
 
-    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(HandlerResult + " setExceptionHandler(java.util.function.Function)");
+    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(HANDLER_RESULT + " setExceptionHandler(java.util.function.Function)");
 
     @Getter
     final String displayName = "Migrate `org.springframework.web.reactive.HandlerResult.setExceptionHandler` method";
@@ -40,7 +40,7 @@ public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(HandlerResult, false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(HANDLER_RESULT, false), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

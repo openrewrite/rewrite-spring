@@ -47,14 +47,14 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
     }
 
     private static class JdbcTemplateArgsVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final MethodMatcher queryMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate query(..)");
-        private static final MethodMatcher queryForObjectMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForObject(..)");
-        private static final MethodMatcher queryForListMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
+        private static final MethodMatcher QUERY_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate query(..)");
+        private static final MethodMatcher QUERY_FOR_OBJECT_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForObject(..)");
+        private static final MethodMatcher QUERY_FOR_LIST_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-            if (queryMapper.matches(mi) || queryForObjectMapper.matches(mi) || queryForListMapper.matches(mi)) {
+            if (QUERY_MAPPER.matches(mi) || QUERY_FOR_OBJECT_MAPPER.matches(mi) || QUERY_FOR_LIST_MAPPER.matches(mi)) {
                 List<Expression> args = mi.getArguments();
                 if (args.size() == 3 && shouldSwapArgs(args.get(1).getType(), args.get(2).getType())) {
                     Expression sql = args.get(0);

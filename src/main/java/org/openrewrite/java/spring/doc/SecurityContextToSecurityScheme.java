@@ -42,6 +42,8 @@ public class SecurityContextToSecurityScheme extends Recipe {
     private static final MethodMatcher APIKEY_MATCHER = new MethodMatcher("springfox.documentation.service.ApiKey <constructor>(String, String, String)");
     private static final MethodMatcher AUTHORIZATION_SCOPE_MATCHER = new MethodMatcher("springfox.documentation.service.AuthorizationScope <constructor>(String, String)");
     private static final MethodMatcher SECURITY_REFERENCE_MATCHER = new MethodMatcher("springfox.documentation.service.SecurityReference <constructor>(String, springfox.documentation.service.AuthorizationScope[])");
+    private static final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(springfox.documentation.service.AuthorizationScope...)");
+    private static final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(springfox.documentation.service.AuthorizationScope...)");
 
     @Getter
     final String displayName = "Replace elements of SpringFox's security with Swagger's security models";
@@ -113,9 +115,6 @@ public class SecurityContextToSecurityScheme extends Recipe {
                         findArrayParametersOfType(AUTHORIZATION_SCOPE));
                 JavaVisitor<ExecutionContext> visitor = new JavaVisitor<ExecutionContext>() {
                     private final List<JavaType.Method> convertedMethods = new ArrayList<>();
-                    private final MethodMatcher LIST_OF = new MethodMatcher("java.util.List of(springfox.documentation.service.AuthorizationScope...)");
-                    private final MethodMatcher ARRAYS_AS_LIST = new MethodMatcher("java.util.Arrays asList(springfox.documentation.service.AuthorizationScope...)");
-
                     @Override
                     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);

@@ -36,15 +36,15 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
     final String description = "Spring Boot `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. " +
             "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
 
+    private static final MethodMatcher MEDIA_TYPE_MATCHER = new MethodMatcher("org.springframework.http.MediaType parseMediaType(java.lang.String)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new JavaIsoVisitor<ExecutionContext>() {
-            private final MethodMatcher mediaTypeMatcher = new MethodMatcher("org.springframework.http.MediaType parseMediaType(java.lang.String)");
-
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (mediaTypeMatcher.matches(mi)) {
+                if (MEDIA_TYPE_MATCHER.matches(mi)) {
                     Expression arg0 = mi.getArguments().get(0);
                     if (arg0 instanceof J.FieldAccess) {
                         J.FieldAccess expFa = (J.FieldAccess) arg0;

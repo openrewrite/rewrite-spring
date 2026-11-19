@@ -35,22 +35,22 @@ public class MigrateMultipartConfigFactory extends Recipe {
     @Getter
     final String description = "Methods to set `DataSize` with primitive arguments were deprecated in 2.1 and removed in 2.2.";
 
+    private static final MethodMatcher SET_MAX_FILE_SIZE_BY_LONG = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(long)");
+    private static final MethodMatcher SET_MAX_REQUEST_SIZE_BY_LONG = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(long)");
+    private static final MethodMatcher SET_FILE_SIZE_THRESHOLD_BY_INT = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(int)");
+
+    private static final MethodMatcher SET_MAX_FILE_SIZE_BY_STRING = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(java.lang.String)");
+    private static final MethodMatcher SET_MAX_REQUEST_SIZE_BY_STRING = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
+    private static final MethodMatcher SET_FILE_SIZE_THRESHOLD_BY_STRING = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.boot.web.servlet.MultipartConfigFactory", true),
                 new JavaIsoVisitor<ExecutionContext>() {
-                    final MethodMatcher setMaxFileSizeByLong = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(long)");
-                    final MethodMatcher setMaxRequestSizeByLong = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(long)");
-                    final MethodMatcher setFileSizeThresholdByInt = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(int)");
-
-                    final MethodMatcher setMaxFileSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxFileSize(java.lang.String)");
-                    final MethodMatcher setMaxRequestSizeByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setMaxRequestSize(java.lang.String)");
-                    final MethodMatcher setFileSizeThresholdByString = new MethodMatcher("org.springframework.boot.web.servlet.MultipartConfigFactory setFileSizeThreshold(java.lang.String)");
-
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                        if (setMaxFileSizeByLong.matches(m) || setMaxRequestSizeByLong.matches(m) || setFileSizeThresholdByInt.matches(m)) {
+                        if (SET_MAX_FILE_SIZE_BY_LONG.matches(m) || SET_MAX_REQUEST_SIZE_BY_LONG.matches(m) || SET_FILE_SIZE_THRESHOLD_BY_INT.matches(m)) {
                             m = JavaTemplate.builder("DataSize.ofBytes(#{any()})")
                                     .imports("org.springframework.util.unit.DataSize")
                                     .javaParser(JavaParser.fromJavaVersion()
@@ -59,7 +59,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
                                             getCursor(),
                                             m.getCoordinates().replaceArguments(),
                                             m.getArguments().get(0));
-                        } else if (setMaxFileSizeByString.matches(m) || setMaxRequestSizeByString.matches(m) || setFileSizeThresholdByString.matches(m)) {
+                        } else if (SET_MAX_FILE_SIZE_BY_STRING.matches(m) || SET_MAX_REQUEST_SIZE_BY_STRING.matches(m) || SET_FILE_SIZE_THRESHOLD_BY_STRING.matches(m)) {
                             m = JavaTemplate
                                     .builder("DataSize.parse(#{any(java.lang.String)})")
                                     .imports("org.springframework.util.unit.DataSize")

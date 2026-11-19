@@ -35,18 +35,18 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
     @Getter
     final String description = "`RestTemplateBuilder#setConnectTimeout(int)` and `RestTemplateBuilder#setReadTimeout(int)` were deprecated in Spring Boot 2.1.";
 
+    private static final MethodMatcher CONNECTION_TIMEOUT = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setConnectTimeout(int)");
+    private static final MethodMatcher READ_TIMEOUT = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setReadTimeout(int)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true),
                 new JavaIsoVisitor<ExecutionContext>() {
-                    final MethodMatcher connectionTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setConnectTimeout(int)");
-                    final MethodMatcher readTimeout = new MethodMatcher("org.springframework.boot.web.client.RestTemplateBuilder setReadTimeout(int)");
-
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                         updateCursor(m);
-                        if (connectionTimeout.matches(m) || readTimeout.matches(m)) {
+                        if (CONNECTION_TIMEOUT.matches(m) || READ_TIMEOUT.matches(m)) {
                             m = JavaTemplate
                                     .builder("Duration.ofMillis(#{any(int)})")
                                     .imports("java.time.Duration")
