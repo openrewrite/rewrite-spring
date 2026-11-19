@@ -146,9 +146,6 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
     /// The sub-recipes and patterns derived from the options, built once per recipe instance rather than for every
     /// source file, as `ScanningRecipe#getVisitor()` asks for a new visitor per source file.
-    ///
-    /// Remembers the options it was built from, as `Recipe#withOptions` shallow clones a recipe, sharing this cache,
-    /// and then overwrites the options in place. `except` is copied so later changes to the caller's list are noticed.
     private static final class Compiled {
         final String oldPropertyKey;
         final String newPropertyKey;
@@ -178,6 +175,8 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
             exceptPattern = except == null || except.isEmpty() ? null : Pattern.compile("(?:" + String.join("|", except) + ")\\b");
         }
 
+        /// Remembers the options it was built from, as `Recipe#withOptions` shallow clones a recipe, sharing this cache,
+        /// and then overwrites the options in place. `except` is copied so later changes to the caller's list are noticed.
         boolean isFor(String oldPropertyKey, String newPropertyKey, @Nullable List<String> except) {
             return this.oldPropertyKey.equals(oldPropertyKey) && this.newPropertyKey.equals(newPropertyKey) && Objects.equals(this.except, except);
         }
