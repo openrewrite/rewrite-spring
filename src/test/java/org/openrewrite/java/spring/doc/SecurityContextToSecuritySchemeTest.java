@@ -601,4 +601,19 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
         );
     }
 
+    @Test
+    void noChangeWithoutSpringfoxTypes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import java.util.List;
+
+              class Test {
+                  List<String> scopes = List.of("read");
+              }
+              """
+          )
+        );
+    }
 }
