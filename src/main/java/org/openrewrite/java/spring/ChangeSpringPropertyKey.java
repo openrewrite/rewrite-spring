@@ -138,12 +138,17 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
     private Compiled compiled() {
         Compiled c = compiled;
         if (c == null || !c.isFor(oldPropertyKey, newPropertyKey, except)) {
-            c = new Compiled(oldPropertyKey, newPropertyKey, except, exceptRegex());
+            c = new Compiled(oldPropertyKey, newPropertyKey, except == null ? null : new ArrayList<>(except));
             compiled = c;
         }
         return c;
     }
 
+    /// The sub-recipes and patterns derived from the options, built once per recipe instance rather than for every
+    /// source file, as `ScanningRecipe#getVisitor()` asks for a new visitor per source file.
+    ///
+    /// Remembers the options it was built from, as `Recipe#withOptions` shallow clones a recipe, sharing this cache,
+    /// and then overwrites the options in place. `except` is copied so later changes to the caller's list are noticed.
     private static final class Compiled {
         final String oldPropertyKey;
         final String newPropertyKey;
@@ -157,10 +162,11 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
         final Pattern oldKeyPattern;
         final @Nullable Pattern exceptPattern;
 
-        Compiled(String oldPropertyKey, String newPropertyKey, @Nullable List<String> except, String exceptRegex) {
+        Compiled(String oldPropertyKey, String newPropertyKey, @Nullable List<String> except) {
             this.oldPropertyKey = oldPropertyKey;
             this.newPropertyKey = newPropertyKey;
             this.except = except;
+            String exceptRegex = exceptRegex(except);
             String quotedOldKey = quote(oldPropertyKey);
             yamlChangePropertyKey = new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
             propertiesChangePropertyKey = new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
@@ -231,7 +237,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
         return new ArrayList<>(subKeys);
     }
 
-    private String exceptRegex() {
+    private static String exceptRegex(@Nullable List<String> except) {
         return except == null || except.isEmpty() ?
                 "" :
                 "(?!\\.(?:" + String.join("|", except) + ")\\b)";
