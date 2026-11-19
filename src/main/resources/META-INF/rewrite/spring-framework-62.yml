@@ -46,6 +46,9 @@ recipeList:
       fullyQualifiedConstantName: org.springframework.web.reactive.function.client.ClientHttpObservationDocumentation.LowCardinalityKeyNames.CLIENT_NAME
 
   - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.springframework.web.util.UriComponentsBuilder fromHttpUrl(..)
+      newMethodName: fromUriString
+  - org.openrewrite.java.ChangeMethodName:
       methodPattern: org.springframework.web.filter.reactive.ServerWebExchangeContextFilter get(reactor.util.context.Context)
       newMethodName: getExchange
   - org.openrewrite.java.ChangeMethodName:
