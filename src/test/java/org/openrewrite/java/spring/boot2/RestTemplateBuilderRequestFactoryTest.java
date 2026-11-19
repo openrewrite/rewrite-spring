@@ -21,7 +21,6 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -41,8 +40,6 @@ class RestTemplateBuilderRequestFactoryTest implements RewriteTest {
     void useSupplierArgument() {
         //language=java
         rewriteRun(
-          // A method invocation on `new RestTemplateBuilder()` has no method type.
-          spec -> spec.typeValidationOptions(TypeValidation.builder().methodInvocations(false).build()),
           java(
             """
               import org.springframework.boot.web.client.RestTemplateBuilder;
