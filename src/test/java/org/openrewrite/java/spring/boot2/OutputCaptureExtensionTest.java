@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot2;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
 import org.openrewrite.java.JavaParser;
@@ -34,6 +35,51 @@ class OutputCaptureExtensionTest implements RewriteTest {
             "spring-boot-test-1.+",
             "hamcrest-2.2",
             "junit-4.+"));
+    }
+
+    @DocumentExample
+    @Test
+    void expectationsRegisteredBeforeOutputAreAssertedAtEnd() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.junit.Rule;
+              import org.springframework.boot.test.rule.OutputCapture;
+
+              import static org.hamcrest.Matchers.containsString;
+
+              class MyTest {
+                  @Rule
+                  OutputCapture capture = new OutputCapture();
+
+                  void test() {
+                      capture.expect(containsString("first"));
+                      capture.expect(containsString("second"));
+                      System.out.println("first second");
+                  }
+              }
+              """,
+            """
+              import org.junit.jupiter.api.extension.ExtendWith;
+              import org.springframework.boot.test.system.CapturedOutput;
+              import org.springframework.boot.test.system.OutputCaptureExtension;
+
+              import static org.hamcrest.MatcherAssert.assertThat;
+              import static org.hamcrest.Matchers.containsString;
+
+              @ExtendWith(OutputCaptureExtension.class)
+              class MyTest {
+
+                  void test(CapturedOutput capture) {
+                      System.out.println("first second");
+                      assertThat(capture.getAll(), containsString("first"));
+                      assertThat(capture.getAll(), containsString("second"));
+                  }
+              }
+              """
+          )
+        );
     }
 
     @Issue("https://github.com/openrewrite/rewrite-spring/issues/46")
@@ -121,50 +167,6 @@ class OutputCaptureExtensionTest implements RewriteTest {
                   }
 
                   void doesntUse() {
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void expectationsRegisteredBeforeOutputAreAssertedAtEnd() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.junit.Rule;
-              import org.springframework.boot.test.rule.OutputCapture;
-
-              import static org.hamcrest.Matchers.containsString;
-
-              class MyTest {
-                  @Rule
-                  OutputCapture capture = new OutputCapture();
-
-                  void test() {
-                      capture.expect(containsString("first"));
-                      capture.expect(containsString("second"));
-                      System.out.println("first second");
-                  }
-              }
-              """,
-            """
-              import org.junit.jupiter.api.extension.ExtendWith;
-              import org.springframework.boot.test.system.CapturedOutput;
-              import org.springframework.boot.test.system.OutputCaptureExtension;
-
-              import static org.hamcrest.MatcherAssert.assertThat;
-              import static org.hamcrest.Matchers.containsString;
-
-              @ExtendWith(OutputCaptureExtension.class)
-              class MyTest {
-
-                  void test(CapturedOutput capture) {
-                      System.out.println("first second");
-                      assertThat(capture.getAll(), containsString("first"));
-                      assertThat(capture.getAll(), containsString("second"));
                   }
               }
               """

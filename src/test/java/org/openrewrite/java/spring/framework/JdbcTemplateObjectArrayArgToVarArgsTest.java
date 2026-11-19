@@ -165,8 +165,8 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, rs -> {
-                          user.setAge = rs.getInt("AGE");
-                          user.setName = rs.getString("NAME");
+                          user.setAge(rs.getInt("AGE"));
+                          user.setName(rs.getString("NAME"));
                       });
                       return user;
                   }
@@ -205,8 +205,8 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
-                          user.setAge = rs.getInt("AGE");
-                          user.setName = rs.getString("NAME");
+                          user.setAge(rs.getInt("AGE"));
+                          user.setName(rs.getString("NAME"));
                       }, args);
                       return user;
                   }
@@ -260,8 +260,8 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
-                          user.setAge = rs.getInt("AGE");
-                          user.setName = rs.getString("NAME");
+                          user.setAge(rs.getInt("AGE"));
+                          user.setName(rs.getString("NAME"));
                       }, args);
                       return user;
                   }

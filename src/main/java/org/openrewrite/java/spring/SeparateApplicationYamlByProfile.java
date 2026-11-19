@@ -35,9 +35,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.*;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApplicationYamlByProfile.ApplicationProfiles> {
@@ -156,12 +154,11 @@ public class SeparateApplicationYamlByProfile extends ScanningRecipe<SeparateApp
                     if (!profileNames.isEmpty() && profileNames.stream().allMatch(name -> name.matches("[A-z0-9-]+"))) {
                         Yaml.Document profileDoc = (Yaml.Document) new DeleteProperty("spring.config.activate.on-profile", null, true, null)
                                 .getVisitor().visitNonNull(doc, ctx, new Cursor(null, yaml));
-                        profileNames.forEach(profileName -> {
+                        profileNames.forEach(profileName ->
                             profiles.add(yaml
                                     .withId(Tree.randomId())
                                     .withDocuments(singletonList(profileDoc.withExplicit(false)))
-                                    .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml")));
-                        });
+                                    .withSourcePath(yaml.getSourcePath().resolveSibling("application-" + profileName + ".yml"))));
                         return null;
                     }
 

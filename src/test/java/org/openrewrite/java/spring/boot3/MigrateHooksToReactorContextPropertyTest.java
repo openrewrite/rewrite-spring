@@ -56,7 +56,6 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
     @Test
     void replaceMethodCallWithProperty() {
         rewriteRun(
-          spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
           mavenProject("project",
             srcMainJava(
               java(
@@ -100,7 +99,6 @@ class MigrateHooksToReactorContextPropertyTest implements RewriteTest {
     @Test
     void shouldNotAddPropertyWhenNoHooksPresent() {
         rewriteRun(
-          spec -> spec.recipe(new MigrateHooksToReactorContextProperty()),
           mavenProject("project",
             srcMainJava(
               java(

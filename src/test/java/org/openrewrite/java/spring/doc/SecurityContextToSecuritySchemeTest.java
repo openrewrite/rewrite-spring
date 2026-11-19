@@ -225,7 +225,7 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
                   }
               }
               """,
-            spec -> spec.afterRecipe(cu -> assertThat(cu.getClasses().get(0).getBody().getStatements().get(0))
+            spec -> spec.afterRecipe(cu -> assertThat(cu.getClasses().getFirst().getBody().getStatements()).first()
               .isInstanceOfSatisfying(J.MethodDeclaration.class, md ->
                 assertThat(TypeUtils.asFullyQualified(md.getMethodType().getReturnType()))
                   .extracting(JavaType.FullyQualified::getFullyQualifiedName)
@@ -330,9 +330,9 @@ class SecurityContextToSecuritySchemeTest implements RewriteTest {
               }
               """,
             spec -> spec.afterRecipe(cu -> {
-                J.MethodDeclaration md = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(0);
-                J.VariableDeclarations param = (J.VariableDeclarations) md.getParameters().get(0);
-                assertThat(param.getVariables().get(0).getType()).hasToString("io.swagger.v3.oas.models.security.Scopes");
+                var md = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                var param = (J.VariableDeclarations) md.getParameters().getFirst();
+                assertThat(param.getVariables().getFirst().getType()).hasToString("io.swagger.v3.oas.models.security.Scopes");
             })
           )
         );

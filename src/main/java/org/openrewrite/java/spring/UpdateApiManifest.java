@@ -27,11 +27,7 @@ import org.openrewrite.text.PlainTextParser;
 import org.openrewrite.text.PlainTextVisitor;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -91,7 +87,6 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
     }
 
     private PlainText generateManifest(List<String> apis) {
-        //noinspection OptionalGetWithoutIsPresent
         return new PlainTextParser()
                 .parse(String.join("\n", apis))
                 .findFirst()
@@ -117,12 +112,10 @@ public class UpdateApiManifest extends ScanningRecipe<UpdateApiManifest.ApiManif
                             return ((J.Identifier) arg.getAssignment()).getSimpleName();
                         }
                         if (arg.getAssignment() instanceof J.Literal) {
-                            //noinspection ConstantConditions
                             return (String) ((J.Literal) arg.getAssignment()).getValue();
                         }
                     }
                 } else if (argument instanceof J.Literal && keyNames.contains("value")) {
-                    //noinspection ConstantConditions
                     return (String) ((J.Literal) argument).getValue();
                 }
             }

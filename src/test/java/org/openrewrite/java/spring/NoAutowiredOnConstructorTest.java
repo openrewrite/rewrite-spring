@@ -613,7 +613,10 @@ class NoAutowiredOnConstructorTest implements RewriteTest {
     void keepAutowiredOnTestClassConstructor() {
         rewriteRun(
           spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
-            "junit-jupiter-api-5", "spring-beans-5", "spring-context-5", "spring-core-5")),
+            "junit-jupiter-api-5",
+            "spring-beans-5",
+            "spring-context-5",
+            "spring-core-5")),
           java("@org.springframework.stereotype.Component public class OrderService {}"),
           srcTestJava(
             //language=java

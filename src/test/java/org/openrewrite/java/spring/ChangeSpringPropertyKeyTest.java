@@ -24,6 +24,7 @@ import org.openrewrite.kotlin.KotlinParser;
 import org.openrewrite.test.RewriteTest;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.kotlin.Assertions.kotlin;
@@ -797,6 +798,30 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
                   private val useSSl: Boolean = false
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void withOptionsAfterVisitorWasBuilt() {
+        ChangeSpringPropertyKey original = new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null);
+        original.getVisitor(new SpringConfigFiles());
+        rewriteRun(
+          spec -> spec.recipe(original.withOptions(Map.of("oldPropertyKey", "server.context-path", "newPropertyKey", "server.servlet.context-path"))),
+          mavenProject("project",
+            srcMainResources(
+              properties(
+                """
+                  server.context-path=/ctx
+                  server.servlet-path=/tmp/my-server-path
+                  """,
+                """
+                  server.servlet.context-path=/ctx
+                  server.servlet-path=/tmp/my-server-path
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            )
           )
         );
     }

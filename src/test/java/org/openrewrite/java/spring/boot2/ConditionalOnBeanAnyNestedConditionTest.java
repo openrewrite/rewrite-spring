@@ -22,7 +22,6 @@ import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeQualityValidation;
-import org.openrewrite.test.RecipeQualityValidation;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
@@ -263,6 +262,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void simpleConditionalAnnotationMultipleTypeClassNames() {
         //language=java
         rewriteRun(
+          // The `ConditionAaOrBb.class` reference in the annotation the recipe writes names the class it generates in the same template, which the template cannot type
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toSet;
 
 public class WebSecurityConfigurerAdapter extends Recipe {
@@ -529,7 +530,7 @@ public class WebSecurityConfigurerAdapter extends Recipe {
                     } else {
                         List<Expression> args = ListUtils.filter(call.getArguments(), arg -> !(arg instanceof J.Empty));
                         userBuilder.append('.').append(call.getSimpleName()).append('(')
-                                .append(String.join(", ", Collections.nCopies(args.size(), "#{any()}"))).append(')');
+                                .append(String.join(", ", nCopies(args.size(), "#{any()}"))).append(')');
                         parameters.addAll(args);
                     }
                 } else {

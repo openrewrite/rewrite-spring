@@ -30,8 +30,15 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+
 
 public class MigrateQuerydslJpaRepository extends Recipe {
+
+    private static final String ORIGINAL_FQN = "org.springframework.data.jpa.repository.support.QuerydslJpaRepository";
+    private static final String TARGET_FQN = "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor";
 
     @Getter
     final String displayName = "Use `QuerydslPredicateExecutor<T>`";
@@ -39,18 +46,9 @@ public class MigrateQuerydslJpaRepository extends Recipe {
     @Getter
     final String description = "`QuerydslJpaRepository<T, ID extends Serializable>` was deprecated in Spring Data 2.1.";
 
-    private static final String ORIGINAL_FQN = "org.springframework.data.jpa.repository.support.QuerydslJpaRepository";
-    private static final String TARGET_FQN = "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor";
-
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.data.jpa.repository.support.QuerydslJpaRepository", false), new JavaVisitor<ExecutionContext>() {
-            @Override
-            public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                J.CompilationUnit c = (J.CompilationUnit) super.visitCompilationUnit(cu, ctx);
-                doAfterVisit(new ChangeType(ORIGINAL_FQN, TARGET_FQN, false).getVisitor());
-                return c;
-            }
+        return Preconditions.check(new UsesType<>(ORIGINAL_FQN, false), new JavaVisitor<ExecutionContext>() {
 
             @Override
             public J visitParameterizedType(J.ParameterizedType type, ExecutionContext ctx) {
@@ -89,5 +87,10 @@ public class MigrateQuerydslJpaRepository extends Recipe {
                 return super.visitNewClass(newClass, ctx);
             }
         });
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return singletonList(new ChangeType(ORIGINAL_FQN, TARGET_FQN, false));
     }
 }

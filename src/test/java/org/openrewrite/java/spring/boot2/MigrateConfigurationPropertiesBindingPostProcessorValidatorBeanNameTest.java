@@ -43,6 +43,8 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     void updateFieldAccess() {
         //language=java
         rewriteRun(
+          // The input's `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` does not resolve on the test's spring-boot-2.7 classpath.
+          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor;
@@ -99,6 +101,8 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     void updateFullyQualifiedTarget() {
         //language=java
         rewriteRun(
+          // The input's `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` does not resolve on the test's spring-boot-2.7 classpath.
+          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               class Test {

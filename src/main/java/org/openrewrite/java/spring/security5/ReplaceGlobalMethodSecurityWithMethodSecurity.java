@@ -74,7 +74,7 @@ public class ReplaceGlobalMethodSecurityWithMethodSecurity extends Recipe {
                             if (oldArgs.stream().noneMatch(this::isPrePostEnabled)) {
                                 newArgs = ListUtils.concat(oldArgs, replacementAnnotation.getArguments().get(0));
                             } else {
-                                newArgs = ListUtils.map(oldArgs, arg -> isPrePostEnabledTrue(arg) ? null : arg);
+                                newArgs = ListUtils.filter(oldArgs, arg -> !isPrePostEnabledTrue(arg));
                             }
                             return autoFormat(replacementAnnotation.withArguments(newArgs), ctx);
                         }
