@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jspecify.annotations.Nullable;
@@ -41,13 +42,13 @@ import org.openrewrite.yaml.tree.Yaml;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
 
 @EqualsAndHashCode(callSuper = false)
@@ -85,6 +86,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
     @NonFinal
     @Getter(AccessLevel.NONE)
+    @ToString.Exclude
     transient @Nullable Compiled compiled;
 
     @Override
@@ -109,8 +111,8 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
-                    ChangePropertyKey changeKey = except == null || except.isEmpty() ? compiled.yamlChangePropertyKey :
-                            new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, exceptedYamlSubKeys((Yaml.Documents) tree), null);
+                    ChangePropertyKey changeKey = compiled.exceptPattern == null ? compiled.yamlChangePropertyKey :
+                            new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, exceptedYamlSubKeys((Yaml.Documents) tree, compiled.exceptPattern), null);
                     Tree newTree = changeKey.getVisitor().visit(tree, ctx);
                     if (newTree != tree && isWrittenAsNestedMappings((Yaml.Documents) tree)) {
                         newTree = compiled.unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
@@ -135,7 +137,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
     private Compiled compiled() {
         Compiled c = compiled;
-        if (c == null) {
+        if (c == null || !c.isFor(oldPropertyKey, newPropertyKey, except)) {
             c = new Compiled(oldPropertyKey, newPropertyKey, except, exceptRegex());
             compiled = c;
         }
@@ -143,6 +145,9 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
     }
 
     private static final class Compiled {
+        final String oldPropertyKey;
+        final String newPropertyKey;
+        final @Nullable List<String> except;
         final ChangePropertyKey yamlChangePropertyKey;
         final org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey;
         final org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey;
@@ -150,8 +155,12 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
         final Pattern valueReferencePattern;
         final Pattern prefixPattern;
         final Pattern oldKeyPattern;
+        final @Nullable Pattern exceptPattern;
 
         Compiled(String oldPropertyKey, String newPropertyKey, @Nullable List<String> except, String exceptRegex) {
+            this.oldPropertyKey = oldPropertyKey;
+            this.newPropertyKey = newPropertyKey;
+            this.except = except;
             String quotedOldKey = quote(oldPropertyKey);
             yamlChangePropertyKey = new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
             propertiesChangePropertyKey = new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
@@ -160,6 +169,11 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
             valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)((:(?:\\\\.|[^}])*)?\\})");
             prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex + "(?![\\w-])");
             oldKeyPattern = Pattern.compile(quotedOldKey);
+            exceptPattern = except == null || except.isEmpty() ? null : Pattern.compile("(?:" + String.join("|", except) + ")\\b");
+        }
+
+        boolean isFor(String oldPropertyKey, String newPropertyKey, @Nullable List<String> except) {
+            return this.oldPropertyKey.equals(oldPropertyKey) && this.newPropertyKey.equals(newPropertyKey) && Objects.equals(this.except, except);
         }
     }
 
@@ -195,8 +209,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
      * `except` is a list of regexes, but the YAML recipe compares its exclusions literally, so resolve the regexes
      * against the child keys of `oldPropertyKey` actually present in the file.
      */
-    private List<String> exceptedYamlSubKeys(Yaml.Documents documents) {
-        Pattern exceptPattern = Pattern.compile("(?:" + String.join("|", requireNonNull(except)) + ")\\b");
+    private List<String> exceptedYamlSubKeys(Yaml.Documents documents, Pattern exceptPattern) {
         int subKeyIndex = oldPropertyKey.split("\\.").length;
         Set<String> subKeys = new YamlIsoVisitor<Set<String>>() {
             @Override
