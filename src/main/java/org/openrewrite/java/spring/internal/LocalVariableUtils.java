@@ -30,18 +30,12 @@ public class LocalVariableUtils {
      * @param cursor the cursor of the tree holding the expression
      */
     public static Expression resolveExpression(Expression expression, Cursor cursor) {
-        Cursor name;
-        if (expression instanceof J.Identifier) {
-            name = new Cursor(cursor, expression);
-        } else if (expression instanceof J.FieldAccess) {
-            name = new Cursor(new Cursor(cursor, expression), ((J.FieldAccess) expression).getName());
-        } else {
+        J.Identifier name = expression instanceof J.FieldAccess ? ((J.FieldAccess) expression).getName() :
+                expression instanceof J.Identifier ? (J.Identifier) expression : null;
+        if (name == null || name.getFieldType() == null) {
             return expression;
         }
-        if (name.<J.Identifier>getValue().getFieldType() == null) {
-            return expression;
-        }
-        return new VariableAccess(name).getBinding()
+        return new VariableAccess(Scope.cursorTo(cursor, name)).getBinding()
                 .map(Scope.Binding::getCursor)
                 .map(Cursor::getParentTreeCursor)
                 .filter(declaring -> declaring.getValue() instanceof J.VariableDeclarations.NamedVariable &&
