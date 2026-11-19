@@ -25,7 +25,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
 
@@ -61,7 +61,7 @@ public class UpdatePbkdf2PasswordEncoder extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(PBKDF2_PASSWORD_ENCODER_CLASS, false), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(DEFAULT_CONSTRUCTOR_MATCHER), new UsesMethod<>(ONE_ARG_CONSTRUCTOR_MATCHER), new UsesMethod<>(TWO_ARG_CONSTRUCTOR_MATCHER), new UsesMethod<>(THREE_ARG_CONSTRUCTOR_MATCHER)), new JavaVisitor<ExecutionContext>() {
 
             @Override
             public J visitNewClass(J.NewClass newClass, ExecutionContext ctx) {

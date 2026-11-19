@@ -67,8 +67,13 @@ public class MigrateStepExecutionTimestampTypes extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
                 Preconditions.or(
-                        new UsesMethod<>("org.springframework.batch.core.StepExecution get*()"),
-                        new UsesMethod<>("org.springframework.batch.core.JobExecution get*()")
+                        new UsesMethod<>(STEP_GET_START_TIME),
+                        new UsesMethod<>(STEP_GET_END_TIME),
+                        new UsesMethod<>(STEP_GET_LAST_UPDATED),
+                        new UsesMethod<>(JOB_GET_START_TIME),
+                        new UsesMethod<>(JOB_GET_END_TIME),
+                        new UsesMethod<>(JOB_GET_CREATE_TIME),
+                        new UsesMethod<>(JOB_GET_LAST_UPDATED)
                 ),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
