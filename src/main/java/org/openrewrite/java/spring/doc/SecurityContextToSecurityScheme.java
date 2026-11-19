@@ -23,6 +23,7 @@ import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.SearchResult;
 
@@ -54,12 +55,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
 
-        return new TreeVisitor<Tree, ExecutionContext>() {
-
-            @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
-                return sourceFile instanceof JavaSourceFile;
-            }
+        return Preconditions.check(new UsesType<>("springfox.documentation.service.*", false), new TreeVisitor<Tree, ExecutionContext>() {
 
             @Override
             public Tree preVisit(Tree tree, ExecutionContext ctx) {
@@ -453,7 +449,7 @@ public class SecurityContextToSecurityScheme extends Recipe {
                     }
                 };
             }
-        };
+        });
     }
 
     @Override

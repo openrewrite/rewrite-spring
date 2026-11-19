@@ -146,7 +146,7 @@ recipeDependencies {
     testParserClasspath("org.springframework.boot:spring-boot-actuator:2.1.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.0.+")
     testParserClasspath("org.springframework.boot:spring-boot-actuator:3.4.+")
-    testParserClasspath("org.springframework.boot:spring-boot-actuator-autoconfigure:3.5.+")
+    testParserClasspath("org.springframework.boot:spring-boot-actuator-autoconfigure:3.4.+")
     testParserClasspath("org.springframework.boot:spring-boot-autoconfigure:1.5.+")
     testParserClasspath("org.springframework.boot:spring-boot-autoconfigure:2.3.+")
     testParserClasspath("org.springframework.boot:spring-boot-test-autoconfigure:2.4.+")

@@ -24,7 +24,6 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -544,7 +543,7 @@ class MigrateToModularStartersTest implements RewriteTest {
             ).parser(JavaParser.fromJavaVersion()
               .classpathFromResources(new InMemoryExecutionContext(),
                 "spring-boot-actuator-3.4",
-                "spring-boot-actuator-autoconfigure-3.5"));
+                "spring-boot-actuator-autoconfigure-3.4"));
         }
 
         @Test
@@ -589,7 +588,6 @@ class MigrateToModularStartersTest implements RewriteTest {
         @Test
         void migrateHealthRegistryTypes() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=java
               java(
                 """
@@ -613,7 +611,6 @@ class MigrateToModularStartersTest implements RewriteTest {
         @Test
         void migrateHealthEndpointTypes() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=java
               java(
                 """
@@ -641,7 +638,6 @@ class MigrateToModularStartersTest implements RewriteTest {
         @Test
         void migrateCompositeHealthAndHealthComponentToDescriptors() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=java
               java(
                 """
@@ -780,7 +776,6 @@ class MigrateToModularStartersTest implements RewriteTest {
         @Test
         void migrateSecurityAutoConfiguration() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=java
               java(
                 """
