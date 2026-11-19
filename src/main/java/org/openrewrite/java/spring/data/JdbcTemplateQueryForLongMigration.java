@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 public class JdbcTemplateQueryForLongMigration extends Recipe {
 
@@ -88,7 +89,8 @@ public class JdbcTemplateQueryForLongMigration extends Recipe {
                                         null),
                                 Markers.EMPTY
                         ),
-                        null
+                        new JavaType.Parameterized(null, JavaType.ShallowClass.build("java.lang.Class"),
+                                singletonList(JavaType.ShallowClass.build("java.lang.Long")))
                 );
             }
         };
