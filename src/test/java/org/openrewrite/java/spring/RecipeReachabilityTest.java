@@ -39,6 +39,7 @@ class RecipeReachabilityTest {
     private static final Set<String> STANDALONE_SEARCH_RECIPES = Set.of(
       "org.openrewrite.java.spring.boot2.search.FindIntegrationSchedulerPool",
       "org.openrewrite.java.spring.boot2.search.FindUpgradeRequirementsSpringBoot_2_5",
+      "org.openrewrite.java.spring.data.search.FindMissingMongoValueRepresentation",
       "org.openrewrite.java.spring.http.SpringWebDependency",
       "org.openrewrite.java.spring.search.FindApiCalls",
       "org.openrewrite.java.spring.search.FindApiEndpoints",
