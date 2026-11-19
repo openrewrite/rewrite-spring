@@ -29,6 +29,8 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
+import static java.util.Collections.singletonList;
+
 public class RestTemplateBuilderRequestFactory extends Recipe {
     private static final MethodMatcher REQUEST_FACTORY = new MethodMatcher(
             "org.springframework.boot.web.client.RestTemplateBuilder requestFactory(org.springframework.http.client.ClientHttpRequestFactory)");
@@ -51,7 +53,6 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
 
-            // TODO JavaTemplate doesn't replace method type attribution when replacing arguments.
             boolean isArgumentClientHttpRequestFactory = method.getArguments().size() == 1 &&
                     TypeUtils.isAssignableTo(JavaType.ShallowClass.build("org.springframework.http.client.ClientHttpRequestFactory"),
                             method.getArguments().get(0).getType());
@@ -62,6 +63,14 @@ public class RestTemplateBuilderRequestFactory extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion()
                                 .classpathFromResources(ctx, "spring-boot-2.*"));
                 m = t.build().apply(getCursor(), m.getCoordinates().replaceArguments(), m.getArguments().get(0));
+                // JavaTemplate doesn't replace the method type when replacing arguments, so point it at `requestFactory(Supplier)`
+                JavaType.Method oldType = method.getMethodType();
+                if (oldType != null) {
+                    JavaType.Parameterized supplier = new JavaType.Parameterized(null,
+                            JavaType.ShallowClass.build("java.util.function.Supplier"),
+                            singletonList(oldType.getParameterTypes().get(0)));
+                    m = m.withMethodType(oldType.withParameterTypes(singletonList(supplier)));
+                }
             }
             return m;
         }
