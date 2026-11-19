@@ -106,6 +106,33 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
         );
     }
 
+    @Test
+    void emptyExpressionLambdaBody() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  Consumer<AuthenticationEntryPointFailureHandler> c = h -> h.setRethrowAuthenticationServiceException(true);
+              }
+              """,
+            """
+              import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  Consumer<AuthenticationEntryPointFailureHandler> c = h -> {};
+              }
+              """
+          )
+        );
+    }
+
     @Nested
     class NoChange {
         @Test
@@ -120,24 +147,6 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
                       void m(AuthenticationEntryPointFailureHandler handler) {
                           handler.setRethrowAuthenticationServiceException(false);
                       }
-                  }
-                  """
-              )
-            );
-        }
-
-        @Test
-        void keepCallAsExpressionLambdaBody() {
-            // language=java
-            rewriteRun(
-              java(
-                """
-                  import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
-
-                  import java.util.function.Consumer;
-
-                  class T {
-                      Consumer<AuthenticationEntryPointFailureHandler> c = h -> h.setRethrowAuthenticationServiceException(true);
                   }
                   """
               )
