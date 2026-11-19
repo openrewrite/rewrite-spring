@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.security6;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -68,7 +69,7 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
     }
 
     @Test
-    void keepCallAsExpressionLambdaBody() {
+    void keepEnclosingCallOfBlockLambda() {
         // language=java
         rewriteRun(
           java(
@@ -78,10 +79,69 @@ class PropagateAuthenticationServiceExceptionsTest implements RewriteTest {
               import java.util.function.Consumer;
 
               class T {
-                  Consumer<AuthenticationEntryPointFailureHandler> c = h -> h.setRethrowAuthenticationServiceException(true);
+                  void m() {
+                      register(h -> {
+                          h.setRethrowAuthenticationServiceException(true);
+                      });
+                  }
+                  void register(Consumer<AuthenticationEntryPointFailureHandler> customizer) {
+                  }
+              }
+              """,
+            """
+              import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+              import java.util.function.Consumer;
+
+              class T {
+                  void m() {
+                      register(h -> {
+                      });
+                  }
+                  void register(Consumer<AuthenticationEntryPointFailureHandler> customizer) {
+                  }
               }
               """
           )
         );
+    }
+
+    @Nested
+    class NoChange {
+        @Test
+        void keepFalseArgument() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+                  class T {
+                      void m(AuthenticationEntryPointFailureHandler handler) {
+                          handler.setRethrowAuthenticationServiceException(false);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void keepCallAsExpressionLambdaBody() {
+            // language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler;
+
+                  import java.util.function.Consumer;
+
+                  class T {
+                      Consumer<AuthenticationEntryPointFailureHandler> c = h -> h.setRethrowAuthenticationServiceException(true);
+                  }
+                  """
+              )
+            );
+        }
     }
 }
