@@ -24,6 +24,7 @@ import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.*;
 import org.openrewrite.java.service.AnnotationService;
 import org.openrewrite.java.spring.internal.NamedTypes;
+import org.openrewrite.java.trait.Scope;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.java.tree.J.Block;
 import org.openrewrite.java.tree.J.ClassDeclaration;
@@ -193,7 +194,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         return applied.withStatements(ListUtils.map(applied.getStatements(), s -> {
                             if (s instanceof MethodDeclaration && ((MethodDeclaration) s).isConstructor()) {
                                 MethodDeclaration ctor = typeAddedParameter((MethodDeclaration) s, fieldName, type);
-                                return typeAssignmentReference(ctor, fieldName, fieldType);
+                                return typeAssignmentReference(ctor, fieldName, fieldName, fieldType);
                             }
                             return s;
                         }));
@@ -224,8 +225,11 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
             J.MethodDeclaration md = super.visitMethodDeclaration(method, p);
             if (md == this.constructor && md.getBody() != null) {
                 List<J> params = md.getParameters().stream().filter(s -> !(s instanceof J.Empty)).collect(toList());
+                // A parameter or local of the field's name would clash with a parameter named after the field
+                String parameterName = Scope.declaredWithin(getCursor()).anyMatch(b -> b.getName().equals(fieldName)) ?
+                        Scope.at(getCursor()).freeName(fieldName, n -> false) : fieldName;
                 String paramsStr = Stream.concat(params.stream()
-                        .map(s -> "#{}"), Stream.of(methodType + " " + fieldName)).collect(joining(", "));
+                        .map(s -> "#{}"), Stream.of(methodType + " " + parameterName)).collect(joining(", "));
 
                 md = JavaTemplate.builder(paramsStr)
                         .contextSensitive()
@@ -240,17 +244,17 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 // A type the template parser could not resolve (a third-party or project-local type absent from the
                 // parser's classpath) comes back unattributed. Graft the field's own resolved type onto the parameter
                 // so the constructor is well typed regardless of what the isolated parser could see.
-                md = typeAddedParameter(md, fieldName, type);
+                md = typeAddedParameter(md, parameterName, type);
                 updateCursor(md);
 
-                md = JavaTemplate.builder("this." + fieldName + " = " + fieldName + ";")
+                md = JavaTemplate.builder("this." + fieldName + " = " + parameterName + ";")
                         .contextSensitive()
                         .build()
                         .apply(
                                 getCursor(),
                                 md.getBody().getCoordinates().lastStatement()
                         );
-                md = typeAssignmentReference(md, fieldName, type.getType());
+                md = typeAssignmentReference(md, fieldName, parameterName, type.getType());
             }
             return md;
         }
@@ -304,11 +308,12 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     }
 
     /**
-     * Attribute both sides of the generated {@code this.<field> = <field>} assignment. The template parser
+     * Attribute both sides of the generated {@code this.<field> = <parameter>} assignment. The template parser
      * leaves the references untyped for array-typed parameters, so set the identifier's type from the field's own
      * (already resolved) type; the reference and the parameter share it.
      */
-    private static MethodDeclaration typeAssignmentReference(MethodDeclaration md, String fieldName, @Nullable JavaType fieldType) {
+    private static MethodDeclaration typeAssignmentReference(MethodDeclaration md, String fieldName, String parameterName,
+                                                             @Nullable JavaType fieldType) {
         if (fieldType == null || md.getBody() == null) {
             return md;
         }
@@ -324,7 +329,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 }
                 Expression rhs = assignment.getAssignment();
                 if (rhs instanceof J.Identifier &&
-                        fieldName.equals(((J.Identifier) rhs).getSimpleName()) &&
+                        parameterName.equals(((J.Identifier) rhs).getSimpleName()) &&
                         !TypeUtils.isWellFormedType(rhs.getType())) {
                     return assignment.withAssignment(((J.Identifier) rhs).withType(fieldType));
                 }

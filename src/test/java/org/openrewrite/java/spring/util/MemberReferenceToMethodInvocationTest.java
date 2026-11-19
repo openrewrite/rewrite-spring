@@ -156,4 +156,37 @@ class MemberReferenceToMethodInvocationTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void parametersOfOneLambdaGetDistinctNames() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import java.util.function.BiFunction;
+
+              class A {
+                  String concat(String arg0, String arg1) {
+                      return arg0 + arg1;
+                  }
+                  BiFunction<String, String, String> f() {
+                      return this::concat;
+                  }
+              }
+              """,
+            """
+              import java.util.function.BiFunction;
+
+              class A {
+                  String concat(String arg0, String arg1) {
+                      return arg0 + arg1;
+                  }
+                  BiFunction<String, String, String> f() {
+                      return (String string, String string1) -> this.concat(string, string1);
+                  }
+              }
+              """
+          )
+        );
+    }
 }
