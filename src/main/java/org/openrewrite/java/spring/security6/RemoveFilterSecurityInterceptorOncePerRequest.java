@@ -17,10 +17,12 @@ package org.openrewrite.java.spring.security6;
 
 import lombok.Getter;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.RemoveMethodInvocationsVisitor;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 
 import java.util.HashMap;
@@ -29,6 +31,9 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
+    private static final MethodMatcher FILTER_SECURITY_INTERCEPTOR_ONCE_PER_REQUEST = new MethodMatcher(
+            "org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer.AbstractInterceptUrlRegistry filterSecurityInterceptorOncePerRequest(boolean)");
+
     @Getter
     final String displayName = "Remove unnecessary `filterSecurityInterceptorOncePerRequest(false)` when upgrading to Spring Security 6";
 
@@ -39,8 +44,8 @@ public class RemoveFilterSecurityInterceptorOncePerRequest extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         Map<MethodMatcher, Predicate<List<Expression>>> matchers = new HashMap<>();
-        matchers.put(new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractInterceptUrlConfigurer.AbstractInterceptUrlRegistry filterSecurityInterceptorOncePerRequest(boolean)"
-        ), RemoveMethodInvocationsVisitor.isFalseArgument());
-        return new RemoveMethodInvocationsVisitor(matchers);
+        matchers.put(FILTER_SECURITY_INTERCEPTOR_ONCE_PER_REQUEST, RemoveMethodInvocationsVisitor.isFalseArgument());
+        return Preconditions.check(new UsesMethod<>(FILTER_SECURITY_INTERCEPTOR_ONCE_PER_REQUEST),
+                new RemoveMethodInvocationsVisitor(matchers));
     }
 }
