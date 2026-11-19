@@ -24,7 +24,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
@@ -40,7 +40,7 @@ public class MigrateRestTemplateBuilderTimeoutByInt extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.boot.web.client.RestTemplateBuilder", true),
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(CONNECTION_TIMEOUT), new UsesMethod<>(READ_TIMEOUT)),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

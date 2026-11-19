@@ -24,7 +24,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
@@ -48,7 +48,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(TARGET_CLASS, false), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(FROM_HTTP_REQUEST), new UsesMethod<>(FROM_HTTP_URL), new UsesMethod<>(PARSE_FORWARDED_FOR)), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);

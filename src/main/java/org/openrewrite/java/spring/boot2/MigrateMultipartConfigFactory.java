@@ -24,7 +24,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateMultipartConfigFactory extends Recipe {
@@ -45,7 +45,7 @@ public class MigrateMultipartConfigFactory extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.boot.web.servlet.MultipartConfigFactory", true),
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(SET_MAX_FILE_SIZE_BY_LONG), new UsesMethod<>(SET_MAX_REQUEST_SIZE_BY_LONG), new UsesMethod<>(SET_FILE_SIZE_THRESHOLD_BY_INT), new UsesMethod<>(SET_MAX_FILE_SIZE_BY_STRING), new UsesMethod<>(SET_MAX_REQUEST_SIZE_BY_STRING), new UsesMethod<>(SET_FILE_SIZE_THRESHOLD_BY_STRING)),
                 new JavaIsoVisitor<ExecutionContext>() {
                     @Override
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

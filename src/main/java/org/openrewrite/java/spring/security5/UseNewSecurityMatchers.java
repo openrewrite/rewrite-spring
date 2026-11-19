@@ -25,7 +25,7 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 @EqualsAndHashCode(callSuper = false)
@@ -45,7 +45,7 @@ public class UseNewSecurityMatchers extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(HTTP_SECURITY_CLASS, true), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(REGEX_MATCHER), new UsesMethod<>(HTTP_SECURITY_MATCHER)), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

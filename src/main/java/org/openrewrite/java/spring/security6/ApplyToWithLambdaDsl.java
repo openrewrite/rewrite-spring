@@ -20,7 +20,8 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.spring.boot2.ConvertToSecurityDslVisitor;
 
 import java.util.Collection;
@@ -34,6 +35,7 @@ public class ApplyToWithLambdaDsl extends Recipe {
     private static final String FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER =
             "org.springframework.security.config.annotation.AbstractConfiguredSecurityBuilder";
 
+    private static final MethodMatcher APPLY_MATCHER = new MethodMatcher(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER + " apply(..)", true);
     private static final Collection<String> APPLICABLE_METHOD_NAMES = singletonList("apply");
 
     private static final Map<String, String> ARG_REPLACEMENTS = new HashMap<String, String>() {{
@@ -53,7 +55,7 @@ public class ApplyToWithLambdaDsl extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                new UsesType<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER, true),
+                new UsesMethod<>(APPLY_MATCHER),
                 new ConvertToSecurityDslVisitor<>(FQN_ABSTRACT_CONFIGURED_SECURITY_BUILDER,
                         APPLICABLE_METHOD_NAMES, ARG_REPLACEMENTS, METHOD_RENAMES)
         );
