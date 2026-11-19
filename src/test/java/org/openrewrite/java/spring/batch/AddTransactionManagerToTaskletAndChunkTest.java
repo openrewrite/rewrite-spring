@@ -516,6 +516,48 @@ class AddTransactionManagerToTaskletAndChunkTest implements RewriteTest {
     }
 
     @Test
+    void newParameterAvoidsALocalOfItsName() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Step myStep(Tasklet tasklet) {
+                      String transactionManager = "myStep";
+                      return stepBuilderFactory.get(transactionManager)
+                              .tasklet(tasklet)
+                              .build();
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.Step;
+              import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+              import org.springframework.batch.core.step.tasklet.Tasklet;
+              import org.springframework.transaction.PlatformTransactionManager;
+
+              class MyJobConfig {
+                  StepBuilderFactory stepBuilderFactory;
+
+                  Step myStep(Tasklet tasklet, PlatformTransactionManager transactionManager1) {
+                      String transactionManager = "myStep";
+                      return stepBuilderFactory.get(transactionManager)
+                              .tasklet(tasklet, transactionManager1)
+                              .build();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void staticNestedClassDoesNotReuseOuterInstanceField() {
         // language=java
         rewriteRun(

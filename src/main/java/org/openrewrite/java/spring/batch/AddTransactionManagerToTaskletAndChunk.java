@@ -81,9 +81,10 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                             if (md.isConstructor() || md.getMethodType() == null) {
                                 return mi;
                             }
-                            methodCursor.putMessage(MSG_ADD_PARAMETER, true);
+                            String name = methodCursor.computeMessageIfAbsent(MSG_ADD_PARAMETER,
+                                    k -> Scope.at(methodCursor).freeName("transactionManager", n -> false));
                             transactionManager = new J.Identifier(randomId(), Space.EMPTY, Markers.EMPTY, emptyList(),
-                                    "transactionManager", JavaType.ShallowClass.build(PLATFORM_TRANSACTION_MANAGER), null);
+                                    name, JavaType.ShallowClass.build(PLATFORM_TRANSACTION_MANAGER), null);
                         }
                         String firstParameterType = TypeUtils.toString(requireNonNull(mi.getMethodType()).getParameterTypes().get(0));
                         return JavaTemplate.builder("#{any(" + firstParameterType + ")}, #{any(" + PLATFORM_TRANSACTION_MANAGER + ")}")
@@ -97,11 +98,12 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                     @Override
                     public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                         J.MethodDeclaration md = super.visitMethodDeclaration(method, ctx);
-                        if (getCursor().getMessage(MSG_ADD_PARAMETER) == null) {
+                        String name = getCursor().getMessage(MSG_ADD_PARAMETER);
+                        if (name == null) {
                             return md;
                         }
                         maybeAddImport(PLATFORM_TRANSACTION_MANAGER);
-                        J.VariableDeclarations parameter = (J.VariableDeclarations) JavaTemplate.builder("PlatformTransactionManager transactionManager")
+                        J.VariableDeclarations parameter = (J.VariableDeclarations) JavaTemplate.builder("PlatformTransactionManager " + name)
                                 .imports(PLATFORM_TRANSACTION_MANAGER)
                                 .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-tx-5"))
                                 .build()
@@ -111,7 +113,7 @@ public class AddTransactionManagerToTaskletAndChunk extends Recipe {
                         JavaType.Method methodType = requireNonNull(md.getMethodType());
                         JavaType.Method newMethodType = methodType
                                 .withParameterTypes(ListUtils.concat(methodType.getParameterTypes(), parameter.getType()))
-                                .withParameterNames(ListUtils.concat(methodType.getParameterNames(), "transactionManager"));
+                                .withParameterNames(ListUtils.concat(methodType.getParameterNames(), name));
                         return md.withParameters(ListUtils.concat(parameters,
                                         parameter.withPrefix(parameters.isEmpty() ? Space.EMPTY : Space.SINGLE_SPACE)))
                                 .withMethodType(newMethodType)
