@@ -126,3 +126,12 @@ recipeList:
       version: 2.3.x
       onlyIfUsing: javax.validation.constraints.*
       acceptTransitive: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants
+displayName: Use `ErrorProperties#IncludeStacktrace.ON_PARAM`
+description: "`ErrorProperties#IncludeStacktrace.ON_TRACE_PARAM` was deprecated in 2.3.x and removed in 2.5.0."
+recipeList:
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM
+      fullyQualifiedConstantName: org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_PARAM

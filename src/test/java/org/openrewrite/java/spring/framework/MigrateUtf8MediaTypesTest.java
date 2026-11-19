@@ -29,7 +29,7 @@ class MigrateUtf8MediaTypesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateUtf8MediaTypes())
+        spec.recipeFromResource("/META-INF/rewrite/spring-framework-52.yml", "org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-core-5", "spring-web-5.3"));
     }
@@ -123,10 +123,10 @@ class MigrateUtf8MediaTypesTest implements RewriteTest {
               import org.springframework.http.MediaType;
               class A {
                   void method() {
-                      MediaType valueA = org.springframework.http.MediaType.APPLICATION_JSON;
-                      String valueB = org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-                      MediaType valueC = org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
-                      String valueD = org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+                      MediaType valueA = MediaType.APPLICATION_JSON;
+                      String valueB = MediaType.APPLICATION_JSON_VALUE;
+                      MediaType valueC = MediaType.APPLICATION_PROBLEM_JSON;
+                      String valueD = MediaType.APPLICATION_PROBLEM_JSON_VALUE;
                   }
               }
               """

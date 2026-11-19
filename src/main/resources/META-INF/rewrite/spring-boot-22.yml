@@ -118,3 +118,12 @@ recipeList:
       artifactId: "*"
       newVersion: 2.1.2
       overrideManagedVersion: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
+displayName: Use `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`
+description: Replaces field and static access of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` with `EnableConfigurationProperties.VALIDATOR_BEAN_NAME`. Deprecated in 2.2.x.
+recipeList:
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME
+      fullyQualifiedConstantName: org.springframework.boot.context.properties.EnableConfigurationProperties.VALIDATOR_BEAN_NAME

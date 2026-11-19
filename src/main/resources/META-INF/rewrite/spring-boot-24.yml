@@ -180,3 +180,33 @@ recipeList:
       artifactId: "*"
       newVersion: 2.1.x
       overrideManagedVersion: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
+displayName: Migrate to recommended constants in `LogbackLoggingSystemProperties` from deprecated values in `LoggingSystemProperties`
+description: Replaces field and static access of deprecated fields in `LoggingSystemProperties` with the recommendations from `LogbackLoggingSystemProperties`. Deprecated in 2.4.x and removed in 2.6.0.
+recipeList:
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_CLEAN_HISTORY_ON_START
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_CLEAN_HISTORY_ON_START
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_MAX_HISTORY
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_HISTORY
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_MAX_SIZE
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_FILE_SIZE
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_TOTAL_SIZE_CAP
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_TOTAL_SIZE_CAP
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.ROLLING_FILE_NAME_PATTERN
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_FILE_NAME_PATTERN
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
+displayName: Migrate deprecated Spring Boot `EmbeddedDatabaseConnection.HSQL`
+description: Spring Boot `EmbeddedDatabaseConnection.HSQL` was deprecated in favor of `EmbeddedDatabaseConnection.HSQLDB` in 2.4.
+recipeList:
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQL
+      fullyQualifiedConstantName: org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB

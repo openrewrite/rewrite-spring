@@ -29,7 +29,7 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateHsqlEmbeddedDatabaseConnection())
+        spec.recipeFromResource("/META-INF/rewrite/spring-boot-24.yml", "org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.2"));
     }
 
@@ -76,11 +76,11 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
               }
               """,
             """
-              import static org.springframework.boot.jdbc.EmbeddedDatabaseConnection.*;
+              import static org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB;
 
               class A {
                   void method() {
-                      Object valueA = HSQLDB;
+                      Object valueA = org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB;
                   }
               }
               """
@@ -101,9 +101,38 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
               }
               """,
             """
+              import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
+
               class A {
                   void method() {
-                      Object valueA = org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB;
+                      Object valueA = EmbeddedDatabaseConnection.HSQLDB;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void updateExplicitStaticImport() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import static org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQL;
+
+              class A {
+                  void method() {
+                      Object valueA = HSQL;
+                  }
+              }
+              """,
+            """
+              import static org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB;
+
+              class A {
+                  void method() {
+                      Object valueA = HSQLDB;
                   }
               }
               """

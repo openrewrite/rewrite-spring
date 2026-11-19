@@ -30,7 +30,7 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateLoggingSystemPropertyConstants())
+        spec.recipeFromResource("/META-INF/rewrite/spring-boot-24.yml", "org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.4"));
     }
 
@@ -158,13 +158,15 @@ class MigrateLoggingSystemPropertyConstantsTest implements RewriteTest {
             """
               package org.test;
 
+              import org.springframework.boot.logging.logback.LogbackLoggingSystemProperties;
+
               class Test {
                   void method() {
-                      String valueA = org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_CLEAN_HISTORY_ON_START;
-                      String valueB = org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_HISTORY;
-                      String valueC = org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_FILE_SIZE;
-                      String valueD = org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_TOTAL_SIZE_CAP;
-                      String valueE = org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_FILE_NAME_PATTERN;
+                      String valueA = LogbackLoggingSystemProperties.ROLLINGPOLICY_CLEAN_HISTORY_ON_START;
+                      String valueB = LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_HISTORY;
+                      String valueC = LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_FILE_SIZE;
+                      String valueD = LogbackLoggingSystemProperties.ROLLINGPOLICY_TOTAL_SIZE_CAP;
+                      String valueE = LogbackLoggingSystemProperties.ROLLINGPOLICY_FILE_NAME_PATTERN;
                   }
               }
               """
