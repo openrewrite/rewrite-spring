@@ -72,10 +72,38 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
                         newArgs.add(arr);
                     }
 
-                    mi = mi.withArguments(newArgs);
+                    mi = mi.withArguments(newArgs).withMethodType(varArgsOverload(mi, newArgs));
                 }
             }
             return mi;
+        }
+
+        private JavaType.@Nullable Method varArgsOverload(J.MethodInvocation mi, List<Expression> newArgs) {
+            JavaType.Method type = mi.getMethodType();
+            if (type == null) {
+                return null;
+            }
+            // The `Object[]` overload is replaced by the varargs overload with the same name and leading parameters
+            JavaType.Method found = null;
+            for (JavaType.Method candidate : type.getDeclaringType().getMethods()) {
+                List<JavaType> params = candidate.getParameterTypes();
+                if (!candidate.getName().equals(type.getName()) || params.size() != 3 ||
+                    !(params.get(2) instanceof JavaType.Array) ||
+                    !TypeUtils.isOfClassType(((JavaType.Array) params.get(2)).getElemType(), "java.lang.Object") ||
+                    !isAssignable(params.get(0), newArgs.get(0)) || !isAssignable(params.get(1), newArgs.get(1))) {
+                    continue;
+                }
+                if (found != null) {
+                    return type;
+                }
+                found = candidate;
+            }
+            return found == null ? type : found.withReturnType(type.getReturnType());
+        }
+
+        private boolean isAssignable(JavaType parameter, Expression argument) {
+            JavaType.FullyQualified erasure = TypeUtils.asFullyQualified(parameter);
+            return erasure != null && TypeUtils.isAssignableTo(erasure.getFullyQualifiedName(), argument.getType());
         }
 
         private boolean shouldSwapArgs(@Nullable JavaType arg1, @Nullable JavaType arg2) {

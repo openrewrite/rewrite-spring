@@ -69,7 +69,7 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
                             ((JavaType.Class) fieldAccess.getName().getFieldType().getOwner()).getMembers().stream().filter(v -> v.getName().equals(replacementConstant)).findFirst() :
                             Optional.empty();
                     return fieldAccess
-                            .withType(JavaType.Primitive.String)
+                            .withType(mi.getType())
                             .withName(fieldAccess.getName()
                                     .withSimpleName(replacementConstant)
                                     .withFieldType(first.orElse(null))

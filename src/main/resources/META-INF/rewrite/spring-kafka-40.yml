@@ -24,6 +24,8 @@ tags:
   - spring
   - kafka
 preconditions:
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.kafka..*
   - org.openrewrite.Singleton
 recipeList:
   # https://docs.spring.io/spring-kafka/reference/4.0/whats-new.html#x40-jackson3-support
