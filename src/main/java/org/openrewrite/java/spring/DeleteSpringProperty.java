@@ -50,11 +50,6 @@ public class DeleteSpringProperty extends ScanningRecipe<SpringConfigFiles> {
     public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
         return Preconditions.check(new IsPossibleSpringConfigFile(acc), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
-                return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
-            }
-
-            @Override
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents) {
                     t = new org.openrewrite.yaml.DeleteProperty(propertyKey, false, true, null)
