@@ -15,13 +15,18 @@
  */
 package org.openrewrite.java.spring.http;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class SimplifyMediaTypeParseCallsTest implements RewriteTest {
@@ -88,6 +93,34 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
                   MediaType mediaType4 = MediaType.%1$s;
               }
               """.formatted(value.replace("_VALUE", ""))
+          )
+        );
+    }
+
+    @Test
+    void replacementConstantIsTypedAsMediaType() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.MediaType;
+
+              class Test {
+                  MediaType mediaType = MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE);
+              }
+              """,
+            """
+              import org.springframework.http.MediaType;
+
+              class Test {
+                  MediaType mediaType = MediaType.APPLICATION_JSON;
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                J.VariableDeclarations declarations = (J.VariableDeclarations) cu.getClasses().get(0).getBody().getStatements().get(0);
+                Expression initializer = declarations.getVariables().get(0).getInitializer();
+                assertThat(TypeUtils.isOfClassType(initializer.getType(), "org.springframework.http.MediaType")).isTrue();
+            })
           )
         );
     }
