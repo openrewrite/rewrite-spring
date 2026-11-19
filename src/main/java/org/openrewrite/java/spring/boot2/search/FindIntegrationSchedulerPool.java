@@ -58,6 +58,7 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
     private static final String PROPS_MIGRATION_MESSAGE = " TODO: Consider Scheduler thread pool size for Spring Integration";
     private static final String GENERAL_MIGRATION_MESSAGE = " TODO: Scheduler thread pool size for Spring Integration either in properties or config server";
     private static final String SPRING_BOOT_APPLICATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
+    private static final AnnotationMatcher SPRING_BOOT_APPLICATION_MATCHER = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
 
     @Getter
     final String displayName = "Integration scheduler pool size";
@@ -175,11 +176,9 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
                     JavaSourceFile javaSourceFile = (JavaSourceFile) source;
                     if (usesSpringBootApplication(javaSourceFile)) {
                         new JavaIsoVisitor<Integer>() {
-                            final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
-
                             @Override
                             public J.Annotation visitAnnotation(J.Annotation annotation, Integer p) {
-                                if (annotationMatcher.matches(annotation)) {
+                                if (SPRING_BOOT_APPLICATION_MATCHER.matches(annotation)) {
                                     acc.getSourceToCommentByProject().put(javaProject, source.getSourcePath());
                                 }
                                 return annotation;
@@ -234,11 +233,9 @@ public class FindIntegrationSchedulerPool extends ScanningRecipe<FindIntegration
                     }
                 } else if (source instanceof JavaSourceFile) {
                     JavaIsoVisitor<ExecutionContext> commentVisitor = new JavaIsoVisitor<ExecutionContext>() {
-                        final AnnotationMatcher annotationMatcher = new AnnotationMatcher('@' + SPRING_BOOT_APPLICATION);
-
                         @Override
                         public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                            if (classDecl.getAllAnnotations().stream().anyMatch(annotationMatcher::matches)) {
+                            if (classDecl.getAllAnnotations().stream().anyMatch(SPRING_BOOT_APPLICATION_MATCHER::matches)) {
                                 return Comments.of(getCursor()).comment(GENERAL_MIGRATION_MESSAGE, Comments.Placement.BEFORE, "\n" + classDecl.getPrefix().getIndent());
                             }
                             return super.visitClassDeclaration(classDecl, ctx);

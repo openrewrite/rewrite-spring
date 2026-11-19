@@ -23,14 +23,14 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
 
-    private static final String HandlerResult = "org.springframework.web.reactive.HandlerResult";
+    private static final String HANDLER_RESULT = "org.springframework.web.reactive.HandlerResult";
 
-    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(HandlerResult + " setExceptionHandler(java.util.function.Function)");
+    private static final MethodMatcher METHOD_MATCHER = new MethodMatcher(HANDLER_RESULT + " setExceptionHandler(java.util.function.Function)");
 
     @Getter
     final String displayName = "Migrate `org.springframework.web.reactive.HandlerResult.setExceptionHandler` method";
@@ -40,7 +40,7 @@ public class MigrateHandlerResultSetExceptionHandlerMethod extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>(HandlerResult, false), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(METHOD_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {

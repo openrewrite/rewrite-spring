@@ -17,9 +17,12 @@ package org.openrewrite.java.spring;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.SourceSpec;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class ChangeMethodParameterTest implements RewriteTest {
@@ -499,6 +502,37 @@ class ChangeMethodParameterTest implements RewriteTest {
                   void method(Object x, X z) {}
               }
               """
+          )
+        );
+    }
+
+    @Test
+    void methodTypeParameterTypesAreUpdated() {
+        rewriteRun(
+          spec -> spec.recipe(new ChangeMethodParameter("foo.Foo#bar(..)", "long", 1)),
+          //language=java
+          java(
+            """
+              package foo;
+              class Foo {
+                  void bar(String s, int i) {
+                  }
+              }
+              """,
+            """
+              package foo;
+              class Foo {
+                  void bar(String s, long i) {
+                  }
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                J.MethodDeclaration bar = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(0);
+                assertThat(bar.getMethodType().getParameterTypes())
+                  .containsExactly(JavaType.ShallowClass.build("java.lang.String"), JavaType.Primitive.Long);
+                J.VariableDeclarations parameter = (J.VariableDeclarations) bar.getParameters().get(1);
+                assertThat(parameter.getVariables().get(0).getName().getFieldType().getOwner()).isSameAs(bar.getMethodType());
+            })
           )
         );
     }

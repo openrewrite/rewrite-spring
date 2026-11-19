@@ -96,11 +96,6 @@ public class UseTlsAmqpConnectionString extends Recipe {
         String actualTlsPropertyKey = StringUtils.isNullOrEmpty(tlsPropertyKey) ? "spring.rabbitmq.ssl.enabled" : tlsPropertyKey;
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
-                return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
-            }
-
-            @Override
             public Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     t = new UseTlsAmqpConnectionStringYaml(actualPropertyKey, oldPort, port, actualTlsPropertyKey, pathExpressions)

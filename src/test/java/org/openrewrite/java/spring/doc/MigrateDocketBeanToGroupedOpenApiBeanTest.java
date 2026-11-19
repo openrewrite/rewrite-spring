@@ -913,4 +913,36 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void ignoreDocketWhenDocumentationTypeStaticImported() {
+        rewriteRun(
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
+
+                class ApplicationConfiguration {
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(SWAGGER_2)
+                                .select()
+                                .apis(RequestHandlerSelectors.any())
+                                .paths(PathSelectors.any())
+                                .build();
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
 }
