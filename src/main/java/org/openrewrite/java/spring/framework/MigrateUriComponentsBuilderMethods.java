@@ -26,15 +26,12 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
 
 public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     private static final String TARGET_CLASS = "org.springframework.web.util.UriComponentsBuilder";
 
     private static final MethodMatcher FROM_HTTP_REQUEST = new MethodMatcher(TARGET_CLASS + " fromHttpRequest(..)");
-
-    private static final MethodMatcher FROM_HTTP_URL = new MethodMatcher(TARGET_CLASS + " fromHttpUrl(..)");
 
     private static final MethodMatcher PARSE_FORWARDED_FOR = new MethodMatcher(TARGET_CLASS + " parseForwardedFor(..)");
 
@@ -43,8 +40,7 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
 
     @Getter
     final String description = "Migrates deprecated methods in `org.springframework.web.util.UriComponentsBuilder`: " +
-            "`fromHttpRequest` and `parseForwardedFor` to `ForwardedHeaderUtils`, " +
-            "and `fromHttpUrl` to `fromUriString`.";
+            "`fromHttpRequest` and `parseForwardedFor` to `ForwardedHeaderUtils`.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -52,15 +48,6 @@ public class MigrateUriComponentsBuilderMethods extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
-                if (FROM_HTTP_URL.matches(mi)) {
-                    JavaType.Method fromUriString = mi.getMethodType() == null ? null : mi.getMethodType().withName("fromUriString");
-                    mi = mi.withName(mi.getName().withSimpleName("fromUriString").withType(fromUriString)).withMethodType(fromUriString);
-                    if (mi.getSelect() == null) {
-                        maybeRemoveImport(TARGET_CLASS + ".fromHttpUrl");
-                        maybeAddImport(TARGET_CLASS, "fromUriString");
-                    }
-                    return mi;
-                }
                 if (FROM_HTTP_REQUEST.matches(mi)) {
                     maybeRemoveImport("org.springframework.web.util.UriComponentsBuilder");
                     maybeAddImport("org.springframework.web.util.ForwardedHeaderUtils");
