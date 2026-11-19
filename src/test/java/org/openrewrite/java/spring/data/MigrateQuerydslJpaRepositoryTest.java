@@ -15,12 +15,14 @@
  */
 package org.openrewrite.java.spring.data;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -104,5 +106,50 @@ class MigrateQuerydslJpaRepositoryTest implements RewriteTest {
               """
           )
         );
+    }
+
+    @Nested
+    class NoChange {
+
+        @Test
+        void subclassStaysARepository() {
+            //language=java
+            rewriteRun(
+              // The arguments of `super(..)` don't resolve against the type table this test parses with
+              spec -> spec.typeValidationOptions(TypeValidation.builder().identifiers(false).build()),
+              java(
+                """
+                  import javax.persistence.EntityManager;
+                  import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+                  import org.springframework.data.jpa.repository.support.QuerydslJpaRepository;
+                  import java.io.Serializable;
+
+                  class CustomRepository<T, ID extends Serializable> extends QuerydslJpaRepository<T, ID> {
+                      CustomRepository(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager) {
+                          super(entityInformation, entityManager);
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
+        void repositoryBaseClassStaysARepository() {
+            //language=java
+            rewriteRun(
+              java(
+                """
+                  import org.springframework.data.jpa.repository.support.QuerydslJpaRepository;
+
+                  class RepositoryFactory {
+                      Class<?> getRepositoryBaseClass() {
+                          return QuerydslJpaRepository.class;
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }
