@@ -308,8 +308,8 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     }
 
     /**
-     * Attribute the right-hand side of the generated {@code this.<field> = <field>} assignment. The template parser
-     * leaves the reference untyped for array-typed parameters, so set the identifier's type from the field's own
+     * Attribute both sides of the generated {@code this.<field> = <field>} assignment. The template parser
+     * leaves the references untyped for array-typed parameters, so set the identifier's type from the field's own
      * (already resolved) type; the reference and the parameter share it.
      */
     private static MethodDeclaration typeAssignmentReference(MethodDeclaration md, String fieldName, @Nullable JavaType fieldType) {
@@ -319,12 +319,20 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
         return md.withBody(md.getBody().withStatements(ListUtils.map(md.getBody().getStatements(), statement -> {
             if (statement instanceof J.Assignment) {
                 J.Assignment assignment = (J.Assignment) statement;
+                if (assignment.getVariable() instanceof J.FieldAccess) {
+                    // `this.<field>` is generated without a type when the template cannot see the field's type
+                    J.FieldAccess target = (J.FieldAccess) assignment.getVariable();
+                    if (fieldName.equals(target.getSimpleName()) && !TypeUtils.isWellFormedType(target.getType())) {
+                        assignment = assignment.withVariable(target.withName(target.getName().withType(fieldType)).withType(fieldType));
+                    }
+                }
                 Expression rhs = assignment.getAssignment();
                 if (rhs instanceof J.Identifier &&
                         fieldName.equals(((J.Identifier) rhs).getSimpleName()) &&
                         !TypeUtils.isWellFormedType(rhs.getType())) {
                     return assignment.withAssignment(((J.Identifier) rhs).withType(fieldType));
                 }
+                return assignment;
             }
             return statement;
         })));

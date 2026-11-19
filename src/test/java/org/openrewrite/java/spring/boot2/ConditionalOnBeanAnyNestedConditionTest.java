@@ -262,6 +262,8 @@ class ConditionalOnBeanAnyNestedConditionTest implements RewriteTest {
     void simpleConditionalAnnotationMultipleTypeClassNames() {
         //language=java
         rewriteRun(
+          // The `ConditionAaOrBb.class` reference in the annotation the recipe writes names the class it generates in the same template, which the template cannot type
+          spec -> spec.recipeQualityValidation(RecipeQualityValidation.all().types(TypeValidation.all().identifiers(false))),
           java(
             """
               import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
