@@ -28,7 +28,7 @@ class DowngradeServletApiWhenUsingJettyTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new DowngradeServletApiWhenUsingJetty());
+        spec.recipeFromResources("org.openrewrite.java.spring.boot3.DowngradeServletApiWhenUsingJetty");
     }
 
     @DocumentExample
