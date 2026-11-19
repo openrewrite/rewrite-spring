@@ -15,8 +15,12 @@
  */
 package org.openrewrite.java.spring;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.internal.ListUtils;
@@ -47,6 +51,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.quote;
 
 @EqualsAndHashCode(callSuper = false)
+@RequiredArgsConstructor
 @Value
 public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
@@ -78,6 +83,10 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
     @Nullable
     List<String> except;
 
+    @NonFinal
+    @Getter(AccessLevel.NONE)
+    transient @Nullable Compiled compiled;
+
     @Override
     public SpringConfigFiles getInitialValue(ExecutionContext ctx) {
         return new SpringConfigFiles();
@@ -90,21 +99,7 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
-        ChangePropertyKey yamlChangePropertyKey =
-                new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
-        org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
-        org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey =
-                new org.openrewrite.properties.ChangePropertyKey(quote(oldPropertyKey) + exceptRegex() + "([.\\[].+)", newPropertyKey + "$1", true, true);
-        UnfoldProperties unfoldNewPropertyKey =
-                new UnfoldProperties(null, singletonList("$." + newPropertyKey));
-
-        String quotedOldKey = quote(oldPropertyKey);
-        String exceptRegex = exceptRegex();
-        Pattern valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)((:(?:\\\\.|[^}])*)?\\})");
-        Pattern prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex + "(?![\\w-])");
-        Pattern oldKeyPattern = Pattern.compile(quotedOldKey);
-
+        Compiled compiled = compiled();
         return Preconditions.check(Preconditions.or(
                 new IsPossibleSpringConfigFile(acc),
                 new UsesType<>("org.springframework.beans.factory.annotation.Value", false),
@@ -114,28 +109,58 @@ public class ChangeSpringPropertyKey extends ScanningRecipe<SpringConfigFiles> {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 if (tree instanceof Yaml.Documents) {
-                    ChangePropertyKey changeKey = except == null || except.isEmpty() ? yamlChangePropertyKey :
+                    ChangePropertyKey changeKey = except == null || except.isEmpty() ? compiled.yamlChangePropertyKey :
                             new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, exceptedYamlSubKeys((Yaml.Documents) tree), null);
                     Tree newTree = changeKey.getVisitor().visit(tree, ctx);
                     if (newTree != tree && isWrittenAsNestedMappings((Yaml.Documents) tree)) {
-                        newTree = unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
+                        newTree = compiled.unfoldNewPropertyKey.getVisitor().visit(newTree, ctx);
                     }
                     tree = newTree;
                 } else if (tree instanceof Properties.File) {
                     if (FindProperties.find((Properties.File) tree, newPropertyKey, true).isEmpty()) {
-                        Tree newTree = propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                        Tree newTree = compiled.propertiesChangePropertyKey.getVisitor().visit(tree, ctx);
                         // for compatibility with yaml syntax, a spring property key will never have both a (scalar) value and also subproperties
                         if (newTree == tree) {
-                            newTree = subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
+                            newTree = compiled.subpropertiesChangePropertyKey.getVisitor().visit(tree, ctx);
                         }
                         tree = newTree;
                     }
                 } else if (tree instanceof JavaSourceFile) {
-                    tree = new JavaPropertyKeyVisitor(valueReferencePattern, prefixPattern, oldKeyPattern).visit(tree, ctx);
+                    tree = new JavaPropertyKeyVisitor(compiled.valueReferencePattern, compiled.prefixPattern, compiled.oldKeyPattern).visit(tree, ctx);
                 }
                 return tree;
             }
         });
+    }
+
+    private Compiled compiled() {
+        Compiled c = compiled;
+        if (c == null) {
+            c = new Compiled(oldPropertyKey, newPropertyKey, except, exceptRegex());
+            compiled = c;
+        }
+        return c;
+    }
+
+    private static final class Compiled {
+        final ChangePropertyKey yamlChangePropertyKey;
+        final org.openrewrite.properties.ChangePropertyKey propertiesChangePropertyKey;
+        final org.openrewrite.properties.ChangePropertyKey subpropertiesChangePropertyKey;
+        final UnfoldProperties unfoldNewPropertyKey;
+        final Pattern valueReferencePattern;
+        final Pattern prefixPattern;
+        final Pattern oldKeyPattern;
+
+        Compiled(String oldPropertyKey, String newPropertyKey, @Nullable List<String> except, String exceptRegex) {
+            String quotedOldKey = quote(oldPropertyKey);
+            yamlChangePropertyKey = new ChangePropertyKey(oldPropertyKey, newPropertyKey, true, except, null);
+            propertiesChangePropertyKey = new org.openrewrite.properties.ChangePropertyKey(oldPropertyKey, newPropertyKey, true, false);
+            subpropertiesChangePropertyKey = new org.openrewrite.properties.ChangePropertyKey(quotedOldKey + exceptRegex + "([.\\[].+)", newPropertyKey + "$1", true, true);
+            unfoldNewPropertyKey = new UnfoldProperties(null, singletonList("$." + newPropertyKey));
+            valueReferencePattern = Pattern.compile("\\$\\{(" + quotedOldKey + exceptRegex + "(?:\\.[^.}:]+)*)((:(?:\\\\.|[^}])*)?\\})");
+            prefixPattern = Pattern.compile("^" + quotedOldKey + exceptRegex + "(?![\\w-])");
+            oldKeyPattern = Pattern.compile(quotedOldKey);
+        }
     }
 
     /**
