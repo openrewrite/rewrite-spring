@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.amqp;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.test.RecipeSpec;
@@ -230,5 +231,112 @@ class UseTlsAmqpConnectionStringTest implements RewriteTest {
             spec -> spec.path("application-test.properties")
           )
         );
+    }
+
+    @Test
+    void yamlSequenceOfAddresses() {
+        rewriteRun(
+          yaml(
+            """
+              spring:
+                rabbitmq:
+                  addresses:
+                    - host1:5672
+                    - amqp://host2:5672
+              """,
+            """
+              spring:
+                rabbitmq:
+                  addresses:
+                    - host1:5671
+                    - amqps://host2:5671
+                  ssl:
+                    enabled: true
+              """,
+            spec -> spec.path("application.yml")
+          )
+        );
+    }
+
+    @Test
+    void keepPasswordDigits() {
+        rewriteRun(
+          yaml(
+            """
+              spring:
+                rabbitmq:
+                  addresses: amqp://user:1234@host1:5672/vhost
+              """,
+            """
+              spring:
+                rabbitmq:
+                  addresses: amqps://user:1234@host1:5671/vhost
+              """,
+            spec -> spec.path("application.yml")
+          ),
+          properties(
+            """
+              spring.rabbitmq.addresses=user:1234@host1:5672
+              """,
+            """
+              spring.rabbitmq.addresses=user:1234@host1:5671
+              spring.rabbitmq.ssl.enabled=true
+              """,
+            spec -> spec.path("application.properties")
+          )
+        );
+    }
+
+    @Test
+    void tlsPortMustMatchWholePort() {
+        rewriteRun(
+          spec -> spec.recipe(new UseTlsAmqpConnectionString(null, null, 567, null, null)),
+          properties(
+            """
+              spring.rabbitmq.addresses=host1:5672
+              """,
+            """
+              spring.rabbitmq.addresses=host1:567
+              spring.rabbitmq.ssl.enabled=true
+              """,
+            spec -> spec.path("application.properties")
+          )
+        );
+    }
+
+    @Nested
+    class NoChange {
+        @Test
+        void oldPortMustMatchWholePort() {
+            rewriteRun(
+              spec -> spec.recipe(new UseTlsAmqpConnectionString(null, 567, 5671, null, null)),
+              yaml(
+                """
+                  spring:
+                    rabbitmq:
+                      addresses: amqp://host1:5672
+                  """,
+                spec -> spec.path("application.yml")
+              ),
+              properties(
+                """
+                  spring.rabbitmq.addresses=user:secret@host1:5672
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            );
+        }
+
+        @Test
+        void alreadyMigrated() {
+            rewriteRun(
+              properties(
+                """
+                  spring.rabbitmq.addresses=amqps://user:5672@host1:5671
+                  """,
+                spec -> spec.path("application.properties")
+              )
+            );
+        }
     }
 }

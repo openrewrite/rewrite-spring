@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.internal.NameCaseConvention;
 import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.spring.AddSpringProperty;
@@ -35,9 +36,8 @@ import org.openrewrite.yaml.YamlVisitor;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
@@ -58,13 +58,15 @@ public class UseTlsAmqpConnectionString extends Recipe {
     @Option(displayName = "Old port",
             description = "The non-TLS enabled port number to replace with the TLS-enabled port. " +
                     "If this value is specified, no changes will be made to amqp connection strings which do not contain this port number. ",
-            example = "1234")
+            example = "1234",
+            required = false)
     @Nullable
     Integer oldPort;
 
     @Option(displayName = "TLS port",
             description = "The TLS-enabled port to use.",
-            example = "1234")
+            example = "1234",
+            required = false)
     @Nullable
     Integer port;
 
@@ -165,57 +167,26 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     Yaml.Mapping.Entry e = super.visitMappingEntry(entry, ctx);
 
                     if (amqpUrl.matches(getCursor())) {
-                        String[] connectionStrings = ((Yaml.Scalar) e.getValue()).getValue().split(",");
-                        try {
-                            boolean skip = false;
-                            boolean updated = false;
-                            for (int i = 0; i < connectionStrings.length; i++) {
-                                String connectionString = connectionStrings[i];
-                                if (connectionString.startsWith(PREFIX_AMQP + "://") || connectionString.startsWith(PREFIX_AMQP_SECURE + "://")) {
-                                    // amqp(s)://hostname:port(/virtualhost)
-                                    URI amqpUrl = URI.create(connectionString);
-                                    if (oldPort != null && !amqpUrl.getSchemeSpecificPart().contains(":" + oldPort)) {
-                                        skip = true;
-                                        continue;
-                                    }
-                                    URI updatedAmqpUrl = maybeUpdateAmqpConnectionUri(amqpUrl, port);
-                                    if (updatedAmqpUrl != amqpUrl) {
-                                        updated = true;
-                                        connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null)
-                                                .getVisitor());
-                                    }
-                                } else {
-                                    // hostname:port(/virtualhost)
-                                    String[] parts = connectionString.split(":");
-                                    if (parts.length == 2 && oldPort != null && !parts[1].split("/")[0].equals(oldPort.toString())) {
-                                        skip = true;
-                                        continue;
-                                    }
-                                    String updatedConnectionString = maybeUpdateAmqpConnectionString(connectionString, port);
-                                    if (!updatedConnectionString.equals(connectionString)) {
-                                        updated = true;
-                                        connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions)
-                                                .getVisitor());
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null)
-                                                .getVisitor());
-                                    }
-                                }
-                            }
-
-                            if (skip && !updated) {
-                                return e;
-                            }
-
-                            if (updated) {
-                                e = e.withValue(((Yaml.Scalar) e.getValue()).withValue(String.join(",", connectionStrings)));
-                            }
-                        } catch (URISyntaxException | IllegalArgumentException ignored) {
-                            // do nothing
+                        if (e.getValue() instanceof Yaml.Scalar) {
+                            e = e.withValue(updateScalar((Yaml.Scalar) e.getValue()));
+                        } else if (e.getValue() instanceof Yaml.Sequence) {
+                            // spring.rabbitmq.addresses is a List<String>, so a YAML sequence is valid too
+                            Yaml.Sequence sequence = (Yaml.Sequence) e.getValue();
+                            e = e.withValue(sequence.withEntries(ListUtils.map(sequence.getEntries(), item ->
+                                    item.getBlock() instanceof Yaml.Scalar ?
+                                            item.withBlock(updateScalar((Yaml.Scalar) item.getBlock())) : item)));
                         }
                     }
                     return e;
+                }
+
+                private Yaml.Scalar updateScalar(Yaml.Scalar scalar) {
+                    UpdatedAddresses updated = updateAddresses(scalar.getValue(), oldPort, port);
+                    if (updated == null) {
+                        return scalar;
+                    }
+                    tlsPropertyVisitors(updated, tlsPropertyKey, pathExpressions).forEach(this::doAfterVisit);
+                    return scalar.withValue(updated.getAddresses());
                 }
             });
         }
@@ -252,54 +223,10 @@ public class UseTlsAmqpConnectionString extends Recipe {
                     Properties.Entry e = super.visitEntry(entry, ctx);
 
                     if (NameCaseConvention.equalsRelaxedBinding(entry.getKey(), propertyKey)) {
-                        String[] connectionStrings = entry.getValue().getText().split(",");
-                        try {
-                            boolean skip = false;
-                            boolean updated = false;
-                            for (int i = 0; i < connectionStrings.length; i++) {
-                                String connectionString = connectionStrings[i];
-                                if (connectionString.startsWith(PREFIX_AMQP + "://") || connectionString.startsWith(PREFIX_AMQP_SECURE + "://")) {
-                                    // amqp(s)://hostname:port(/virtualhost)
-                                    URI amqpUrl = URI.create(connectionStrings[i]);
-                                    if (oldPort != null && !amqpUrl.getSchemeSpecificPart().contains(":" + oldPort)) {
-                                        skip = true;
-                                        continue;
-                                    }
-                                    URI updatedAmqpUrl = maybeUpdateAmqpConnectionUri(amqpUrl, port);
-                                    if (updatedAmqpUrl != amqpUrl) {
-                                        updated = true;
-                                        connectionStrings[i] = updatedAmqpUrl.toString();
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null)
-                                                .getVisitor());
-                                    }
-                                } else {
-                                    // hostname:port(/virtualhost)
-                                    String[] parts = connectionString.split(":");
-                                    if (parts.length == 2 && oldPort != null && !parts[1].split("/")[0].equals(oldPort.toString())) {
-                                        skip = true;
-                                        continue;
-                                    }
-                                    String updatedConnectionString = maybeUpdateAmqpConnectionString(connectionString, port);
-                                    if (!updatedConnectionString.equals(connectionString)) {
-                                        updated = true;
-                                        connectionStrings[i] = updatedConnectionString;
-                                        doAfterVisit(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions)
-                                                .getVisitor());
-                                        doAfterVisit(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null)
-                                                .getVisitor());
-                                    }
-                                }
-                            }
-
-                            if (skip && !updated) {
-                                return e;
-                            }
-
-                            if (updated) {
-                                e = e.withValue(e.getValue().withText(String.join(",", connectionStrings)));
-                            }
-                        } catch (URISyntaxException | IllegalArgumentException ignored) {
-                            // do nothing
+                        UpdatedAddresses updated = updateAddresses(entry.getValue().getText(), oldPort, port);
+                        if (updated != null) {
+                            tlsPropertyVisitors(updated, tlsPropertyKey, pathExpressions).forEach(this::doAfterVisit);
+                            e = e.withValue(e.getValue().withText(updated.getAddresses()));
                         }
                     }
                     return e;
@@ -308,23 +235,84 @@ public class UseTlsAmqpConnectionString extends Recipe {
         }
     }
 
-    private static URI maybeUpdateAmqpConnectionUri(URI amqpUrl, @Nullable Integer port) throws URISyntaxException {
-        URI updatedAmqpUrl = amqpUrl;
-        if (port != null && !amqpUrl.getSchemeSpecificPart().contains(":" + port)) {
-            updatedAmqpUrl = new URI(amqpUrl.getScheme(), amqpUrl.getSchemeSpecificPart()
-                    .replaceFirst(":\\d+", ":" + port), amqpUrl.getFragment());
-        }
-        if (PREFIX_AMQP.equals(amqpUrl.getScheme())) {
-            updatedAmqpUrl = new URI(PREFIX_AMQP_SECURE, updatedAmqpUrl.getSchemeSpecificPart(), amqpUrl.getFragment());
-        }
-        return updatedAmqpUrl;
+    @Value
+    private static class UpdatedAddresses {
+        String addresses;
+        boolean uriUpdated;
+        boolean hostAndPortUpdated;
     }
 
-    private static String maybeUpdateAmqpConnectionString(String amqpUrl, @Nullable Integer port) {
-        String updatedAmqpUrl = amqpUrl;
-        if (port != null && !amqpUrl.contains(":" + port)) {
-            updatedAmqpUrl = updatedAmqpUrl.replaceFirst(":\\d+", ":" + port);
+    /**
+     * Updates a comma-separated list of addresses, returning {@code null} when none of them changed.
+     */
+    private static @Nullable UpdatedAddresses updateAddresses(String addresses, @Nullable Integer oldPort, @Nullable Integer port) {
+        String[] parts = addresses.split(",");
+        boolean uriUpdated = false;
+        boolean hostAndPortUpdated = false;
+        for (int i = 0; i < parts.length; i++) {
+            String updated = updateAddress(parts[i], oldPort, port);
+            if (!updated.equals(parts[i])) {
+                if (isUri(parts[i])) {
+                    uriUpdated = true;
+                } else {
+                    hostAndPortUpdated = true;
+                }
+                parts[i] = updated;
+            }
         }
-        return updatedAmqpUrl;
+        return uriUpdated || hostAndPortUpdated ?
+                new UpdatedAddresses(String.join(",", parts), uriUpdated, hostAndPortUpdated) :
+                null;
+    }
+
+    private static List<TreeVisitor<?, ExecutionContext>> tlsPropertyVisitors(UpdatedAddresses updated, String tlsPropertyKey,
+                                                                            @Nullable List<String> pathExpressions) {
+        List<TreeVisitor<?, ExecutionContext>> visitors = new ArrayList<>();
+        if (updated.isUriUpdated()) {
+            visitors.add(new ChangeSpringPropertyValue(tlsPropertyKey, "true", "false", null, null).getVisitor());
+        }
+        if (updated.isHostAndPortUpdated()) {
+            visitors.add(new AddSpringProperty(tlsPropertyKey, "true", null, pathExpressions).getVisitor());
+            visitors.add(new ChangeSpringPropertyValue(tlsPropertyKey, "true", null, null, null).getVisitor());
+        }
+        return visitors;
+    }
+
+    private static boolean isUri(String address) {
+        return address.startsWith(PREFIX_AMQP + "://") || address.startsWith(PREFIX_AMQP_SECURE + "://");
+    }
+
+    /**
+     * Updates one address of the form {@code [amqp[s]://][username[:password]@]host[:port][/virtualhost]},
+     * comparing and replacing the whole port, so neither a password nor a longer port is mistaken for it.
+     */
+    private static String updateAddress(String address, @Nullable Integer oldPort, @Nullable Integer port) {
+        int authorityStart = isUri(address) ? address.indexOf("://") + 3 : 0;
+        int authorityEnd = authorityStart;
+        while (authorityEnd < address.length() && "/?#".indexOf(address.charAt(authorityEnd)) < 0) {
+            authorityEnd++;
+        }
+        int hostStart = Math.max(authorityStart, address.lastIndexOf('@', authorityEnd - 1) + 1);
+        int portSeparator = address.lastIndexOf(':', authorityEnd - 1);
+        String currentPort = null;
+        // a ':' inside an IPv6 literal such as [::1] is not a port separator
+        if (portSeparator >= hostStart && address.lastIndexOf(']', authorityEnd - 1) < portSeparator) {
+            String digits = address.substring(portSeparator + 1, authorityEnd);
+            if (digits.matches("\\d+")) {
+                currentPort = digits;
+            }
+        }
+
+        if (oldPort != null && !oldPort.toString().equals(currentPort)) {
+            return address;
+        }
+        String updated = address;
+        if (port != null && currentPort != null && !port.toString().equals(currentPort)) {
+            updated = address.substring(0, portSeparator + 1) + port + address.substring(authorityEnd);
+        }
+        if (updated.startsWith(PREFIX_AMQP + "://")) {
+            updated = PREFIX_AMQP_SECURE + updated.substring(PREFIX_AMQP.length());
+        }
+        return updated;
     }
 }
