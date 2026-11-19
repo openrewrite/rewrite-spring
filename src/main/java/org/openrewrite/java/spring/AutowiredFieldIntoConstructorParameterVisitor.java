@@ -194,7 +194,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                         return applied.withStatements(ListUtils.map(applied.getStatements(), s -> {
                             if (s instanceof MethodDeclaration && ((MethodDeclaration) s).isConstructor()) {
                                 MethodDeclaration ctor = typeAddedParameter((MethodDeclaration) s, fieldName, type);
-                                return typeAssignmentReference(ctor, fieldName, fieldType);
+                                return typeAssignmentReference(ctor, fieldName, fieldName, fieldType);
                             }
                             return s;
                         }));
@@ -254,7 +254,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                                 getCursor(),
                                 md.getBody().getCoordinates().lastStatement()
                         );
-                md = typeAssignmentReference(md, parameterName, type.getType());
+                md = typeAssignmentReference(md, fieldName, parameterName, type.getType());
             }
             return md;
         }
@@ -308,11 +308,12 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
     }
 
     /**
-     * Attribute both sides of the generated {@code this.<field> = <field>} assignment. The template parser
+     * Attribute both sides of the generated {@code this.<field> = <parameter>} assignment. The template parser
      * leaves the references untyped for array-typed parameters, so set the identifier's type from the field's own
      * (already resolved) type; the reference and the parameter share it.
      */
-    private static MethodDeclaration typeAssignmentReference(MethodDeclaration md, String fieldName, @Nullable JavaType fieldType) {
+    private static MethodDeclaration typeAssignmentReference(MethodDeclaration md, String fieldName, String parameterName,
+                                                             @Nullable JavaType fieldType) {
         if (fieldType == null || md.getBody() == null) {
             return md;
         }
@@ -328,7 +329,7 @@ public class AutowiredFieldIntoConstructorParameterVisitor extends JavaVisitor<E
                 }
                 Expression rhs = assignment.getAssignment();
                 if (rhs instanceof J.Identifier &&
-                        fieldName.equals(((J.Identifier) rhs).getSimpleName()) &&
+                        parameterName.equals(((J.Identifier) rhs).getSimpleName()) &&
                         !TypeUtils.isWellFormedType(rhs.getType())) {
                     return assignment.withAssignment(((J.Identifier) rhs).withType(fieldType));
                 }
