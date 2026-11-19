@@ -28,7 +28,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResource("/META-INF/rewrite/spring-boot-23.yml", "org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants")
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.3"));
     }
 

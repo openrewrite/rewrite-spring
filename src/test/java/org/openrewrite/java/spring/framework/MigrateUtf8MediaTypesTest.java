@@ -29,7 +29,7 @@ class MigrateUtf8MediaTypesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResource("/META-INF/rewrite/spring-framework-52.yml", "org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes")
+        spec.recipeFromResources("org.openrewrite.java.spring.framework.UpgradeSpringFramework_5_2")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "spring-core-5", "spring-web-5.3"));
     }

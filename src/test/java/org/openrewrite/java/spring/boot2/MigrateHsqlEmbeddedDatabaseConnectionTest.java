@@ -29,7 +29,7 @@ class MigrateHsqlEmbeddedDatabaseConnectionTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResource("/META-INF/rewrite/spring-boot-24.yml", "org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection")
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-2.2"));
     }
 

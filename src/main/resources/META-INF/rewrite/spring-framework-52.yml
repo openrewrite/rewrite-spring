@@ -29,17 +29,6 @@ recipeList:
       groupId: org.springframework
       artifactId: "*"
       newVersion: 5.2.x
-  - org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes
-  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
-      groupId: org.springframework.security
-      artifactId: "*"
-      newVersion: 5.2.x
----
-type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.java.spring.framework.MigrateUtf8MediaTypes
-displayName: Migrate deprecated Spring Web UTF8 `MediaType` enums
-description: Spring Web `MediaType#APPLICATION_JSON_UTF8` and `MediaType#APPLICATION_PROBLEM_JSON_UTF8` were deprecated in 5.2.
-recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_JSON_UTF8
       fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_JSON
@@ -52,3 +41,7 @@ recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_UTF8_VALUE
       fullyQualifiedConstantName: org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: org.springframework.security
+      artifactId: "*"
+      newVersion: 5.2.x

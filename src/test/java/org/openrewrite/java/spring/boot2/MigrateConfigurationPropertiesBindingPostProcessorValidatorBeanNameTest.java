@@ -28,7 +28,7 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResource("/META-INF/rewrite/spring-boot-22.yml", "org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName")
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2")
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-2.2",
