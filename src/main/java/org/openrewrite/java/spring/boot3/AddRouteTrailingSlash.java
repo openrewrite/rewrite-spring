@@ -17,12 +17,14 @@ package org.openrewrite.java.spring.boot3;
 
 import lombok.Getter;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Space;
@@ -51,7 +53,14 @@ public class AddRouteTrailingSlash extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new UsesType<>(GET_ANNOTATION_TYPE, false),
+                new UsesType<>(REQUEST_ANNOTATION_TYPE, false),
+                new UsesType<>(POST_ANNOTATION_TYPE, false),
+                new UsesType<>(PUT_ANNOTATION_TYPE, false),
+                new UsesType<>(PATCH_ANNOTATION_TYPE, false),
+                new UsesType<>(DELETE_ANNOTATION_TYPE, false)
+        ), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.Annotation visitAnnotation(J.Annotation annotation, ExecutionContext ctx) {
                 J.Annotation anno = super.visitAnnotation(annotation, ctx);
@@ -94,7 +103,7 @@ public class AddRouteTrailingSlash extends Recipe {
 
                 return anno;
             }
-        };
+        });
     }
 
     private boolean shouldAddTrailingSlashArgument(String str) {

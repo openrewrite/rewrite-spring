@@ -46,10 +46,7 @@ public class RemoveBeanValidatorPluginsConfiguration extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(Preconditions.or(
-                new UsesType<>(ANNOTATION_IMPORT, false),
-                new UsesType<>(BEAN_VALIDATOR_PLUGINS_CONFIGURATION, false)
-        ), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesType<>(BEAN_VALIDATOR_PLUGINS_CONFIGURATION, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
