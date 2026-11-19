@@ -24,7 +24,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -41,16 +41,16 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
     @Getter
     final String description = "`JdbcTemplate` signatures with `Object[]` arguments are deprecated, in favor of their existing varargs equivalents.";
 
+    private static final MethodMatcher QUERY_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate query(..)");
+    private static final MethodMatcher QUERY_FOR_OBJECT_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForObject(..)");
+    private static final MethodMatcher QUERY_FOR_LIST_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.jdbc.core.JdbcTemplate", true), new JdbcTemplateArgsVisitor());
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(QUERY_MAPPER), new UsesMethod<>(QUERY_FOR_OBJECT_MAPPER), new UsesMethod<>(QUERY_FOR_LIST_MAPPER)), new JdbcTemplateArgsVisitor());
     }
 
     private static class JdbcTemplateArgsVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final MethodMatcher QUERY_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate query(..)");
-        private static final MethodMatcher QUERY_FOR_OBJECT_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForObject(..)");
-        private static final MethodMatcher QUERY_FOR_LIST_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
-
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
