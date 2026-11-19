@@ -197,6 +197,31 @@ class ReplaceGlobalMethodSecurityWithMethodSecurityTest implements RewriteTest {
     }
 
     @Test
+    void keepAnnotationOnGlobalMethodSecurityConfigurationSubclass() {
+        rewriteRun(
+          spec -> spec.parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
+            "spring-security-config-5.8", "spring-security-core-5.8")),
+          //language=java
+          java(
+            """
+              import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+              import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+              import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+              import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+
+              @EnableGlobalMethodSecurity(prePostEnabled = true)
+              public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+                  @Override
+                  protected MethodSecurityExpressionHandler createExpressionHandler() {
+                      return new DefaultMethodSecurityExpressionHandler();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void removeUseAuthorizationManagerAttribute() {
         rewriteRun(
           spec -> spec.recipeFromResources("org.openrewrite.java.spring.security5.ReplaceGlobalMethodSecurityWithMethodSecurityXml"),
