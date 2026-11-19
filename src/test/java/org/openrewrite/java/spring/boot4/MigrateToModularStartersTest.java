@@ -543,7 +543,8 @@ class MigrateToModularStartersTest implements RewriteTest {
               "org.openrewrite.java.spring.boot4.MigrateToModularStarters"
             ).parser(JavaParser.fromJavaVersion()
               .classpathFromResources(new InMemoryExecutionContext(),
-                "spring-boot-actuator-3.4"));
+                "spring-boot-actuator-3.4",
+                "spring-boot-actuator-autoconfigure-3.5"));
         }
 
         @Test
@@ -692,7 +693,6 @@ class MigrateToModularStartersTest implements RewriteTest {
         @Test
         void migrateEndpointRequest() {
             rewriteRun(
-              spec -> spec.typeValidationOptions(TypeValidation.none()),
               //language=java
               java(
                 """
