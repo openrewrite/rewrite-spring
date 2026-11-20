@@ -78,9 +78,9 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
         );
     }
 
-    @Issue("#4")
+    @Issue("https://github.com/openrewrite/rewrite-spring/issues/736")
     @Test
-    void removeUnnecessarySpacingInFollowingAnnotationArgument() {
+    void preserveRequestParamNameWhenCompilerMetadataIsUnknown() {
         //language=java
         rewriteRun(
           java(
@@ -106,7 +106,7 @@ class ImplicitWebAnnotationNamesTest implements RewriteTest {
               public class UsersController {
                   @GetMapping("/{id}")
                   public ResponseEntity<String> getUser(
-                          @RequestParam(defaultValue = 3) int count) {
+                          @RequestParam(name = "count", defaultValue = 3) int count) {
                   }
               }
               """
