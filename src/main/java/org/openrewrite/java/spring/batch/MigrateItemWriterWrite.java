@@ -168,10 +168,7 @@ public class MigrateItemWriterWrite extends Recipe {
     }
 
     private static boolean isSameVariable(JavaType.@Nullable Variable a, JavaType.@Nullable Variable b) {
-        if (a == null || b == null) {
-            return false;
-        }
-        return a == b || Objects.equals(a.getName(), b.getName()) && Objects.equals(a.getOwner(), b.getOwner());
+        return a != null && b != null && a.getName().equals(b.getName()) && Objects.equals(a.getOwner(), b.getOwner());
     }
 
     @RequiredArgsConstructor
