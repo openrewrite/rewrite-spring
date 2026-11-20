@@ -21,7 +21,6 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -32,7 +31,7 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
         spec.recipe(new MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName())
           .parser(JavaParser.fromJavaVersion()
             .classpathFromResources(new InMemoryExecutionContext(),
-              "spring-boot-2.7",
+              "spring-boot-2.2",
               "spring-beans-5",
               "spring-core-5",
               "spring-context-5"));
@@ -43,8 +42,6 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     void updateFieldAccess() {
         //language=java
         rewriteRun(
-          // The input's `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` does not resolve on the test's spring-boot-2.7 classpath.
-          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor;
@@ -72,8 +69,6 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     void updateStaticConstant() {
         //language=java
         rewriteRun(
-          // The input's static import of `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` does not resolve on the test's spring-boot-2.7 classpath.
-          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               import static org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME;
@@ -101,8 +96,6 @@ class MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanNameTest im
     void updateFullyQualifiedTarget() {
         //language=java
         rewriteRun(
-          // The input's `ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME` does not resolve on the test's spring-boot-2.7 classpath.
-          spec -> spec.typeValidationOptions(TypeValidation.all().identifiers(false)),
           java(
             """
               class Test {
