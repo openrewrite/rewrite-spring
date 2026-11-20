@@ -58,6 +58,8 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
                 if (cd.getExtends() != null &&
                         TypeUtils.isOfClassType(cd.getExtends().getType(), fullyQualifiedClassName)) {
+                    boolean alreadyImplements = cd.getImplements() != null && cd.getImplements().stream()
+                            .anyMatch(i -> TypeUtils.isOfClassType(i.getType(), fullyQualifiedInterfaceName));
                     cd = cd.withExtends(null);
                     updateCursor(cd);
                     // This is an interesting one... JobExecutionListenerSupport implements
@@ -66,11 +68,14 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                     // exception when the JavaTemplate visits class type.
                     JavaType.Class type = (JavaType.Class) cd.getType();
                     if (type != null) {
-                        cd = cd.withType(type.withSupertype(null)
-                                .withInterfaces(ListUtils.concat(
-                                        type.getInterfaces(),
-                                        JavaType.ShallowClass.build(fullyQualifiedInterfaceName)
-                                )));
+                        JavaType.Class withoutSupertype = type.withSupertype(null);
+                        if (type.getInterfaces().stream().noneMatch(i -> TypeUtils.isOfClassType(i, fullyQualifiedInterfaceName))) {
+                            withoutSupertype = withoutSupertype.withInterfaces(ListUtils.concat(
+                                    type.getInterfaces(),
+                                    JavaType.ShallowClass.build(fullyQualifiedInterfaceName)
+                            ));
+                        }
+                        cd = cd.withType(withoutSupertype);
                         updateCursor(cd);
                     }
 
@@ -78,15 +83,17 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                         return cd;
                     }
 
-                    cd = JavaTemplate
-                            .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
-                            .imports(fullyQualifiedInterfaceName)
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5", "spring-batch-infrastructure-5"))
-                            .build()
-                            .apply(
-                                    getCursor(),
-                                    cd.getCoordinates().addImplementsClause()
-                            );
+                    if (!alreadyImplements) {
+                        cd = JavaTemplate
+                                .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
+                                .imports(fullyQualifiedInterfaceName)
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-batch-core-5", "spring-batch-infrastructure-5"))
+                                .build()
+                                .apply(
+                                        getCursor(),
+                                        cd.getCoordinates().addImplementsClause()
+                                );
+                    }
                     cd = (J.ClassDeclaration) new AdapterSuperCallsToInterface(fullyQualifiedClassName, fullyQualifiedInterfaceName)
                             .visitNonNull(cd, ctx, getCursor().getParentOrThrow());
                     maybeRemoveImport(fullyQualifiedClassName);
