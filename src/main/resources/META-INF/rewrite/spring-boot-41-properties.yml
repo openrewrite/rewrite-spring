@@ -41,3 +41,21 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: logging.pattern.rolling-file-name
       newPropertyKey: logging.logback.rollingpolicy.file-name-pattern
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.dynatrace.metrics.export.v1.device-id
+      comment: "This property is deprecated: Dynatrace V1 API is deprecated, use the V2 API instead."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.dynatrace.metrics.export.v1.group
+      comment: "This property is deprecated: Dynatrace V1 API is deprecated, use the V2 API instead."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: management.dynatrace.metrics.export.v1.technology-type
+      comment: "This property is deprecated: Dynatrace V1 API is deprecated, use the V2 API instead."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.data.redis.lettuce.cluster.refresh.adaptive
+      comment: "This property is deprecated: All adaptive triggers are enabled by default."
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.devtools.livereload.enabled
+      comment: "This property is deprecated: Deprecated with no replacement"
+  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
+      propertyKey: spring.devtools.livereload.port
+      comment: "This property is deprecated: Deprecated with no replacement"
