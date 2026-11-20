@@ -17,13 +17,17 @@ package org.openrewrite.java.spring.kafka;
 
 import lombok.Getter;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.RemoveMethodInvocationsVisitor;
+import org.openrewrite.java.search.UsesMethod;
 
 import static java.util.Collections.singletonList;
 
 public class RemoveUsingCompletableFuture extends Recipe {
+
+    private static final String USING_COMPLETABLE_FUTURE = "org.springframework.kafka.core.KafkaOperations usingCompletableFuture()";
 
     @Getter
     final String displayName = "Remove `KafkaOperations.usingCompletableFuture()`";
@@ -33,6 +37,7 @@ public class RemoveUsingCompletableFuture extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new RemoveMethodInvocationsVisitor(singletonList("org.springframework.kafka.core.KafkaOperations usingCompletableFuture()"));
+        return Preconditions.check(new UsesMethod<>(USING_COMPLETABLE_FUTURE),
+                new RemoveMethodInvocationsVisitor(singletonList(USING_COMPLETABLE_FUTURE)));
     }
 }

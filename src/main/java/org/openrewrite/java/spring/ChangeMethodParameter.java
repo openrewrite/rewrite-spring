@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.openrewrite.*;
+import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.search.DeclaresMethod;
@@ -97,6 +98,14 @@ public class ChangeMethodParameter extends Recipe {
                         maybeRemoveImport(parameter.getTypeAsFullyQualified());
                     }
 
+                    JavaType.Method methodType = md.getMethodType();
+                    if (methodType != null && typeTree.getType() != null) {
+                        JavaType newParameterType = typeTree.getType();
+                        methodType = methodType.withParameterTypes(ListUtils.map(methodType.getParameterTypes(),
+                                (i, type) -> i == parameterIndex ? newParameterType : type));
+                        md = md.withMethodType(methodType);
+                    }
+
                     String parameterName = parameter.getVariables().get(0).getSimpleName();
                     parameter = parameter.withTypeExpression(typeTree).withVariables(singletonList(
                             new J.VariableDeclarations.NamedVariable(
@@ -114,7 +123,7 @@ public class ChangeMethodParameter extends Recipe {
                                                     null,
                                                     0,
                                                     parameterName,
-                                                    md.getMethodType(),
+                                                    methodType,
                                                     typeTree.getType(),
                                                     null
                                             )
@@ -125,7 +134,7 @@ public class ChangeMethodParameter extends Recipe {
                             )
                     ));
 
-                    md = autoFormat(changeParameter(md, parameter), parameter, ctx, getCursor().getParentTreeCursor());
+                    md = maybeAutoFormat(md, changeParameter(md, parameter), parameter, ctx, getCursor().getParentTreeCursor());
                 }
 
             }

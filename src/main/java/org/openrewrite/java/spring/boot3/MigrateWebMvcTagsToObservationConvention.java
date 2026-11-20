@@ -38,6 +38,8 @@ import java.util.Set;
 
 import static java.util.Collections.nCopies;
 
+import org.openrewrite.java.tree.CoordinateBuilder;
+
 public class MigrateWebMvcTagsToObservationConvention extends Recipe {
 
     private static final String DEFAULTSERVERREQUESTOBSERVATIONCONVENTION_FQ = "org.springframework.http.server.observation.DefaultServerRequestObservationConvention";
@@ -232,7 +234,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         return s;
                     }
 
-                    private Statement refactorTagsUsage(ExecutionContext ctx, org.openrewrite.java.tree.CoordinateBuilder.Statement coords, J.MethodInvocation init, Statement original) {
+                    private Statement refactorTagsUsage(ExecutionContext ctx, CoordinateBuilder.Statement coords, J.MethodInvocation init, Statement original) {
                         J.MethodDeclaration insideMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
                         if (insideMethod != null && insideMethod.getBody() != null) {
                             J.Identifier returnIdentifier = (J.Identifier) ((J.Return) insideMethod.getBody().getStatements().get(insideMethod.getBody().getStatements().size() - 1)).getExpression();

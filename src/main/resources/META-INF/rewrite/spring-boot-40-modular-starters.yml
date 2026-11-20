@@ -181,6 +181,8 @@ name: org.openrewrite.java.spring.boot4.MigrateAutoconfigurePackages
 displayName: Migrate packages to modular starters
 description: Migrate to new packages used for autoconfiguration by Spring Boot 4.0 modules.
 preconditions:
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.boot..*
   - org.openrewrite.Singleton
 recipeList:
   # spring-boot-activemq
@@ -661,6 +663,9 @@ description: >-
 tags:
   - spring
   - boot
+preconditions:
+  - org.openrewrite.java.search.FindTypes:
+      fullyQualifiedTypeName: org.springframework.boot.web..*
 recipeList:
   # Embedded Tomcat: org.springframework.boot.web.embedded.tomcat -> org.springframework.boot.tomcat
   - org.openrewrite.java.ChangeType:

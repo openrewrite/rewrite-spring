@@ -19,11 +19,18 @@ import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Issue;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.SourceSpecs;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
@@ -165,8 +172,8 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, rs -> {
-                          user.setAge = rs.getInt("AGE");
-                          user.setName = rs.getString("NAME");
+                          user.setAge(rs.getInt("AGE"));
+                          user.setName(rs.getString("NAME"));
                       });
                       return user;
                   }
@@ -205,8 +212,8 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
-                          user.setAge = rs.getInt("AGE");
-                          user.setName = rs.getString("NAME");
+                          user.setAge(rs.getInt("AGE"));
+                          user.setName(rs.getString("NAME"));
                       }, args);
                       return user;
                   }
@@ -260,8 +267,8 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
                       Object[] args = new Object[]{first, last};
                       final User user = new User();
                       jdbcTemplate.query("select NAME, AGE from USER where FIRST = ? && LAST = ?", rs -> {
-                          user.setAge = rs.getInt("AGE");
-                          user.setName = rs.getString("NAME");
+                          user.setAge(rs.getInt("AGE"));
+                          user.setName(rs.getString("NAME"));
                       }, args);
                       return user;
                   }
@@ -382,4 +389,52 @@ class JdbcTemplateObjectArrayArgToVarArgsTest implements RewriteTest {
         );
     }
 
+
+    @Test
+    void methodTypeFollowsVarArgsOverload() {
+        //language=java
+        rewriteRun(
+          user,
+          java(
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class MyDao {
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", args, User.class);
+                  }
+              }
+              """,
+            """
+              package abc;
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class MyDao {
+                  JdbcTemplate jdbcTemplate;
+
+                  User getUser(String first, String last) {
+                      Object[] args = new Object[]{first, last};
+                      return jdbcTemplate.queryForObject("select NAME, AGE from USER where FIRST = ? && LAST = ?", User.class, args);
+                  }
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> new JavaIsoVisitor<Integer>() {
+                @Override
+                public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, Integer ctx) {
+                    if ("queryForObject".equals(method.getSimpleName())) {
+                        List<JavaType> parameterTypes = method.getMethodType().getParameterTypes();
+                        assertThat(parameterTypes).hasSize(3);
+                        assertThat(TypeUtils.asFullyQualified(parameterTypes.get(1)).getFullyQualifiedName()).isEqualTo("java.lang.Class");
+                        assertThat(parameterTypes.get(2)).isInstanceOf(JavaType.Array.class);
+                    }
+                    return method;
+                }
+            }.visit(cu, 0))
+          )
+        );
+    }
 }

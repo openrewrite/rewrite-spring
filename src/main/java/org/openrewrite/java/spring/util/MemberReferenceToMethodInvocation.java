@@ -23,13 +23,15 @@ import org.openrewrite.internal.StringUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.VariableNameUtils;
+import org.openrewrite.java.trait.Scope;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.stream.Collectors.joining;
 
@@ -69,6 +71,8 @@ public class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionCont
 
     private List<Param> getLambdaArgNames(JavaType.Method methodType) {
         List<Param> params = new ArrayList<>();
+        Scope scope = Scope.at(getCursor());
+        Set<String> chosen = new HashSet<>();
         for (int i = 0; i < methodType.getParameterTypes().size(); i++) {
             JavaType type = methodType.getParameterTypes().get(i);
             String name = methodType.getParameterNames().get(i);
@@ -76,13 +80,14 @@ public class MemberReferenceToMethodInvocation extends JavaVisitor<ExecutionCont
                 String typeString = type.toString();
                 name = typeString.substring(typeString.lastIndexOf('.') + 1).toLowerCase();
             }
-            String uniqueVariableName = VariableNameUtils.generateVariableName(name, getCursor(), VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER);
+            String uniqueVariableName = scope.freeName(name, chosen::contains);
+            chosen.add(uniqueVariableName);
 
             params.add(new Param(type, uniqueVariableName));
         }
         if (params.isEmpty()) {
             JavaType.FullyQualified type = methodType.getDeclaringType();
-            String uniqueVariableName = VariableNameUtils.generateVariableName(StringUtils.uncapitalize(keepFromLastCapitalLetter(type.getClassName())), getCursor(), VariableNameUtils.GenerationStrategy.INCREMENT_NUMBER);
+            String uniqueVariableName = scope.freeName(StringUtils.uncapitalize(keepFromLastCapitalLetter(type.getClassName())), chosen::contains);
 
             params.add(new Param(type, uniqueVariableName));
         }

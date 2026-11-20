@@ -17,12 +17,14 @@ package org.openrewrite.java.spring.framework;
 
 import lombok.Getter;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 
 public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe {
@@ -40,7 +42,10 @@ public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(
+                new UsesMethod<>(RESPONSE_STATUS_EXCEPTION_MATCHER),
+                new UsesMethod<>(REST_CLIENT_RESPONSE_EXCEPTION_MATCHER)
+        ), new JavaVisitor<ExecutionContext>() {
             @Override
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation m = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
@@ -55,6 +60,6 @@ public class MigrateResponseStatusExceptionGetRawStatusCodeMethod extends Recipe
                 }
                 return m;
             }
-        };
+        });
     }
 }

@@ -50,11 +50,14 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
     }
 
     private static final class SimplifyParseCallsVisitor extends JavaVisitor<ExecutionContext> {
+        private static final MethodMatcher PARSE_MEDIA_TYPE_MATCHER = new MethodMatcher(PARSE_MEDIA_TYPE);
+        private static final MethodMatcher VALUE_OF_MATCHER = new MethodMatcher(VALUE_OF);
+
         @Override
         public J visitMethodInvocation(J.MethodInvocation methodInvocation, ExecutionContext ctx) {
             J j = super.visitMethodInvocation(methodInvocation, ctx);
             J.MethodInvocation mi = (J.MethodInvocation) j;
-            if (new MethodMatcher(PARSE_MEDIA_TYPE).matches(mi) || new MethodMatcher(VALUE_OF).matches(mi)) {
+            if (PARSE_MEDIA_TYPE_MATCHER.matches(mi) || VALUE_OF_MATCHER.matches(mi)) {
                 Expression methodArg = mi.getArguments().get(0);
                 if (methodArg instanceof J.FieldAccess &&
                         TypeUtils.isOfClassType(((J.FieldAccess) methodArg).getTarget().getType(), MEDIA_TYPE)) {
@@ -66,7 +69,7 @@ public class SimplifyMediaTypeParseCalls extends Recipe {
                             ((JavaType.Class) fieldAccess.getName().getFieldType().getOwner()).getMembers().stream().filter(v -> v.getName().equals(replacementConstant)).findFirst() :
                             Optional.empty();
                     return fieldAccess
-                            .withType(JavaType.Primitive.String)
+                            .withType(mi.getType())
                             .withName(fieldAccess.getName()
                                     .withSimpleName(replacementConstant)
                                     .withFieldType(first.orElse(null))

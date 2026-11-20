@@ -65,7 +65,9 @@ recipeList:
 
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateRestClientBuilderCustomizerPackageName
-  - org.openrewrite.java.spring.boot2.MigrateErrorPropertiesIncludeStackTraceConstants
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM
+      fullyQualifiedConstantName: org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_PARAM
   - org.openrewrite.java.spring.boot2.GetErrorAttributes
 
   # Update properties

@@ -44,6 +44,27 @@ public class UnnecessarySpringExtension extends Recipe {
     private static final String EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN = String.format("@%s(%s.class)", EXTEND_WITH, SPRING_EXTENSION);
     private static final AnnotationMatcher EXTENDS_WITH_SPRING_EXACT_MATCHER = new AnnotationMatcher(EXTEND_WITH_SPRING_EXTENSION_ANNOTATION_PATTERN, false);
 
+    private static final List<String> SPRING_BOOT_TEST_ANNOTATIONS = Arrays.asList(
+            "org.springframework.boot.test.context.SpringBootTest",
+            "org.springframework.boot.test.autoconfigure.jdbc.JdbcTest",
+            "org.springframework.boot.test.autoconfigure.web.client.RestClientTest",
+            "org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest",
+            "org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest",
+            "org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest",
+            "org.springframework.boot.test.autoconfigure.webservices.client.WebServiceClientTest",
+            "org.springframework.boot.test.autoconfigure.jooq.JooqTest",
+            "org.springframework.boot.test.autoconfigure.json.JsonTest",
+            "org.springframework.boot.test.autoconfigure.data.cassandra.DataCassandraTest",
+            "org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest",
+            "org.springframework.boot.test.autoconfigure.data.ldap.DataLdapTest",
+            "org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest",
+            "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
+            "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
+            "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest",
+            "org.springframework.batch.test.context.SpringBatchTest",
+            "org.springframework.test.context.junit.jupiter.SpringJUnitConfig"
+    );
+
     @Getter
     final String displayName = "Remove redundant `@ExtendWith(SpringExtension.class)`";
 
@@ -85,27 +106,6 @@ public class UnnecessarySpringExtension extends Recipe {
                         }
                         return super.visitClassDeclaration(classDecl, ctx);
                     }
-
-                    private final List<String> SPRING_BOOT_TEST_ANNOTATIONS = Arrays.asList(
-                            "org.springframework.boot.test.context.SpringBootTest",
-                            "org.springframework.boot.test.autoconfigure.jdbc.JdbcTest",
-                            "org.springframework.boot.test.autoconfigure.web.client.RestClientTest",
-                            "org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest",
-                            "org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest",
-                            "org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest",
-                            "org.springframework.boot.test.autoconfigure.webservices.client.WebServiceClientTest",
-                            "org.springframework.boot.test.autoconfigure.jooq.JooqTest",
-                            "org.springframework.boot.test.autoconfigure.json.JsonTest",
-                            "org.springframework.boot.test.autoconfigure.data.cassandra.DataCassandraTest",
-                            "org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest",
-                            "org.springframework.boot.test.autoconfigure.data.ldap.DataLdapTest",
-                            "org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest",
-                            "org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest",
-                            "org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest",
-                            "org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest",
-                            "org.springframework.batch.test.context.SpringBatchTest",
-                            "org.springframework.test.context.junit.jupiter.SpringJUnitConfig"
-                    );
 
                     /**
                      * When upgrading from 1.5 the `@SpringBootTest` annotation is not yet meta annotated.

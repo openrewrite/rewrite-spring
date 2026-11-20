@@ -93,7 +93,7 @@ public class AddSetUseTrailingSlashMatch extends Recipe {
                 //      this method
                 // 2. if it has not `configurePathMatch` method, add it to this class.
                 boolean configMethodExists = classDecl.getBody().getStatements().stream()
-                        .filter(org.openrewrite.java.tree.J.MethodDeclaration.class::isInstance)
+                        .filter(J.MethodDeclaration.class::isInstance)
                         .map(J.MethodDeclaration.class::cast)
                         // Without a method type we can't rule out a same-named method, and a second one would not compile
                         .anyMatch(methodDeclaration -> (methodDeclaration.getMethodType() == null && methodDeclaration.getSimpleName().startsWith("configurePathMatch")) ||

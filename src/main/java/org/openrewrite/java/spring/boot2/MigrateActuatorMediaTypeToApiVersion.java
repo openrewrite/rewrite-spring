@@ -17,12 +17,14 @@ package org.openrewrite.java.spring.boot2;
 
 import lombok.Getter;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
@@ -36,19 +38,20 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
     final String description = "Spring Boot `ActuatorMediaType` was deprecated in 2.5 in favor of `ApiVersion#getProducedMimeType()`. " +
             "Replace `MediaType.parseMediaType(ActuatorMediaType.Vx_JSON)` with `MediaType.asMediaType(ApiVersion.Vx.getProducedMimeType())`.";
 
+    private static final String ACTUATOR_MEDIA_TYPE = "org.springframework.boot.actuate.endpoint.http.ActuatorMediaType";
+    private static final MethodMatcher MEDIA_TYPE_MATCHER = new MethodMatcher("org.springframework.http.MediaType parseMediaType(java.lang.String)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            private final MethodMatcher mediaTypeMatcher = new MethodMatcher("org.springframework.http.MediaType parseMediaType(java.lang.String)");
-
+        return Preconditions.check(new UsesType<>(ACTUATOR_MEDIA_TYPE, false), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                if (mediaTypeMatcher.matches(mi)) {
+                if (MEDIA_TYPE_MATCHER.matches(mi)) {
                     Expression arg0 = mi.getArguments().get(0);
                     if (arg0 instanceof J.FieldAccess) {
                         J.FieldAccess expFa = (J.FieldAccess) arg0;
-                        if (TypeUtils.isOfClassType(expFa.getTarget().getType(), "org.springframework.boot.actuate.endpoint.http.ActuatorMediaType")) {
+                        if (TypeUtils.isOfClassType(expFa.getTarget().getType(), ACTUATOR_MEDIA_TYPE)) {
                             String apiVersion = null;
                             if ("V2_JSON".equals(expFa.getSimpleName())) {
                                 apiVersion = "V2";
@@ -56,7 +59,7 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
                                 apiVersion = "V3";
                             }
                             if (apiVersion != null) {
-                                maybeRemoveImport("org.springframework.boot.actuate.endpoint.http.ActuatorMediaType");
+                                maybeRemoveImport(ACTUATOR_MEDIA_TYPE);
                                 maybeAddImport("org.springframework.boot.actuate.endpoint.ApiVersion");
                                 maybeAddImport("org.springframework.http.MediaType");
                                 mi = JavaTemplate.builder("MediaType.asMediaType(ApiVersion.#{}.getProducedMimeType())")
@@ -77,6 +80,6 @@ public class MigrateActuatorMediaTypeToApiVersion extends Recipe {
                 }
                 return mi;
             }
-        };
+        });
     }
 }

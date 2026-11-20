@@ -16,18 +16,15 @@
 package org.openrewrite.java.spring.security6;
 
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
-import org.openrewrite.java.tree.J;
+import org.openrewrite.java.RemoveMethodInvocationsVisitor;
+import org.openrewrite.java.search.UsesMethod;
 
-import java.util.Objects;
+import static java.util.Collections.singletonMap;
 
 public class PropagateAuthenticationServiceExceptions extends Recipe {
 
@@ -42,20 +39,7 @@ public class PropagateAuthenticationServiceExceptions extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.security.web.authentication.AuthenticationEntryPointFailureHandler", true), new JavaIsoVisitor<ExecutionContext>() {
-
-            @Override
-            public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                method = super.visitMethodInvocation(method, ctx);
-                if (method.getSelect() != null && method.getArguments().size() == 1 && MATCHER.matches(method) &&
-                        getCursor().getParentTreeCursor().getValue() instanceof J.Block) {
-                    Expression arg0 = method.getArguments().get(0);
-                    if (arg0 instanceof J.Literal && Objects.equals(((J.Literal) arg0).getValue(), Boolean.TRUE)) {
-                        return null;
-                    }
-                }
-                return method;
-            }
-        });
+        return Preconditions.check(new UsesMethod<>(MATCHER),
+                new RemoveMethodInvocationsVisitor(singletonMap(MATCHER, RemoveMethodInvocationsVisitor.isTrueArgument())));
     }
 }

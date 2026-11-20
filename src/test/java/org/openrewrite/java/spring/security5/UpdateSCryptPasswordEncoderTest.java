@@ -162,4 +162,26 @@ class UpdateSCryptPasswordEncoderTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void leaveConstructorCallWhoseArgumentALoopVariableShadows() {
+        // language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
+
+              class T {
+                  final int saltLength = 64;
+                  void m(List<Integer> lengths) {
+                      for (int saltLength : lengths) {
+                          SCryptPasswordEncoder encoder = new SCryptPasswordEncoder(16384, 8, 1, 32, saltLength);
+                      }
+                  }
+              }
+              """
+          )
+        );
+    }
 }
