@@ -90,7 +90,7 @@ public class MigrateJobParameter extends Recipe {
                     public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                         method = super.visitMethodInvocation(method, ctx);
                         if (MAP_OF.matches(method) &&
-                                defineMapEntryTypeWithJobParameter(method.getType()) &&
+                                defineMapTypeWithJobParameter(method.getType()) &&
                                 method.getArguments().size() % 2 == 0) {
                             return method.withTypeParameters(null);
                         }
