@@ -29,6 +29,7 @@ import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaSourceFile;
 import org.openrewrite.kotlin.tree.K;
+import org.openrewrite.properties.ChangePropertyValue;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.tree.Yaml;
 
@@ -93,7 +94,7 @@ public class ChangeSpringPropertyValue extends ScanningRecipe<SpringConfigFiles>
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
-        Recipe changeProperties = new org.openrewrite.properties.ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
+        Recipe changeProperties = new ChangePropertyValue(propertyKey, newValue, oldValue, regex, relaxedBinding);
         String yamlValue = quoteValue(newValue) ? "\"" + newValue + "\"" : newValue;
         Recipe changeYaml = new org.openrewrite.yaml.ChangePropertyValue(propertyKey, yamlValue, oldValue, regex, relaxedBinding, null);
         TreeVisitor<?, ExecutionContext> propertiesVisitor = Preconditions.check(

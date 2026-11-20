@@ -22,6 +22,7 @@ import org.openrewrite.*;
 import org.openrewrite.java.spring.IsPossibleSpringConfigFile;
 import org.openrewrite.java.spring.SpringConfigFiles;
 import org.openrewrite.properties.AddProperty;
+import org.openrewrite.properties.DeleteProperty;
 import org.openrewrite.properties.search.FindProperties;
 import org.openrewrite.properties.tree.Properties;
 import org.openrewrite.yaml.MergeYaml;
@@ -74,11 +75,11 @@ public class MigrateArtemisProperties extends ScanningRecipe<SpringConfigFiles> 
                         portEntries.iterator().next().getValue().getText();
                 String brokerUrl = "tcp://" + host + ":" + port;
                 if (!hostEntries.isEmpty()) {
-                    file = (Properties.File) new org.openrewrite.properties.DeleteProperty("spring.artemis.host", true)
+                    file = (Properties.File) new DeleteProperty("spring.artemis.host", true)
                             .getVisitor().visitNonNull(file, ctx);
                 }
                 if (!portEntries.isEmpty()) {
-                    file = (Properties.File) new org.openrewrite.properties.DeleteProperty("spring.artemis.port", true)
+                    file = (Properties.File) new DeleteProperty("spring.artemis.port", true)
                             .getVisitor().visitNonNull(file, ctx);
                 }
                 return new AddProperty("spring.artemis.broker-url", brokerUrl, null, null, null, null, null)

@@ -20,7 +20,9 @@ import lombok.Value;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
+import org.openrewrite.properties.AddPropertyComment;
 import org.openrewrite.properties.tree.Properties;
+import org.openrewrite.yaml.CommentOutProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
 @EqualsAndHashCode(callSuper = false)
@@ -60,8 +62,8 @@ public class CommentOutSpringPropertyKey extends ScanningRecipe<SpringConfigFile
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor(SpringConfigFiles acc) {
         boolean commentOut = !Boolean.FALSE.equals(commentOutProperty);
-        Recipe changeProperties = new org.openrewrite.properties.AddPropertyComment(propertyKey, comment, commentOut);
-        Recipe changeYaml = new org.openrewrite.yaml.CommentOutProperty(propertyKey, comment, commentOut);
+        Recipe changeProperties = new AddPropertyComment(propertyKey, comment, commentOut);
+        Recipe changeYaml = new CommentOutProperty(propertyKey, comment, commentOut);
         return Preconditions.check(new IsPossibleSpringConfigFile(acc), new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree preVisit(@NonNull Tree tree, ExecutionContext ctx) {

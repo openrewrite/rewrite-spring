@@ -56,8 +56,8 @@ public class RemoveConstructorBindingAnnotation extends Recipe {
 
                 // Collect the class constructors.
                 List<J.MethodDeclaration> constructors = c.getBody().getStatements().stream()
-                        .filter(org.openrewrite.java.tree.J.MethodDeclaration.class::isInstance)
-                        .map(org.openrewrite.java.tree.J.MethodDeclaration.class::cast)
+                        .filter(J.MethodDeclaration.class::isInstance)
+                        .map(J.MethodDeclaration.class::cast)
                         .filter(J.MethodDeclaration::isConstructor)
                         .collect(toList());
 
