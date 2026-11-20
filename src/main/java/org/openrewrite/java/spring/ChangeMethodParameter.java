@@ -134,7 +134,7 @@ public class ChangeMethodParameter extends Recipe {
                             )
                     ));
 
-                    md = autoFormat(changeParameter(md, parameter), parameter, ctx, getCursor().getParentTreeCursor());
+                    md = maybeAutoFormat(md, changeParameter(md, parameter), parameter, ctx, getCursor().getParentTreeCursor());
                 }
 
             }
