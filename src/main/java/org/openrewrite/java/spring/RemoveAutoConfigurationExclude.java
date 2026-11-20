@@ -33,6 +33,7 @@ import org.openrewrite.java.tree.JRightPadded;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -89,7 +90,7 @@ public class RemoveAutoConfigurationExclude extends Recipe {
                     }
 
                     private Expression trimExclusion(Expression original, J.Assignment as, ExecutionContext ctx,
-                                                    java.util.function.Predicate<Expression> matches) {
+                                                    Predicate<Expression> matches) {
                         if (matches.test(as.getAssignment())) {
                             return null;
                         }

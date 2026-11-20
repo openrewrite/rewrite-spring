@@ -204,7 +204,7 @@ public class UpgradeExplicitSpringBootDependencies extends ScanningRecipe<Upgrad
                     if (!version.isPresent() || !version.get().getValue().isPresent()) {
                         return;
                     }
-                    doAfterVisit(new org.openrewrite.java.dependencies.UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, true, null)
+                    doAfterVisit(new UpgradeDependencyVersion(groupId, artifactId, dependencyVersion, null, true, null)
                             .getVisitor(acc.getUdvAcc()));
                 }
             }
