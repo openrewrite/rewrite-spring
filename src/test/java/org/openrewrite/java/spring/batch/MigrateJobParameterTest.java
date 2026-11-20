@@ -249,4 +249,92 @@ class MigrateJobParameterTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void removesExplicitTypeArgumentsFromMapOf() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Map;
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  void foo() {
+                      Map<String, JobParameter> parameters = Map.<String, JobParameter>of("a", new JobParameter("x"));
+                  }
+              }
+              """,
+            """
+              import java.util.Map;
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  void foo() {
+                      Map<String, JobParameter<?>> parameters = Map.of("a", new JobParameter<>("x", String.class));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotTouchUnrelatedMock() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.Map;
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  void foo() {
+                      Map<String, String> labels = Map.<String, String>of("a", "b");
+                      JobParameter unused = null;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doNotChangeUnrelatedNestedMapConstruction() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.HashMap;
+              import java.util.Map;
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  <T> T pick(Map<String, String> source) {
+                      return null;
+                  }
+
+                  void foo() {
+                      Map<String, JobParameter> parameters = pick(new HashMap<String, String>());
+                  }
+              }
+              """,
+            """
+              import java.util.HashMap;
+              import java.util.Map;
+              import org.springframework.batch.core.JobParameter;
+
+              class Foo {
+                  <T> T pick(Map<String, String> source) {
+                      return null;
+                  }
+
+                  void foo() {
+                      Map<String, JobParameter<?>> parameters = pick(new HashMap<String, String>());
+                  }
+              }
+              """
+          )
+        );
+    }
 }
