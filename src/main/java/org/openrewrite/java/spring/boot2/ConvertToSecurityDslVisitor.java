@@ -100,9 +100,9 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                     .withPrefix(method.getPrefix())
                     .withComments(method.getComments());
         }
-        // Auto-format the top invocation call if anything has changed down the tree
+        // Format the top invocation if anything changed down the tree, keeping the indentation of the line it starts
         if (initialMethod != method && nextCallInChain(getCursor()) == null) {
-            method = autoFormat(method, executionContext);
+            method = maybeAutoFormat(initialMethod, method, executionContext);
         }
         return method;
     }
