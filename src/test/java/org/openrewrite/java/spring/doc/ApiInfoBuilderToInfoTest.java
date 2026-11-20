@@ -256,4 +256,123 @@ class ApiInfoBuilderToInfoTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void transformMultipleApiInfoBuildersInOneMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.builders.ApiInfoBuilder;
+              import springfox.documentation.service.ApiInfo;
+
+              class Test {
+                  void apiInfos() {
+                      ApiInfo first = new ApiInfoBuilder()
+                              .title("First API")
+                              .license("Apache License Version 2.0")
+                              .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
+                              .build();
+                      ApiInfo second = new ApiInfoBuilder()
+                              .title("Second API")
+                              .license("MIT")
+                              .licenseUrl("https://opensource.org/licenses/MIT")
+                              .build();
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.info.Info;
+              import io.swagger.v3.oas.models.info.License;
+
+              class Test {
+                  void apiInfos() {
+                      Info first = new Info()
+                              .title("First API")
+                              .license(new License().name("Apache License Version 2.0").url("https://www.apache.org/licenses/LICENSE-2.0"));
+                      Info second = new Info()
+                              .title("Second API")
+                              .license(new License().name("MIT").url("https://opensource.org/licenses/MIT"));
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void transformApiInfoBuilderInFieldInitializer() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.builders.ApiInfoBuilder;
+              import springfox.documentation.service.ApiInfo;
+
+              class Test {
+                  ApiInfo apiInfo = new ApiInfoBuilder()
+                          .title("Springfox petstore API")
+                          .license("Apache License Version 2.0")
+                          .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                          .version("2.0")
+                          .build();
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.info.Info;
+              import io.swagger.v3.oas.models.info.License;
+
+              class Test {
+                  Info apiInfo = new Info()
+                          .title("Springfox petstore API")
+                          .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"))
+                          .version("2.0");
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void transformApiInfoBuilderFromFactoryMethod() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import springfox.documentation.builders.ApiInfoBuilder;
+              import springfox.documentation.service.ApiInfo;
+
+              class Test {
+                  ApiInfo apiInfo() {
+                      return builder()
+                              .title("Springfox petstore API")
+                              .license("Apache License Version 2.0")
+                              .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
+                              .build();
+                  }
+
+                  ApiInfoBuilder builder() {
+                      return new ApiInfoBuilder();
+                  }
+              }
+              """,
+            """
+              import io.swagger.v3.oas.models.info.Info;
+              import io.swagger.v3.oas.models.info.License;
+
+              class Test {
+                  Info apiInfo() {
+                      return builder()
+                              .title("Springfox petstore API")
+                              .license(new License().name("Apache License Version 2.0").url("https://github.com/springfox/springfox/blob/master/LICENSE"));
+                  }
+
+                  Info builder() {
+                      return new Info();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
