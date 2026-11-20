@@ -79,10 +79,6 @@ public class ReplaceSupportClassWithItsInterface extends Recipe {
                         updateCursor(cd);
                     }
 
-                    if (cd.getImplements() != null && cd.getImplements().stream().anyMatch(i -> TypeUtils.isOfClassType(i.getType(), fullyQualifiedInterfaceName))) {
-                        return cd;
-                    }
-
                     if (!alreadyImplements) {
                         cd = JavaTemplate
                                 .builder(JavaType.ShallowClass.build(fullyQualifiedInterfaceName).getClassName())
