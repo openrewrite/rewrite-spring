@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.search.UsesType;
@@ -49,7 +50,7 @@ public class PreciseBeanType extends Recipe {
                 // Only narrow the return type when every return statement returns the same type
                 List<JavaType> returnTypes = getCursor().pollMessage(MSG_KEY);
                 JavaType o = returnTypes != null && returnTypes.stream().allMatch(t -> TypeUtils.isOfType(returnTypes.get(0), t)) ? returnTypes.get(0) : null;
-                if (o != null && (method.getReturnTypeExpression() != null && !TypeUtils.isOfType(o, method.getReturnTypeExpression().getType())) && isBeanMethod(m)) {
+                if (o != null && isValidReturnType(o) && (method.getReturnTypeExpression() != null && !TypeUtils.isOfType(o, method.getReturnTypeExpression().getType())) && isBeanMethod(m)) {
                     if (o instanceof JavaType.FullyQualified) {
                         JavaType.FullyQualified actualType = (JavaType.FullyQualified) o;
                         if (m.getReturnTypeExpression() instanceof J.Identifier) {
@@ -108,6 +109,33 @@ public class PreciseBeanType extends Recipe {
                     }
                 }
                 return false;
+            }
+
+            private boolean isValidReturnType(@Nullable JavaType type) {
+                if (type instanceof JavaType.FullyQualified) {
+                    JavaType.FullyQualified fq = (JavaType.FullyQualified) type;
+                    for (String part : fq.getClassName().split("[.$]")) {
+                        if (!isValidIdentifier(part)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                } else if (type instanceof JavaType.Array) {
+                    return isValidReturnType(((JavaType.Array) type).getElemType());
+                }
+                return false;
+            }
+
+            private boolean isValidIdentifier(String s) {
+                if (s == null || s.isEmpty() || !Character.isJavaIdentifierStart(s.charAt(0))) {
+                    return false;
+                }
+                for (int i = 1; i < s.length(); i++) {
+                    if (!Character.isJavaIdentifierPart(s.charAt(i))) {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             @Override
