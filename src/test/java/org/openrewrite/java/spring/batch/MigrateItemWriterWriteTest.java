@@ -776,4 +776,167 @@ class MigrateItemWriterWriteTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void doesNotWidensThrowsClause() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class MyWriter implements ItemWriter<String> {
+
+                  @Override
+                  public void write(List<? extends String> items) {
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class MyWriter implements ItemWriter<String> {
+
+                  @Override
+                  public void write(Chunk<? extends String> items) {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepsNarrowThrowsClause() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.io.IOException;
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class MyWriter implements ItemWriter<String> {
+
+                  @Override
+                  public void write(List<? extends String> items) throws IOException {
+                  }
+              }
+              """,
+            """
+              import java.io.IOException;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class MyWriter implements ItemWriter<String> {
+
+                  @Override
+                  public void write(Chunk<? extends String> items) throws IOException {
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void keepChangesInsideArgumentsOfUnqualifiedCalls() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Caller {
+                  void run(Runnable r) {
+                      r.run();
+                  }
+
+                  void send(ItemWriter<String> writer, List<String> items) {
+                      run(() -> {
+                          try {
+                              writer.write(items);
+                          } catch (Exception e) {
+                              throw new IllegalStateException(e);
+                          }
+                      });
+                  }
+              }
+              """,
+            """
+              import java.util.List;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              class Caller {
+                  void run(Runnable r) {
+                      r.run();
+                  }
+
+                  void send(ItemWriter<String> writer, List<String> items) {
+                      run(() -> {
+                          try {
+                              writer.write(new Chunk<>(items));
+                          } catch (Exception e) {
+                              throw new IllegalStateException(e);
+                          }
+                      });
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void doesNotTouchSameNamedFieldOfNestedClass() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import java.util.List;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class Foo implements ItemWriter<String> {
+
+                  @Override
+                  public void write(List<? extends String> items) throws Exception {
+                      Object o = new Object() {
+                          final List<String> items = new java.util.ArrayList<>();
+
+                          int size() {
+                              return items.size();
+                          }
+                      };
+                  }
+              }
+              """,
+            """
+              import java.util.List;
+
+              import org.springframework.batch.item.Chunk;
+              import org.springframework.batch.item.ItemWriter;
+
+              public class Foo implements ItemWriter<String> {
+
+                  @Override
+                  public void write(Chunk<? extends String> items) throws Exception {
+                      Object o = new Object() {
+                          final List<String> items = new java.util.ArrayList<>();
+
+                          int size() {
+                              return items.size();
+                          }
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
 }
