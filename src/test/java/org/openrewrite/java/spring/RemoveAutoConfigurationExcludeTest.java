@@ -277,6 +277,25 @@ class RemoveAutoConfigurationExcludeTest implements RewriteTest {
         }
 
         @Test
+        void retainSubclassOfTarget() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.boot.autoconfigure.SpringBootApplication;
+                  import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
+
+                  @SpringBootApplication(exclude = Application.CustomSolrAutoConfiguration.class)
+                  public class Application {
+                      static class CustomSolrAutoConfiguration extends SolrAutoConfiguration {
+                      }
+                  }
+                  """
+              )
+            );
+        }
+
+        @Test
         void retainOtherExcludeNameEntry() {
             rewriteRun(
               //language=java
