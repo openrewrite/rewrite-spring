@@ -42,7 +42,7 @@ class MigrateJobParameterTest implements RewriteTest {
         //language=java
         rewriteRun(
           // The input's `new JobParameter(new Integer[]{1})` has no constructor type
-          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false)),
+          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false).methodInvocations(false)),
           java(
             """
               import org.springframework.batch.core.JobParameter;
