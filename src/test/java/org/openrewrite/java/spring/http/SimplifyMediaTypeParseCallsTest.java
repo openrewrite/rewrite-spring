@@ -18,6 +18,7 @@ package org.openrewrite.java.spring.http;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.tree.Expression;
@@ -35,6 +36,35 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
         spec
           .recipe(new SimplifyMediaTypeParseCalls())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-core-6.+"));
+    }
+
+    @DocumentExample
+    @Test
+    void replacementConstantIsTypedAsMediaType() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.MediaType;
+
+              class Test {
+                  MediaType mediaType = MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE);
+              }
+              """,
+            """
+              import org.springframework.http.MediaType;
+
+              class Test {
+                  MediaType mediaType = MediaType.APPLICATION_JSON;
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                var declarations = (J.VariableDeclarations) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                Expression initializer = declarations.getVariables().getFirst().getInitializer();
+                assertThat(TypeUtils.isOfClassType(initializer.getType(), "org.springframework.http.MediaType")).isTrue();
+            })
+          )
+        );
     }
 
     @ParameterizedTest
@@ -93,34 +123,6 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
                   MediaType mediaType4 = MediaType.%1$s;
               }
               """.formatted(value.replace("_VALUE", ""))
-          )
-        );
-    }
-
-    @Test
-    void replacementConstantIsTypedAsMediaType() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.springframework.http.MediaType;
-
-              class Test {
-                  MediaType mediaType = MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE);
-              }
-              """,
-            """
-              import org.springframework.http.MediaType;
-
-              class Test {
-                  MediaType mediaType = MediaType.APPLICATION_JSON;
-              }
-              """,
-            spec -> spec.afterRecipe(cu -> {
-                J.VariableDeclarations declarations = (J.VariableDeclarations) cu.getClasses().get(0).getBody().getStatements().get(0);
-                Expression initializer = declarations.getVariables().get(0).getInitializer();
-                assertThat(TypeUtils.isOfClassType(initializer.getType(), "org.springframework.http.MediaType")).isTrue();
-            })
           )
         );
     }
