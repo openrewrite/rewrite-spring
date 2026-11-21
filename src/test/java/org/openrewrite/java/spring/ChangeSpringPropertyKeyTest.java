@@ -804,7 +804,7 @@ class ChangeSpringPropertyKeyTest implements RewriteTest {
 
     @Test
     void withOptionsAfterVisitorWasBuilt() {
-        ChangeSpringPropertyKey original = new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null);
+        var original = new ChangeSpringPropertyKey("server.servlet-path", "server.servlet.path", null);
         original.getVisitor(new SpringConfigFiles());
         rewriteRun(
           spec -> spec.recipe(original.withOptions(Map.of("oldPropertyKey", "server.context-path", "newPropertyKey", "server.servlet.context-path"))),
