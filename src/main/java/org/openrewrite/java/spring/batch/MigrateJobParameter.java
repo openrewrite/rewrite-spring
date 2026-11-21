@@ -204,7 +204,7 @@ public class MigrateJobParameter extends Recipe {
                                             nc.getArguments().get(0),
                                             typeString);
                         }
-                        return newClass;
+                        return nc;
                     }
                 }
         );
