@@ -527,11 +527,11 @@ class ChangeMethodParameterTest implements RewriteTest {
               }
               """,
             spec -> spec.afterRecipe(cu -> {
-                J.MethodDeclaration bar = (J.MethodDeclaration) cu.getClasses().get(0).getBody().getStatements().get(0);
+                var bar = (J.MethodDeclaration) cu.getClasses().getFirst().getBody().getStatements().getFirst();
                 assertThat(bar.getMethodType().getParameterTypes())
                   .containsExactly(JavaType.ShallowClass.build("java.lang.String"), JavaType.Primitive.Long);
-                J.VariableDeclarations parameter = (J.VariableDeclarations) bar.getParameters().get(1);
-                assertThat(parameter.getVariables().get(0).getName().getFieldType().getOwner()).isSameAs(bar.getMethodType());
+                var parameter = (J.VariableDeclarations) bar.getParameters().get(1);
+                assertThat(parameter.getVariables().getFirst().getName().getFieldType().getOwner()).isSameAs(bar.getMethodType());
             })
           )
         );
