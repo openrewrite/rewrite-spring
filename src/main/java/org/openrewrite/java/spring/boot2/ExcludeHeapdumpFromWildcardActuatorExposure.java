@@ -41,6 +41,9 @@ public class ExcludeHeapdumpFromWildcardActuatorExposure extends ScanningRecipe<
 
     private static final String INCLUDE = "management.endpoints.web.exposure.include";
     private static final String EXCLUDE = "management.endpoints.web.exposure.exclude";
+    // Also matches the indexed forms like `exclude[0]`, as a plain value replaces a list bound from those
+    private static final String INCLUDE_ANY_FORM = INCLUDE + "*";
+    private static final String EXCLUDE_ANY_FORM = EXCLUDE + "*";
 
     String displayName = "Exclude the `heapdump` Actuator endpoint from wildcard web exposure";
 
@@ -68,9 +71,9 @@ public class ExcludeHeapdumpFromWildcardActuatorExposure extends ScanningRecipe<
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 springConfigFilesScanner.visit(tree, ctx);
-                if ((tree instanceof Properties.File && !FindProperties.find((Properties.File) tree, EXCLUDE, true).isEmpty()) ||
-                    (tree instanceof Yaml.Documents && !FindProperty.find((Yaml.Documents) tree, EXCLUDE, true).isEmpty()) ||
-                    (tree != null && includedEndpoints(tree).contains("heapdump"))) {
+                if ((tree instanceof Properties.File && !FindProperties.find((Properties.File) tree, EXCLUDE_ANY_FORM, true).isEmpty()) ||
+                    (tree instanceof Yaml.Documents && !FindProperty.find((Yaml.Documents) tree, EXCLUDE_ANY_FORM, true).isEmpty()) ||
+                    includedEndpoints(tree).contains("heapdump")) {
                     acc.projectsToSkip.add(((SourceFile) tree).getMarkers().findFirst(JavaProject.class).orElse(null));
                 }
                 return tree;
@@ -89,9 +92,8 @@ public class ExcludeHeapdumpFromWildcardActuatorExposure extends ScanningRecipe<
                     return tree;
                 }
                 if (includedEndpoints(tree).contains("*")) {
-                    // Target this file only, as AddSpringProperty otherwise just edits the default application.* files
-                    String sourcePath = ((SourceFile) tree).getSourcePath().toString();
-                    return new AddSpringProperty(EXCLUDE, "heapdump", null, singletonList(sourcePath))
+                    // Match any path, as AddSpringProperty otherwise just edits the default application.* files
+                    return new AddSpringProperty(EXCLUDE, "heapdump", null, singletonList("**"))
                             .getVisitor().visit(tree, ctx);
                 }
                 return tree;
@@ -102,11 +104,11 @@ public class ExcludeHeapdumpFromWildcardActuatorExposure extends ScanningRecipe<
     private static List<String> includedEndpoints(Tree tree) {
         List<String> endpoints = new ArrayList<>();
         if (tree instanceof Properties.File) {
-            for (Properties.Entry entry : FindProperties.find((Properties.File) tree, INCLUDE, true)) {
+            for (Properties.Entry entry : FindProperties.find((Properties.File) tree, INCLUDE_ANY_FORM, true)) {
                 addEndpoints(entry.getValue().getText(), endpoints);
             }
         } else if (tree instanceof Yaml.Documents) {
-            for (Yaml.Block block : FindProperty.find((Yaml.Documents) tree, INCLUDE, true)) {
+            for (Yaml.Block block : FindProperty.find((Yaml.Documents) tree, INCLUDE_ANY_FORM, true)) {
                 if (block instanceof Yaml.Scalar) {
                     addEndpoints(((Yaml.Scalar) block).getValue(), endpoints);
                 } else if (block instanceof Yaml.Sequence) {

@@ -345,6 +345,38 @@ class ExcludeHeapdumpFromWildcardActuatorExposureTest implements RewriteTest {
         }
 
         @Test
+        void indexedExcludeAlreadySet() {
+            rewriteRun(
+              mavenProject("project",
+                srcMainResources(
+                  properties(
+                    """
+                      management.endpoints.web.exposure.include=*
+                      management.endpoints.web.exposure.exclude[0]=env
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
+        void indexedHeapdumpIncludedExplicitly() {
+            rewriteRun(
+              mavenProject("project",
+                srcMainResources(
+                  yaml(
+                    """
+                      management.endpoints.web.exposure.include: "*"
+                      management.endpoints.web.exposure.include[1]: heapdump
+                      """
+                  )
+                )
+              )
+            );
+        }
+
+        @Test
         void excludeSetInAnotherConfigFile() {
             rewriteRun(
               mavenProject("project",
