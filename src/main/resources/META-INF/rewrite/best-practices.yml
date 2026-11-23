@@ -119,3 +119,4 @@ preconditions:
 recipeList:
   - org.openrewrite.java.spring.amqp.UseTlsAmqpConnectionString
   - org.openrewrite.java.spring.data.UseTlsJdbcConnectionString
+  - org.openrewrite.java.spring.boot2.ExcludeHeapdumpFromWildcardActuatorExposure
