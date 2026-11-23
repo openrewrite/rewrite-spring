@@ -49,7 +49,7 @@ public class PreciseBeanType extends Recipe {
                 // Only narrow the return type when every return statement returns the same type
                 List<JavaType> returnTypes = getCursor().pollMessage(MSG_KEY);
                 JavaType o = returnTypes != null && returnTypes.stream().allMatch(t -> TypeUtils.isOfType(returnTypes.get(0), t)) ? returnTypes.get(0) : null;
-                if (o != null && (method.getReturnTypeExpression() != null && !TypeUtils.isOfType(o, method.getReturnTypeExpression().getType())) && isBeanMethod(m)) {
+                if (o != null && (method.getReturnTypeExpression() != null && !TypeUtils.isOfType(o, method.getReturnTypeExpression().getType())) && isNameable(o) && isBeanMethod(m)) {
                     if (o instanceof JavaType.FullyQualified) {
                         JavaType.FullyQualified actualType = (JavaType.FullyQualified) o;
                         if (m.getReturnTypeExpression() instanceof J.Identifier) {
@@ -99,6 +99,20 @@ public class PreciseBeanType extends Recipe {
                     }
                 }
                 return m;
+            }
+
+            private boolean isNameable(JavaType type) {
+                JavaType t = type instanceof JavaType.Array ? ((JavaType.Array) type).getElemType() : type;
+                if (!(t instanceof JavaType.FullyQualified)) {
+                    return true;
+                }
+                String[] segments = ((JavaType.FullyQualified) t).getFullyQualifiedName().split("\\$");
+                for (int i = 1; i < segments.length; i++) {
+                    if (!segments[i].isEmpty() && Character.isDigit(segments[i].charAt(0))) {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             private boolean isBeanMethod(J.MethodDeclaration m) {
