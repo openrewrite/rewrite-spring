@@ -26,6 +26,7 @@ import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.openrewrite.java.spring.internal.MethodDeclarations.withReturnTypeExpression;
 
@@ -33,6 +34,8 @@ public class PreciseBeanType extends Recipe {
     private static final String BEAN = "org.springframework.context.annotation.Bean";
 
     private static final String MSG_KEY = "returnType";
+
+    private static final Pattern ANONYMOUS_OR_LOCAL_CLASS = Pattern.compile("\\$\\d");
 
     @Getter
     final String displayName = "Bean methods should return concrete types";
@@ -49,7 +52,7 @@ public class PreciseBeanType extends Recipe {
                 // Only narrow the return type when every return statement returns the same type
                 List<JavaType> returnTypes = getCursor().pollMessage(MSG_KEY);
                 JavaType o = returnTypes != null && returnTypes.stream().allMatch(t -> TypeUtils.isOfType(returnTypes.get(0), t)) ? returnTypes.get(0) : null;
-                if (o != null && (method.getReturnTypeExpression() != null && !TypeUtils.isOfType(o, method.getReturnTypeExpression().getType())) && isBeanMethod(m)) {
+                if (o != null && (method.getReturnTypeExpression() != null && !TypeUtils.isOfType(o, method.getReturnTypeExpression().getType())) && isBeanMethod(m) && isNameable(o)) {
                     if (o instanceof JavaType.FullyQualified) {
                         JavaType.FullyQualified actualType = (JavaType.FullyQualified) o;
                         if (m.getReturnTypeExpression() instanceof J.Identifier) {
@@ -99,6 +102,12 @@ public class PreciseBeanType extends Recipe {
                     }
                 }
                 return m;
+            }
+
+            private boolean isNameable(JavaType type) {
+                JavaType t = type instanceof JavaType.Array ? ((JavaType.Array) type).getElemType() : type;
+                return !(t instanceof JavaType.FullyQualified) ||
+                       !ANONYMOUS_OR_LOCAL_CLASS.matcher(((JavaType.FullyQualified) t).getFullyQualifiedName()).find();
             }
 
             private boolean isBeanMethod(J.MethodDeclaration m) {

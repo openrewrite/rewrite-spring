@@ -253,4 +253,51 @@ class PreciseBeanTypeTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void anonymousClassKeepsDeclaredType() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class A {
+                  @Bean
+                  Runnable bean1() {
+                      return new Runnable() {
+                          @Override
+                          public void run() {
+                          }
+                      };
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void localClassKeepsDeclaredType() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.context.annotation.Bean;
+
+              class A {
+                  @Bean
+                  Runnable bean1() {
+                      class Task implements Runnable {
+                          @Override
+                          public void run() {
+                          }
+                      }
+                      return new Task();
+                  }
+              }
+              """
+          )
+        );
+    }
 }
