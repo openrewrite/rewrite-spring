@@ -30,7 +30,8 @@ class MigrateHandlerResultSetExceptionHandlerMethodTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec
-          .typeValidationOptions(TypeValidation.none())
+          // The parser leaves the input's `Mono.empty()` calls without a method type
+          .typeValidationOptions(TypeValidation.all().identifiers(false).methodInvocations(false))
           .recipe(new MigrateHandlerResultSetExceptionHandlerMethod())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(),
             "reactor-core-3.6.+", "spring-webflux-6.1.+"));

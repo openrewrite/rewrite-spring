@@ -23,6 +23,7 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.*;
 import static org.openrewrite.maven.Assertions.pomXml;
 
@@ -445,6 +446,34 @@ class Boot3UpgradeTest implements RewriteTest {
                   """
               )
             )
+          )
+        );
+    }
+
+    @Test
+    void hibernateEndsOnOrm61() {
+        rewriteRun(
+          //language=xml
+          pomXml(
+            """
+              <project>
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>com.example</groupId>
+                <artifactId>app</artifactId>
+                <version>1.0.0</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                    <version>5.4.33.Final</version>
+                  </dependency>
+                </dependencies>
+              </project>
+              """,
+            spec -> spec.after(actual -> assertThat(actual)
+              .containsPattern("<groupId>org.hibernate.orm</groupId>\\s*<artifactId>hibernate-core</artifactId>\\s*<version>6\\.1\\.\\d+\\.Final</version>")
+              .doesNotContain("hibernate-core-jakarta")
+              .actual())
           )
         );
     }

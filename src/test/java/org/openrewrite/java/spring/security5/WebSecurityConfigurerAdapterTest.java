@@ -313,8 +313,8 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     void configureAuthManagerMethod() {
         //language=java
         rewriteRun(
-          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false))
-            .afterTypeValidationOptions(TypeValidation.all().constructorInvocations(false).methodDeclarations(false)),
+          // The input's `new PersonContextMapper()` has no constructor type.
+          spec -> spec.typeValidationOptions(TypeValidation.all().constructorInvocations(false)),
           java(
             """
               import org.springframework.context.annotation.Configuration;
@@ -777,10 +777,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
-                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
                       UserDetails user = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER")
                           .build();
-                        auth.inMemoryAuthentication().withUser(user);
+                      auth.inMemoryAuthentication().withUser(user);
                   }
               }
               """,
@@ -824,9 +824,9 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               @Configuration
               public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                   @Override
-                    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+                  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
                       UserBuilder builder = User.withDefaultPasswordEncoder().username("user").password("password").roles("USER");
-                        auth.inMemoryAuthentication().withUser(builder);
+                      auth.inMemoryAuthentication().withUser(builder);
                   }
               }
               """,

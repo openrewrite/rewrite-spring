@@ -24,7 +24,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -41,20 +41,20 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
     @Getter
     final String description = "`JdbcTemplate` signatures with `Object[]` arguments are deprecated, in favor of their existing varargs equivalents.";
 
+    private static final MethodMatcher QUERY_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate query(..)");
+    private static final MethodMatcher QUERY_FOR_OBJECT_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForObject(..)");
+    private static final MethodMatcher QUERY_FOR_LIST_MAPPER = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.jdbc.core.JdbcTemplate", true), new JdbcTemplateArgsVisitor());
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(QUERY_MAPPER), new UsesMethod<>(QUERY_FOR_OBJECT_MAPPER), new UsesMethod<>(QUERY_FOR_LIST_MAPPER)), new JdbcTemplateArgsVisitor());
     }
 
     private static class JdbcTemplateArgsVisitor extends JavaIsoVisitor<ExecutionContext> {
-        private static final MethodMatcher queryMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate query(..)");
-        private static final MethodMatcher queryForObjectMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForObject(..)");
-        private static final MethodMatcher queryForListMapper = new MethodMatcher("org.springframework.jdbc.core.JdbcTemplate queryForList(..)");
-
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-            if (queryMapper.matches(mi) || queryForObjectMapper.matches(mi) || queryForListMapper.matches(mi)) {
+            if (QUERY_MAPPER.matches(mi) || QUERY_FOR_OBJECT_MAPPER.matches(mi) || QUERY_FOR_LIST_MAPPER.matches(mi)) {
                 List<Expression> args = mi.getArguments();
                 if (args.size() == 3 && shouldSwapArgs(args.get(1).getType(), args.get(2).getType())) {
                     Expression sql = args.get(0);
@@ -72,10 +72,38 @@ public class JdbcTemplateObjectArrayArgToVarArgs extends Recipe {
                         newArgs.add(arr);
                     }
 
-                    mi = mi.withArguments(newArgs);
+                    mi = mi.withArguments(newArgs).withMethodType(varArgsOverload(mi, newArgs));
                 }
             }
             return mi;
+        }
+
+        private JavaType.@Nullable Method varArgsOverload(J.MethodInvocation mi, List<Expression> newArgs) {
+            JavaType.Method type = mi.getMethodType();
+            if (type == null) {
+                return null;
+            }
+            // The `Object[]` overload is replaced by the varargs overload with the same name and leading parameters
+            JavaType.Method found = null;
+            for (JavaType.Method candidate : type.getDeclaringType().getMethods()) {
+                List<JavaType> params = candidate.getParameterTypes();
+                if (!candidate.getName().equals(type.getName()) || params.size() != 3 ||
+                    !(params.get(2) instanceof JavaType.Array) ||
+                    !TypeUtils.isOfClassType(((JavaType.Array) params.get(2)).getElemType(), "java.lang.Object") ||
+                    !isAssignable(params.get(0), newArgs.get(0)) || !isAssignable(params.get(1), newArgs.get(1))) {
+                    continue;
+                }
+                if (found != null) {
+                    return type;
+                }
+                found = candidate;
+            }
+            return found == null ? type : found.withReturnType(type.getReturnType());
+        }
+
+        private boolean isAssignable(JavaType parameter, Expression argument) {
+            JavaType.FullyQualified erasure = TypeUtils.asFullyQualified(parameter);
+            return erasure != null && TypeUtils.isAssignableTo(erasure.getFullyQualifiedName(), argument.getType());
         }
 
         private boolean shouldSwapArgs(@Nullable JavaType arg1, @Nullable JavaType arg2) {

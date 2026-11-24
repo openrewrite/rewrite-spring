@@ -67,11 +67,6 @@ public class AddSpringProperty extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
-            public boolean isAcceptable(SourceFile sourceFile, ExecutionContext ctx) {
-                return sourceFile instanceof Yaml.Documents || sourceFile instanceof Properties.File;
-            }
-
-            @Override
             public @Nullable Tree visit(@Nullable Tree t, ExecutionContext ctx) {
                 if (t instanceof Yaml.Documents && sourcePathMatches(((SourceFile) t).getSourcePath(), ctx)) {
                     // Spring treats a flattened key (e.g. `some.property: true`) as equivalent to its nested form, but
@@ -118,7 +113,6 @@ public class AddSpringProperty extends Recipe {
                 yaml.append("\n");
             }
             if (!StringUtils.isBlank(comment)) {
-                //noinspection StringEquality
                 if (part == propertyParts[propertyParts.length - 1]) {
                     yaml.append(indent).append("# ").append(comment).append("\n");
                 }

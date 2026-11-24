@@ -285,8 +285,8 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @MethodSource("yamlPaths")
+    @ParameterizedTest
     void rewriteSingleDocketWithLiteralValuesToApplicationYml(String path, String yamlPath) {
         rewriteRun(
           //language=yaml
@@ -355,8 +355,8 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
         );
     }
 
-    @ParameterizedTest
     @MethodSource("propertiesPaths")
+    @ParameterizedTest
     void rewriteSingleWithLiteralValuesToApplicationProperties(String javaPath, String propertiesPath) {
         rewriteRun(
           //language=properties
@@ -906,6 +906,38 @@ class MigrateDocketBeanToGroupedOpenApiBeanTest implements RewriteTest {
                                 .paths(pathSelectorsPredicate)
                                 .build()
                                 .pathMapping("/");
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void ignoreDocketWhenDocumentationTypeStaticImported() {
+        rewriteRun(
+          srcMainJava(
+            //language=java
+            java(
+              """
+                package org.project.example;
+
+                import org.springframework.context.annotation.Bean;
+                import springfox.documentation.builders.PathSelectors;
+                import springfox.documentation.builders.RequestHandlerSelectors;
+                import springfox.documentation.spring.web.plugins.Docket;
+
+                import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
+
+                class ApplicationConfiguration {
+                    @Bean
+                    public Docket publicApi() {
+                        return new Docket(SWAGGER_2)
+                                .select()
+                                .apis(RequestHandlerSelectors.any())
+                                .paths(PathSelectors.any())
+                                .build();
                     }
                 }
                 """

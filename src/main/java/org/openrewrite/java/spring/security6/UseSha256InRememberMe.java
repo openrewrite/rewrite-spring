@@ -17,10 +17,14 @@ package org.openrewrite.java.spring.security6;
 
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
-import org.openrewrite.*;
+import org.openrewrite.Cursor;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
+import org.openrewrite.Recipe;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.spring.internal.LocalVariableUtils;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -48,7 +52,7 @@ public class UseSha256InRememberMe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices", true), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(Preconditions.or(new UsesMethod<>(REMEMBER_ME_SERVICES_CONSTRUCTOR_MATCHER), new UsesMethod<>(REMEMBER_ME_SERVICES_SET_MATCHING_ALGORITHM_MATCHER)), new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.NewClass visitNewClass(J.NewClass newClass, ExecutionContext ctx) {
                 newClass = super.visitNewClass(newClass, ctx);

@@ -43,6 +43,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     private static final JavaType.FullyQualified CUSTOMIZER_SHALLOW_TYPE = JavaType.ShallowClass.build(FQN_CUSTOMIZER);
 
     private static final MethodMatcher XSS_PROTECTION_ENABLED = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.XXssConfig xssProtectionEnabled(boolean)");
+    private static final MethodMatcher DISABLE_MATCHER = new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true);
 
     private final String securityFqn;
     private final Collection<String> convertableMethods;
@@ -99,16 +100,15 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
                     .withPrefix(method.getPrefix())
                     .withComments(method.getComments());
         }
-        // Auto-format the top invocation call if anything has changed down the tree
+        // Format the top invocation if anything changed down the tree, keeping the indentation of the line it starts
         if (initialMethod != method && nextCallInChain(getCursor()) == null) {
-            method = autoFormat(method, executionContext);
+            method = maybeAutoFormat(initialMethod, method, executionContext);
         }
         return method;
     }
 
     private static String generateParamNameFromMethodName(String n) {
         int i = n.length() - 1;
-        //noinspection StatementWithEmptyBody
         for (; i >= 0 && Character.isLowerCase(n.charAt(i)); i--) {
         }
         if (i >= 0) {
@@ -380,7 +380,7 @@ public class ConvertToSecurityDslVisitor<P> extends JavaIsoVisitor<P> {
     }
 
     private boolean isDisableMethod(J.MethodInvocation method) {
-        if (new MethodMatcher("org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer disable()", true).matches(method)) {
+        if (DISABLE_MATCHER.matches(method)) {
             return true;
         }
         // Also match reactive disable() methods that return the security builder type (e.g., ServerHttpSecurity.CsrfSpec.disable())

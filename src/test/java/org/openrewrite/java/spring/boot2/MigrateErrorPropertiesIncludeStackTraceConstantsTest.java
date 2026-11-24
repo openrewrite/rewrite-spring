@@ -28,7 +28,7 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new MigrateErrorPropertiesIncludeStackTraceConstants())
+        spec.recipeFromResources("org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3")
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-boot-autoconfigure-2.3"));
     }
 
@@ -108,11 +108,12 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
             """
               package org.test;
 
+              import org.springframework.boot.autoconfigure.web.ErrorProperties;
               import org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace;
 
               class Test {
                   void methodA() {
-                      IncludeStacktrace value = IncludeStacktrace.ON_PARAM;
+                      IncludeStacktrace value = ErrorProperties.IncludeStacktrace.ON_PARAM;
                   }
               }
               """
@@ -148,6 +149,35 @@ class MigrateErrorPropertiesIncludeStackTraceConstantsTest implements RewriteTes
               class Test {
                   void methodA() {
                       IncludeStacktrace value = ON_PARAM;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void updateFullyQualifiedTarget() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              package org.test;
+
+              class Test {
+                  void methodA() {
+                      Object value = org.springframework.boot.autoconfigure.web.ErrorProperties.IncludeStacktrace.ON_TRACE_PARAM;
+                  }
+              }
+              """,
+            """
+              package org.test;
+
+              import org.springframework.boot.autoconfigure.web.ErrorProperties;
+
+              class Test {
+                  void methodA() {
+                      Object value = ErrorProperties.IncludeStacktrace.ON_PARAM;
                   }
               }
               """

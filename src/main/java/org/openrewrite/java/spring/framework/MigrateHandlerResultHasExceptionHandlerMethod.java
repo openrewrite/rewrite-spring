@@ -20,6 +20,7 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
@@ -43,7 +44,10 @@ public class MigrateHandlerResultHasExceptionHandlerMethod extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                 J.MethodInvocation mi = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
                 if (METHOD_MATCHER.matches(mi)) {
-                    return JavaTemplate.apply("#{any(org.springframework.web.reactive.HandlerResult)}.getExceptionHandler() != null", getCursor(), mi.getCoordinates().replace(), mi.getSelect());
+                    return JavaTemplate.builder("#{any(org.springframework.web.reactive.HandlerResult)}.getExceptionHandler() != null")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "spring-webflux-6"))
+                            .build()
+                            .apply(getCursor(), mi.getCoordinates().replace(), mi.getSelect());
                 }
                 return mi;
             }

@@ -36,6 +36,8 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     private static final String WEB_MVC_CONFIGURER_ADAPTER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter";
     private static final String WEB_MVC_CONFIGURER = "org.springframework.web.servlet.config.annotation.WebMvcConfigurer";
 
+    private static final JavaType WEB_MVC_CONFIGURER_TYPE = JavaType.buildType(WEB_MVC_CONFIGURER);
+
     @Getter
     final String displayName = "Replace `WebMvcConfigurerAdapter` with `WebMvcConfigurer`";
 
@@ -46,8 +48,6 @@ public class MigrateWebMvcConfigurerAdapter extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(WEB_MVC_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
-            private final JavaType WEB_MVC_CONFIGURER_TYPE = JavaType.buildType(WEB_MVC_CONFIGURER);
-
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);

@@ -132,7 +132,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     if (stmt.equals(finalGetTagsMethod)) {
                                         J.MethodDeclaration md = (J.MethodDeclaration) finalNewClassDeclaration.getBody().getStatements().get(0);
                                         md = md.withPrefix(stmt.getPrefix());
-                                        //noinspection DataFlowIssue
                                         return md.withBody(md.getBody().withStatements(ListUtils.insertAll(md.getBody().getStatements(), md.getBody().getStatements().size() - 1, getTagsBodyStatements)));
                                     }
                                     return stmt;
@@ -212,7 +211,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                             J.VariableDeclarations vd = (J.VariableDeclarations) s;
                             if (TypeUtils.isOfType(vd.getType(), JavaType.buildType(TAGS_FQ))) {
                                 if (vd.getVariables().get(0).getInitializer() != null) {
-                                    //noinspection DataFlowIssue
                                     return refactorTagsUsage(ctx, vd.getCoordinates(), (J.MethodInvocation) vd.getVariables().get(0).getInitializer(), vd);
                                 }
                             }
@@ -234,7 +232,7 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                         return s;
                     }
 
-                    private Statement refactorTagsUsage(ExecutionContext ctx, org.openrewrite.java.tree.CoordinateBuilder.Statement coords, J.MethodInvocation init, Statement original) {
+                    private Statement refactorTagsUsage(ExecutionContext ctx, CoordinateBuilder.Statement coords, J.MethodInvocation init, Statement original) {
                         J.MethodDeclaration insideMethod = getCursor().firstEnclosing(J.MethodDeclaration.class);
                         if (insideMethod != null && insideMethod.getBody() != null) {
                             J.Identifier returnIdentifier = (J.Identifier) ((J.Return) insideMethod.getBody().getStatements().get(insideMethod.getBody().getStatements().size() - 1)).getExpression();
@@ -266,7 +264,6 @@ public class MigrateWebMvcTagsToObservationConvention extends Recipe {
                                     List<Expression> validArgs = ListUtils.filter(init.getArguments(), expression ->
                                             !(expression instanceof J.MethodInvocation && ((J.MethodInvocation) expression).getMethodType() != null && TypeUtils.isOfType(((J.MethodInvocation) expression).getMethodType().getDeclaringType(), JavaType.buildType(WEBMVCTAGS_FQ))));
                                     if (validArgs.isEmpty()) {
-                                        //noinspection DataFlowIssue
                                         return null;
                                     }
                                     List<J> args = new ArrayList<>();

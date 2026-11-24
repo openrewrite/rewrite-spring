@@ -35,6 +35,9 @@ public class FindApiEndpoints extends Recipe {
 
     transient ApiEndpoints apis = new ApiEndpoints(this);
 
+    private static final JaxRsRequestMapping.Matcher JAX_RS_REQUEST_MAPPING_MATCHER = new JaxRsRequestMapping.Matcher();
+    private static final SpringRequestMapping.Matcher SPRING_REQUEST_MAPPING_MATCHER = new SpringRequestMapping.Matcher();
+
     String displayName = "Find Spring API endpoints";
 
     String description = "Find all HTTP API endpoints exposed by Spring applications. " +
@@ -47,11 +50,9 @@ public class FindApiEndpoints extends Recipe {
             @Override
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
                 J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-                JaxRsRequestMapping.Matcher jaxRsMatcher = new JaxRsRequestMapping.Matcher();
-                SpringRequestMapping.Matcher springMatcher = new SpringRequestMapping.Matcher();
                 for (J.Annotation annotation : service(AnnotationService.class).getAllAnnotations(getCursor())) {
-                    m = findJaxrsEndpoints(method, ctx, annotation, jaxRsMatcher, m);
-                    m = findSpringEndpoints(method, ctx, annotation, springMatcher, m);
+                    m = findJaxrsEndpoints(method, ctx, annotation, JAX_RS_REQUEST_MAPPING_MATCHER, m);
+                    m = findSpringEndpoints(method, ctx, annotation, SPRING_REQUEST_MAPPING_MATCHER, m);
                 }
                 return m;
             }

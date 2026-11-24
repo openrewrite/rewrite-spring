@@ -63,7 +63,7 @@ class GeneratePropertiesMigratorConfiguration {
             }
             var versionDir = new File(releasesDir, version);
             if (versionDir.mkdirs()) {
-                System.out.println("Downloading version " + version);
+                IO.println("Downloading version " + version);
                 springBootReleases.download(version).forEach(download -> {
                     try {
                         Files.write(versionDir.toPath().resolve(
@@ -73,10 +73,10 @@ class GeneratePropertiesMigratorConfiguration {
                     }
                 });
             } else {
-                System.out.println("Using existing download of version " + version);
+                IO.println("Using existing download of version " + version);
             }
 
-            System.out.println("Scanning version " + version);
+            IO.println("Scanning version " + version);
             var deprecations = getDeprecations(versionDir, alreadyDefined);
             if (deprecations.isEmpty()) {
                 continue;

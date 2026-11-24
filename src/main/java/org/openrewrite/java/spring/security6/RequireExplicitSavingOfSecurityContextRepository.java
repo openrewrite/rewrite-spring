@@ -27,7 +27,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Marker;
 
@@ -53,7 +53,7 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.security.config.annotation.web.configurers.SecurityContextConfigurer", true), new JavaIsoVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(REQUIRE_EXPLICIT_SAVE_MATCHER), new JavaIsoVisitor<ExecutionContext>() {
             private int depth;
             private boolean changed;
 
@@ -136,7 +136,6 @@ public class RequireExplicitSavingOfSecurityContextRepository extends Recipe {
                 }
                 if (statements.stream().anyMatch(ToBeRemoved::hasMarker)) {
                     changed = true;
-                    //noinspection DataFlowIssue
                     return block.withStatements(statements.stream()
                             .filter(s -> !ToBeRemoved.hasMarker(s) || s instanceof J.MethodInvocation && ((J.MethodInvocation) s).getSelect() instanceof J.MethodInvocation)
                             .map(s -> s instanceof J.MethodInvocation && ToBeRemoved.hasMarker(s) ? ((J.MethodInvocation) s).getSelect().withPrefix(s.getPrefix()) : s)

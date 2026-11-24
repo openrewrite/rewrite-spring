@@ -198,7 +198,6 @@ public class MergeBootstrapYamlWithApplicationYaml extends ScanningRecipe<MergeB
             documents.set(i, doc);
         }
 
-        //noinspection unchecked
         SourceFile coalesced = (SourceFile) new CoalescePropertiesVisitor<Integer>(null, null).visitNonNull(a.withDocuments(documents), 0);
         // Expanding and coalescing the properties copies an application file that gains nothing from the merge
         return coalesced.printAll().equals(application.printAll()) ? application : coalesced;

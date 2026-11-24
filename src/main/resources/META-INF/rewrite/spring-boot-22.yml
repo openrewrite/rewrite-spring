@@ -67,7 +67,9 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateApplicationHealthIndicatorToPingHealthIndicator
   - org.openrewrite.java.spring.boot2.MigrateWebTestClientBuilderCustomizerPackageName
-  - org.openrewrite.java.spring.boot2.MigrateConfigurationPropertiesBindingPostProcessorValidatorBeanName
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor.VALIDATOR_BEAN_NAME
+      fullyQualifiedConstantName: org.springframework.boot.context.properties.EnableConfigurationProperties.VALIDATOR_BEAN_NAME
   - org.openrewrite.java.spring.boot2.MigrateDiskSpaceHealthIndicatorConstructor
   - org.openrewrite.java.spring.boot2.SpringBootMavenPluginMigrateAgentToAgents
 

@@ -15,13 +15,19 @@
  */
 package org.openrewrite.java.spring.http;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.openrewrite.java.Assertions.java;
 
 class SimplifyMediaTypeParseCallsTest implements RewriteTest {
@@ -30,6 +36,35 @@ class SimplifyMediaTypeParseCallsTest implements RewriteTest {
         spec
           .recipe(new SimplifyMediaTypeParseCalls())
           .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-web-6.2", "spring-core-6.+"));
+    }
+
+    @DocumentExample
+    @Test
+    void replacementConstantIsTypedAsMediaType() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.http.MediaType;
+
+              class Test {
+                  MediaType mediaType = MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE);
+              }
+              """,
+            """
+              import org.springframework.http.MediaType;
+
+              class Test {
+                  MediaType mediaType = MediaType.APPLICATION_JSON;
+              }
+              """,
+            spec -> spec.afterRecipe(cu -> {
+                var declarations = (J.VariableDeclarations) cu.getClasses().getFirst().getBody().getStatements().getFirst();
+                Expression initializer = declarations.getVariables().getFirst().getInitializer();
+                assertThat(TypeUtils.isOfClassType(initializer.getType(), "org.springframework.http.MediaType")).isTrue();
+            })
+          )
+        );
     }
 
     @ParameterizedTest

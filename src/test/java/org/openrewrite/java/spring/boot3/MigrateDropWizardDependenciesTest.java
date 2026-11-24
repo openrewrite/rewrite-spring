@@ -16,6 +16,7 @@
 package org.openrewrite.java.spring.boot3;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
@@ -34,6 +35,7 @@ class MigrateDropWizardDependenciesTest implements RewriteTest {
             "spring-beans-5.+"));
     }
 
+    @DocumentExample
     @Test
     void migrateDropWizardDependenciesPackageNames() {
         rewriteRun(

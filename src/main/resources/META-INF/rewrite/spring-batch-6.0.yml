@@ -202,7 +202,7 @@ recipeList:
       methodPattern: org.springframework.batch.core.step.job.JobStep setJobLauncher(org.springframework.batch.core.launch.JobLauncher)
       newMethodName: setJobOperator
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: org.springframework.batch.core.step.job.JobStepBuilder launcher(org.springframework.batch.core.launch.JobLauncher)
+      methodPattern: org.springframework.batch.core.step.builder.JobStepBuilder launcher(org.springframework.batch.core.launch.JobLauncher)
       newMethodName: operator
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: org.springframework.batch.core.launch.JobLauncher
@@ -219,3 +219,7 @@ recipeList:
       newFullyQualifiedTypeName: org.springframework.batch.core.repository.JobRepository
 
   - org.openrewrite.java.spring.batch.MigrateToChunkOrientedStepBuilder
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor
+      newFullyQualifiedTypeName: org.springframework.batch.core.configuration.support.JobRegistrySmartInitializingSingleton

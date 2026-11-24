@@ -23,7 +23,8 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.search.UsesType;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -36,9 +37,11 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
     @Getter
     final String description = "`DiskSpaceHealthIndicator(File, long)` was deprecated in Spring Boot 2.1 for removal in 2.2.";
 
+    private static final MethodMatcher CONSTRUCTOR_MATCHER = new MethodMatcher("org.springframework.boot.actuate.system.DiskSpaceHealthIndicator <constructor>(java.io.File, long)");
+
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.springframework.boot.actuate.system.DiskSpaceHealthIndicator", false), new JavaVisitor<ExecutionContext>() {
+        return Preconditions.check(new UsesMethod<>(CONSTRUCTOR_MATCHER), new JavaVisitor<ExecutionContext>() {
             final String diskSpaceHealthIndicatorFqn = "org.springframework.boot.actuate.system.DiskSpaceHealthIndicator";
 
             @Override
@@ -50,7 +53,7 @@ public class MigrateDiskSpaceHealthIndicatorConstructor extends Recipe {
 
                     maybeAddImport("org.springframework.util.unit.DataSize");
                     return JavaTemplate.builder("new DiskSpaceHealthIndicator(#{any(java.io.File)}, DataSize.ofBytes(#{any(long)}))")
-                            .imports("org.springframework.util.unit.DataSize")
+                            .imports(diskSpaceHealthIndicatorFqn, "org.springframework.util.unit.DataSize")
                             .javaParser(JavaParser.fromJavaVersion()
                                     .classpathFromResources(ctx, "spring-boot-actuator-2", "spring-core-5"))
                             .build().apply(

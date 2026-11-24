@@ -34,6 +34,9 @@ public class MigrateRepositoryRestConfigurerAdapter extends Recipe {
     private static final String REPOSITORY_REST_CONFIGURER_ADAPTER = "org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter";
     private static final String REPOSITORY_REST_CONFIGURER = "org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer";
 
+    private static final JavaType REPOSITORY_REST_CONFIGURER_TYPE = JavaType.buildType(REPOSITORY_REST_CONFIGURER);
+    private static final MethodMatcher ADAPTER_METHOD_MATCHER = new MethodMatcher("org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter *(..)");
+
     @Getter
     final String displayName = "Replace `RepositoryRestConfigurerAdapter` with `RepositoryRestConfigurer`";
 
@@ -43,8 +46,6 @@ public class MigrateRepositoryRestConfigurerAdapter extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new UsesType<>(REPOSITORY_REST_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
-            private final JavaType REPOSITORY_REST_CONFIGURER_TYPE = JavaType.buildType(REPOSITORY_REST_CONFIGURER);
-
             @Override
             public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
                 J.ClassDeclaration cd = super.visitClassDeclaration(classDecl, ctx);
@@ -106,12 +107,10 @@ public class MigrateRepositoryRestConfigurerAdapter extends Recipe {
             }
 
             class RemoveSuperStatementVisitor extends JavaIsoVisitor<ExecutionContext> {
-                final MethodMatcher wm = new MethodMatcher("org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter *(..)");
-
                 @Override
                 public J.@Nullable MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
                     J.MethodInvocation mi = super.visitMethodInvocation(method, ctx);
-                    if (wm.matches(method.getMethodType())) {
+                    if (ADAPTER_METHOD_MATCHER.matches(method.getMethodType())) {
                         return null;
                     }
                     return mi;

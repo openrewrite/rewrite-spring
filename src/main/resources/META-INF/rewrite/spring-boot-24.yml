@@ -74,8 +74,24 @@ recipeList:
   # Use recommended replacements for deprecated APIs
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactoryIsEagerInitFilters
   - org.openrewrite.java.spring.boot2.MigrateUndertowServletWebServerFactorySetEagerInitFilters
-  - org.openrewrite.java.spring.boot2.MigrateLoggingSystemPropertyConstants
-  - org.openrewrite.java.spring.boot2.MigrateHsqlEmbeddedDatabaseConnection
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_CLEAN_HISTORY_ON_START
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_CLEAN_HISTORY_ON_START
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_MAX_HISTORY
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_HISTORY
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_MAX_SIZE
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_MAX_FILE_SIZE
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.FILE_TOTAL_SIZE_CAP
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_TOTAL_SIZE_CAP
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.logging.LoggingSystemProperties.ROLLING_FILE_NAME_PATTERN
+      fullyQualifiedConstantName: org.springframework.boot.logging.logback.LogbackLoggingSystemProperties.ROLLINGPOLICY_FILE_NAME_PATTERN
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQL
+      fullyQualifiedConstantName: org.springframework.boot.jdbc.EmbeddedDatabaseConnection.HSQLDB
 
   # Update properties
   - org.openrewrite.java.spring.boot2.MergeBootstrapYamlWithApplicationYaml

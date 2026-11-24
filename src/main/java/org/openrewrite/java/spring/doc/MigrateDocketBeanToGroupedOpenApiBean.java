@@ -180,12 +180,16 @@ public class MigrateDocketBeanToGroupedOpenApiBean extends ScanningRecipe<Migrat
                 @Override
                 public J.NewClass visitNewClass(J.NewClass newClass, DocketDefinition.Builder builder) {
                     J.NewClass nc = super.visitNewClass(newClass, builder);
-                    if (builder.isValid() && !DOCKET_TYPEMATCHER.matches(newClass.getType()) ||
-                            !DOCUMENTATIONTYPE_TYPEMATCHER.matches(newClass.getArguments().get(0).getType()) ||
-                            !"SWAGGER_2".equals(((J.FieldAccess) newClass.getArguments().get(0)).getName().getSimpleName())) {
+                    if (builder.isValid() && (!DOCKET_TYPEMATCHER.matches(newClass.getType()) || !isSwagger2(newClass.getArguments().get(0)))) {
                         builder.invalidate();
                     }
                     return nc;
+                }
+
+                private boolean isSwagger2(Expression argument) {
+                    return argument instanceof J.FieldAccess &&
+                            DOCUMENTATIONTYPE_TYPEMATCHER.matches(argument.getType()) &&
+                            "SWAGGER_2".equals(((J.FieldAccess) argument).getName().getSimpleName());
                 }
 
                 @Override

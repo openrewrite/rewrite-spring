@@ -185,8 +185,8 @@ class UpdateMysqlDriverArtifactIdTest implements RewriteTest {
         }
 
         // Spring Boot 2 and dependency management 1.0 plugins use the `Upload` task, which Gradle 9 removed
-        @Test
         @SetSystemProperty(key = "org.openrewrite.test.gradleVersion", value = "8.14.5")
+        @Test
         void doNotPinWhenNotVersioned() {
             rewriteRun(spec -> spec.beforeRecipe(withToolingApi()),
               buildGradle(
