@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -38,6 +40,10 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
               """
                 package org.springframework.boot.autoconfigure.security.oauth2.client;
                 public @interface EnableOAuth2Sso {}
+                """,
+              """
+                package org.springframework.security.oauth2.config.annotation.web.configuration;
+                public @interface EnableAuthorizationServer {}
                 """,
               """
                 package org.springframework.security.oauth2.config.annotation.web.configuration;
@@ -1066,63 +1072,29 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
         );
     }
 
-    @Test
-    void legacyOAuth2SsoOnTheAdapterIsMarked() {
-        //language=java
-        rewriteRun(
-          java(
-            """
-              import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              @EnableOAuth2Sso
-              @Configuration
-              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http.authorizeRequests().anyRequest().authenticated();
-                  }
-              }
-              """,
-            """
-              import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
-              import org.springframework.context.annotation.Configuration;
-              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-              /*~~(Migrate off the end-of-life spring-security-oauth2 project first: it registers a WebSecurityConfigurerAdapter of its own, which cannot be combined with a SecurityFilterChain bean)~~>*/@EnableOAuth2Sso
-              @Configuration
-              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-                  @Override
-                  protected void configure(HttpSecurity http) throws Exception {
-                      http.authorizeRequests().anyRequest().authenticated();
-                  }
-              }
-              """
-          )
-        );
-    }
-
-    @Test
-    void legacyOAuth2ResourceServerInTheSameProjectIsMarked() {
-        //language=java
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso",
+      "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer",
+      "org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer"
+    })
+    void legacyOAuth2InAnotherModuleIsMarked(String annotation) {
         rewriteRun(
           mavenProject("legacy-oauth2",
+            //language=java
             java(
               """
                 import org.springframework.context.annotation.Configuration;
-                import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
-                @EnableResourceServer
+                @%s
                 @Configuration
-                public class ResourceServerConfiguration {
+                public class LegacyOAuth2Configuration {
                 }
-                """
-            ),
+                """.formatted(annotation)
+            )
+          ),
+          mavenProject("web",
+            //language=java
             java(
               """
                 import org.springframework.context.annotation.Configuration;
@@ -1149,40 +1121,6 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                     @Override
                     protected void configure(HttpSecurity http) throws Exception {
                         http.authorizeRequests().anyRequest().authenticated();
-                    }
-                }
-                """
-            )
-          ),
-          mavenProject("other",
-            java(
-              """
-                import org.springframework.context.annotation.Configuration;
-                import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-                import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
-                @Configuration
-                public class OtherSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-                    @Override
-                    protected void configure(HttpSecurity http) throws Exception {
-                        http.authorizeRequests().anyRequest().authenticated();
-                    }
-                }
-                """,
-              """
-                import org.springframework.context.annotation.Bean;
-                import org.springframework.context.annotation.Configuration;
-                import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-                import org.springframework.security.web.SecurityFilterChain;
-
-                @Configuration
-                public class OtherSecurityConfiguration {
-
-                    @Bean
-                    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                        http.authorizeRequests().anyRequest().authenticated();
-                        return http.build();
                     }
                 }
                 """

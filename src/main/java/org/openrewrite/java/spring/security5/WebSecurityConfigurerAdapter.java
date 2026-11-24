@@ -24,7 +24,6 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.marker.JavaProject;
 import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.Markers;
@@ -37,7 +36,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toSet;
 
-public class WebSecurityConfigurerAdapter extends ScanningRecipe<Set<@Nullable JavaProject>> {
+public class WebSecurityConfigurerAdapter extends ScanningRecipe<AtomicBoolean> {
 
     private static final Collection<J.Modifier.Type> EXPLICIT_ACCESS_LEVELS = Arrays.asList(J.Modifier.Type.Public,
             J.Modifier.Type.Private, J.Modifier.Type.Protected);
@@ -58,12 +57,9 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<Set<@Nullable J
     private static final String FQN_USER_DETAILS = "org.springframework.security.core.userdetails.UserDetails";
     private static final String FQN_BEAN = "org.springframework.context.annotation.Bean";
 
-    /// The end-of-life `spring-security-oauth2` project registers a `WebSecurityConfigurerAdapter` of its own for each of
-    /// these, and Spring Security refuses to start with both an adapter and a `SecurityFilterChain` bean.
-    private static final List<String> LEGACY_OAUTH2_ANNOTATIONS = Arrays.asList(
-            "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso",
-            "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer",
-            "org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer");
+    private static final String FQN_ENABLE_OAUTH2_SSO = "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso";
+    private static final String FQN_ENABLE_AUTHORIZATION_SERVER = "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer";
+    private static final String FQN_ENABLE_RESOURCE_SERVER = "org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer";
     private static final String LEGACY_OAUTH2_MESSAGE = "Migrate off the end-of-life spring-security-oauth2 project first: " +
             "it registers a WebSecurityConfigurerAdapter of its own, which cannot be combined with a SecurityFilterChain bean";
 
@@ -99,25 +95,26 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<Set<@Nullable J
     final String displayName = "Spring Security 5.4 introduces the ability to configure `HttpSecurity` by creating a `SecurityFilterChain` bean";
 
     @Getter
-    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
+    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details. Repositories that still use `@EnableOAuth2Sso`, `@EnableAuthorizationServer` or `@EnableResourceServer` of the end-of-life `spring-security-oauth2` project are left unchanged and their `WebSecurityConfigurerAdapter` configuration classes are marked, as that project registers an adapter of its own that cannot be combined with a `SecurityFilterChain` bean.";
 
     @Override
-    public Set<@Nullable JavaProject> getInitialValue(ExecutionContext ctx) {
-        return new HashSet<>();
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
+        return new AtomicBoolean();
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getScanner(Set<@Nullable JavaProject> legacyOAuth2Projects) {
+    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean usesLegacyOAuth2) {
+        // The end-of-life `spring-security-oauth2` project registers a `WebSecurityConfigurerAdapter` of its own for each of
+        // these, and Spring Security refuses to start with both an adapter and a `SecurityFilterChain` bean
+        TreeVisitor<?, ExecutionContext> legacyOAuth2 = Preconditions.or(
+                new UsesType<>(FQN_ENABLE_OAUTH2_SSO, false),
+                new UsesType<>(FQN_ENABLE_AUTHORIZATION_SERVER, false),
+                new UsesType<>(FQN_ENABLE_RESOURCE_SERVER, false));
         return new TreeVisitor<Tree, ExecutionContext>() {
             @Override
             public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof JavaSourceFile) {
-                    for (String annotation : LEGACY_OAUTH2_ANNOTATIONS) {
-                        if (new UsesType<>(annotation, false).visit(tree, ctx) != tree) {
-                            legacyOAuth2Projects.add(tree.getMarkers().findFirst(JavaProject.class).orElse(null));
-                            break;
-                        }
-                    }
+                if (!usesLegacyOAuth2.get() && tree instanceof JavaSourceFile && legacyOAuth2.visit(tree, ctx) != tree) {
+                    usesLegacyOAuth2.set(true);
                 }
                 return tree;
             }
@@ -125,34 +122,21 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<Set<@Nullable J
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor(Set<@Nullable JavaProject> legacyOAuth2Projects) {
-        TreeVisitor<?, ExecutionContext> visitor = adapterVisitor();
-        TreeVisitor<?, ExecutionContext> legacyOAuth2Visitor = Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
-                return TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, c.getType()) ? SearchResult.found(c, LEGACY_OAUTH2_MESSAGE) : c;
-            }
-        });
-        return new TreeVisitor<Tree, ExecutionContext>() {
-            @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (tree instanceof SourceFile && legacyOAuth2Projects.contains(tree.getMarkers().findFirst(JavaProject.class).orElse(null))) {
-                    return legacyOAuth2Visitor.visit(tree, ctx);
+    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean usesLegacyOAuth2) {
+        if (usesLegacyOAuth2.get()) {
+            return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
+                @Override
+                public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                    J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
+                    return isAdapterConfigurationClass(c) ? SearchResult.found(c, LEGACY_OAUTH2_MESSAGE) : c;
                 }
-                return visitor.visit(tree, ctx);
-            }
-        };
-    }
-
-    private TreeVisitor<?, ExecutionContext> adapterVisitor() {
+            });
+        }
         return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.@Nullable ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType()) &&
-                        (isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION) ||
-                         classDecl.getType() != null && isMetaAnnotated(classDecl.getType(), FQN_CONFIGURATION, new HashSet<>()));
+                boolean isWebSecurityConfigurerAdapterClass = isAdapterConfigurationClass(classDecl);
                 boolean hasConflict = false;
                 if (isWebSecurityConfigurerAdapterClass) {
                     for (Statement s : classDecl.getBody().getStatements()) {
@@ -478,6 +462,12 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<Set<@Nullable J
             newName = newName + beanType;
         }
         return newName;
+    }
+
+    private static boolean isAdapterConfigurationClass(J.ClassDeclaration classDecl) {
+        return TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType()) &&
+                (isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION) ||
+                 classDecl.getType() != null && isMetaAnnotated(classDecl.getType(), FQN_CONFIGURATION, new HashSet<>()));
     }
 
     private static boolean isMetaAnnotated(JavaType.FullyQualified t, String fqn, Set<JavaType.FullyQualified> visited) {
