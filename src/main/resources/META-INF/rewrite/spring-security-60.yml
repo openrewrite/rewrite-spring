@@ -29,6 +29,11 @@ preconditions:
   - org.openrewrite.Singleton
 recipeList:
   - org.openrewrite.java.spring.security5.UpgradeSpringSecurity_5_8
+  # Spring Security 6 removed the OpenID 2.0 support, so `spring-security-openid` has no 6.x release
+  - org.openrewrite.java.dependencies.RemoveDependency:
+      groupId: org.springframework.security
+      artifactId: spring-security-openid
+      unlessUsing: org.springframework.security.openid..*
   - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
       groupId: org.springframework.security
       artifactId: "*"
