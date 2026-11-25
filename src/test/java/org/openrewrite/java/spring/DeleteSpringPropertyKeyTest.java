@@ -135,6 +135,130 @@ class DeleteSpringPropertyKeyTest implements RewriteTest {
     }
 
     @Test
+    void deleteParentPropertyInProperties() {
+        rewriteRun(
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie")),
+          mavenProject("project",
+            srcMainResources(
+              properties(
+                """
+                  some=value
+                  server.servlet.session.cookie.name=fred
+                  server.servlet.session.cookie.path=/cookie-monster
+                  other=value
+                  """,
+                """
+                  some=value
+                  other=value
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void deleteParentPropertyInYaml() {
+        rewriteRun(
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie")),
+          mavenProject("project",
+            srcMainResources(
+              yaml(
+                """
+                  some: value
+                  server:
+                    servlet:
+                      session:
+                        cookie:
+                          name: fred
+                          path: /cookie-monster
+                  other: value
+                  """,
+                """
+                  some: value
+                  other: value
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void deleteParentPropertyInCoalescedYaml() {
+        rewriteRun(
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie")),
+          mavenProject("project",
+            srcMainResources(
+              yaml(
+                """
+                  some: value
+                  server.servlet.session.cookie.name: fred
+                  server.servlet.session.cookie.path: /cookie-monster
+                  other: value
+                  """,
+                """
+                  some: value
+                  other: value
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
+    void deleteParentPropertyViaGlobAcrossFormats() {
+        rewriteRun(
+          spec -> spec.recipe(new DeleteSpringProperty("server.servlet.session.cookie.*")),
+          mavenProject("project",
+            srcMainResources(
+              properties(
+                """
+                  some=value
+                  server.servlet.session.cookie.name=fred
+                  server.servlet.session.cookie.path=/cookie-monster
+                  other=value
+                  """,
+                """
+                  some=value
+                  other=value
+                  """
+              ),
+              yaml(
+                """
+                  some: value
+                  server:
+                    servlet:
+                      session:
+                        cookie:
+                          name: fred
+                          path: /cookie-monster
+                  other: value
+                  """,
+                """
+                  some: value
+                  other: value
+                  """
+              ),
+              yaml(
+                """
+                  some: value
+                  server.servlet.session.cookie.name: fred
+                  server.servlet.session.cookie.path: /cookie-monster
+                  other: value
+                  """,
+                """
+                  some: value
+                  other: value
+                  """
+              )
+            )
+          )
+        );
+    }
+
+    @Test
     void doesNotModifyNonSpringYamlFiles() {
         rewriteRun(
           spec -> spec.recipe(new DeleteSpringProperty("on.push")),
