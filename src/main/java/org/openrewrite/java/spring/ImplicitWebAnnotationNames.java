@@ -52,7 +52,6 @@ public class ImplicitWebAnnotationNames extends Recipe {
     private static class ImplicitWebAnnotationNamesVisitor extends JavaIsoVisitor<ExecutionContext> {
         private static final Set<String> PARAM_ANNOTATIONS = Stream.of(
                 "PathVariable",
-                "RequestParam",
                 "RequestHeader",
                 "RequestAttribute",
                 "CookieValue",
