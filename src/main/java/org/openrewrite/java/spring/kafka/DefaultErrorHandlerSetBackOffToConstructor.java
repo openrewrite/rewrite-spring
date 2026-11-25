@@ -22,6 +22,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -31,6 +32,7 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.Statement;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -69,7 +71,7 @@ public class DefaultErrorHandlerSetBackOffToConstructor extends Recipe {
                         String variableName = ((J.VariableDeclarations.NamedVariable) parent.getValue()).getSimpleName();
                         Cursor blockCursor = getCursor().dropParentUntil(J.Block.class::isInstance);
                         J.MethodInvocation setBackOff = findSetBackOff((J.Block) blockCursor.getValue(), variableName);
-                        if (setBackOff != null) {
+                        if (setBackOff != null && backOffIsInScope((J.Block) blockCursor.getValue(), parent, setBackOff)) {
                             Set<UUID> toRemove = blockCursor.getMessage("SET_BACK_OFF_TO_REMOVE", new HashSet<>());
                             toRemove.add(setBackOff.getId());
                             blockCursor.putMessage("SET_BACK_OFF_TO_REMOVE", toRemove);
@@ -96,6 +98,38 @@ public class DefaultErrorHandlerSetBackOffToConstructor extends Recipe {
                     }
                 }
                 return null;
+            }
+
+            private boolean backOffIsInScope(J.Block block, Cursor namedVariable, J.MethodInvocation setBackOff) {
+                Cursor declarations = namedVariable.getParentTreeCursor();
+                List<Statement> statements = block.getStatements();
+                int handler = -1;
+                for (int i = 0; i < statements.size(); i++) {
+                    if (statements.get(i) == declarations.getValue()) {
+                        handler = i;
+                        break;
+                    }
+                }
+                Set<String> declaredAfter = new HashSet<>();
+                for (int i = handler + 1; i < statements.size(); i++) {
+                    if (statements.get(i) instanceof J.VariableDeclarations) {
+                        for (J.VariableDeclarations.NamedVariable variable : ((J.VariableDeclarations) statements.get(i)).getVariables()) {
+                            declaredAfter.add(variable.getSimpleName());
+                        }
+                    }
+                }
+                if (declaredAfter.isEmpty()) {
+                    return true;
+                }
+                Set<String> referenced = new JavaIsoVisitor<Set<String>>() {
+                    @Override
+                    public J.Identifier visitIdentifier(J.Identifier identifier, Set<String> names) {
+                        names.add(identifier.getSimpleName());
+                        return identifier;
+                    }
+                }.reduce(setBackOff.getArguments().get(0), new HashSet<>());
+                referenced.retainAll(declaredAfter);
+                return referenced.isEmpty();
             }
         });
     }
