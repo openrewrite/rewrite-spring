@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.spring.data;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
@@ -29,7 +30,7 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new JdbcTemplateQueryForLongMigration())
-          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-beans-5.+"));
+          .parser(JavaParser.fromJavaVersion().classpathFromResources(new InMemoryExecutionContext(), "spring-jdbc-4", "spring-tx-5", "spring-beans-5.+"));
     }
 
     @DocumentExample
@@ -51,10 +52,12 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
             """
               import org.springframework.jdbc.core.JdbcTemplate;
 
+              import java.util.Optional;
+
               class Test {
                   void test(JdbcTemplate jdbcTemplate) {
                       String query = "SELECT COUNT(*) FROM table";
-                      Long count = jdbcTemplate.queryForObject(query, Long.class);
+                      Long count = Optional.ofNullable(jdbcTemplate.queryForObject(query, Long.class)).orElse(0L);
                   }
               }
               """
@@ -72,22 +75,111 @@ class JdbcTemplateQueryForLongMigrationTest implements RewriteTest {
 
               class Test {
                   void test(JdbcTemplate jdbcTemplate) {
-                      String query = "SELECT COUNT(*) FROM table WHERE id = ?";
-                      Long count = jdbcTemplate.queryForLong(query, 42);
+                      String query = "SELECT COUNT(*) FROM table WHERE id = ? AND name = ?";
+                      Long count = jdbcTemplate.queryForLong(query, 42, "name");
                   }
               }
               """,
             """
               import org.springframework.jdbc.core.JdbcTemplate;
 
+              import java.util.Optional;
+
               class Test {
                   void test(JdbcTemplate jdbcTemplate) {
-                      String query = "SELECT COUNT(*) FROM table WHERE id = ?";
-                      Long count = jdbcTemplate.queryForObject(query, Long.class, 42);
+                      String query = "SELECT COUNT(*) FROM table WHERE id = ? AND name = ?";
+                      Long count = Optional.ofNullable(jdbcTemplate.queryForObject(query, Long.class, 42, "name")).orElse(0L);
                   }
               }
               """
           )
         );
+    }
+
+    @Test
+    void argumentsWithArgumentTypes() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.sql.Types;
+
+              class Test {
+                  void test(JdbcTemplate jdbcTemplate) {
+                      String query = "SELECT COUNT(*) FROM table WHERE id = ?";
+                      Long count = jdbcTemplate.queryForLong(query, new Object[]{42}, new int[]{Types.INTEGER});
+                  }
+              }
+              """,
+            """
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.sql.Types;
+              import java.util.Optional;
+
+              class Test {
+                  void test(JdbcTemplate jdbcTemplate) {
+                      String query = "SELECT COUNT(*) FROM table WHERE id = ?";
+                      Long count = Optional.ofNullable(jdbcTemplate.queryForObject(query, new Object[]{42}, new int[]{Types.INTEGER}, Long.class)).orElse(0L);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void sqlNullKeepsZeroForPrimitiveResult() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              class Test {
+                  long test(JdbcTemplate jdbcTemplate) {
+                      long maxId = jdbcTemplate.queryForLong("SELECT MAX(id) FROM table");
+                      return maxId + 1;
+                  }
+              }
+              """,
+            """
+              import org.springframework.jdbc.core.JdbcTemplate;
+
+              import java.util.Optional;
+
+              class Test {
+                  long test(JdbcTemplate jdbcTemplate) {
+                      long maxId = Optional.ofNullable(jdbcTemplate.queryForObject("SELECT MAX(id) FROM table", Long.class)).orElse(0L);
+                      return maxId + 1;
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Nested
+    class NoChange {
+
+        @Test
+        void alreadyMigrated() {
+            rewriteRun(
+              //language=java
+              java(
+                """
+                  import org.springframework.jdbc.core.JdbcTemplate;
+
+                  class Test {
+                      void test(JdbcTemplate jdbcTemplate) {
+                          Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM table", Long.class);
+                      }
+                  }
+                  """
+              )
+            );
+        }
     }
 }
