@@ -29,7 +29,11 @@ import org.openrewrite.yaml.MergeYaml;
 import org.openrewrite.yaml.search.FindProperty;
 import org.openrewrite.yaml.tree.Yaml;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+
+import static java.util.Collections.singletonList;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
@@ -87,31 +91,61 @@ public class MigrateArtemisProperties extends ScanningRecipe<SpringConfigFiles> 
             }
 
             private Tree migrateYaml(Yaml.Documents documents, ExecutionContext ctx) {
-                Set<Yaml.Block> hostBlocks = FindProperty.find(documents, "spring.artemis.host", true);
-                Set<Yaml.Block> portBlocks = FindProperty.find(documents, "spring.artemis.port", true);
-                if (hostBlocks.isEmpty() && portBlocks.isEmpty()) {
-                    return documents;
+                List<Yaml.Document> migratedDocuments = new ArrayList<>(documents.getDocuments().size());
+                // Documents later in a multi-document YAML override earlier ones, so a document that sets only
+                // one of host or port keeps using the other value established by the documents before it.
+                String effectiveHost = null;
+                String effectivePort = null;
+                boolean changed = false;
+                for (Yaml.Document document : documents.getDocuments()) {
+                    if (!(document.getBlock() instanceof Yaml.Mapping)) {
+                        migratedDocuments.add(document);
+                        continue;
+                    }
+                    Set<Yaml.Block> hostBlocks = FindProperty.find(document, "spring.artemis.host", true);
+                    Set<Yaml.Block> portBlocks = FindProperty.find(document, "spring.artemis.port", true);
+                    String host = scalarValue(hostBlocks);
+                    String port = scalarValue(portBlocks);
+                    if (host == null && port == null) {
+                        migratedDocuments.add(document);
+                        continue;
+                    }
+                    effectiveHost = host != null ? host : effectiveHost;
+                    effectivePort = port != null ? port : effectivePort;
+                    String brokerUrl = "tcp://" + (effectiveHost == null ? "localhost" : effectiveHost) +
+                            ":" + (effectivePort == null ? "61616" : effectivePort);
+
+                    // A dot-path only addresses `spring.artemis` when the document nests it, while `MergeYaml`'s
+                    // create-new-keys fallback reaches a dotted `spring.artemis:` key. Without either, a dotted
+                    // `spring.artemis.broker-url` keeps the style of the document, and the merge finds and keeps
+                    // one that is already set.
+                    boolean hasArtemisEntry = !FindProperty.find(document, "spring.artemis", true).isEmpty();
+                    Yaml.Documents singleDocument = (Yaml.Documents) new MergeYaml(
+                            hasArtemisEntry ? "$.spring.artemis" : "$",
+                            (hasArtemisEntry ? "broker-url: " : "spring.artemis.broker-url: ") + brokerUrl,
+                            true, null, null, null, null, null)
+                            .getVisitor().visitNonNull(documents.withDocuments(singletonList(document)), ctx);
+                    if (!hostBlocks.isEmpty()) {
+                        singleDocument = (Yaml.Documents) new org.openrewrite.yaml.DeleteProperty("spring.artemis.host", false, true, null)
+                                .getVisitor().visitNonNull(singleDocument, ctx);
+                    }
+                    if (!portBlocks.isEmpty()) {
+                        singleDocument = (Yaml.Documents) new org.openrewrite.yaml.DeleteProperty("spring.artemis.port", false, true, null)
+                                .getVisitor().visitNonNull(singleDocument, ctx);
+                    }
+                    migratedDocuments.add(singleDocument.getDocuments().get(0));
+                    changed = true;
                 }
-                String host = "localhost";
-                String port = "61616";
-                if (!hostBlocks.isEmpty() && hostBlocks.iterator().next() instanceof Yaml.Scalar) {
-                    host = ((Yaml.Scalar) hostBlocks.iterator().next()).getValue();
+                return changed ? documents.withDocuments(migratedDocuments) : documents;
+            }
+
+            private @Nullable String scalarValue(Set<Yaml.Block> blocks) {
+                for (Yaml.Block block : blocks) {
+                    if (block instanceof Yaml.Scalar) {
+                        return ((Yaml.Scalar) block).getValue();
+                    }
                 }
-                if (!portBlocks.isEmpty() && portBlocks.iterator().next() instanceof Yaml.Scalar) {
-                    port = ((Yaml.Scalar) portBlocks.iterator().next()).getValue();
-                }
-                String brokerUrl = "tcp://" + host + ":" + port;
-                documents = (Yaml.Documents) new MergeYaml("$.spring.artemis", "broker-url: " + brokerUrl, true, null, null, null, null, null)
-                        .getVisitor().visitNonNull(documents, ctx);
-                if (!hostBlocks.isEmpty()) {
-                    documents = (Yaml.Documents) new org.openrewrite.yaml.DeleteProperty("spring.artemis.host", false, true, null)
-                            .getVisitor().visitNonNull(documents, ctx);
-                }
-                if (!portBlocks.isEmpty()) {
-                    documents = (Yaml.Documents) new org.openrewrite.yaml.DeleteProperty("spring.artemis.port", false, true, null)
-                            .getVisitor().visitNonNull(documents, ctx);
-                }
-                return documents;
+                return null;
             }
         });
     }
