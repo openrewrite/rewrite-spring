@@ -1075,8 +1075,7 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso",
-      "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer",
-      "org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer"
+      "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer"
     })
     void legacyOAuth2InAnotherModuleIsMarked(String annotation) {
         rewriteRun(
@@ -1125,6 +1124,57 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                 }
                 """
             )
+          )
+        );
+    }
+
+    @Test
+    void resourceServerDoesNotStopMigration() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
+              @EnableResourceServer
+              @Configuration
+              public class ResourceServerConfiguration {
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              public class SecurityConfiguration {
+
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                      return http.build();
+                  }
+              }
+              """
           )
         );
     }

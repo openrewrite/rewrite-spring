@@ -59,7 +59,6 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<AtomicBoolean> 
 
     private static final String FQN_ENABLE_OAUTH2_SSO = "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso";
     private static final String FQN_ENABLE_AUTHORIZATION_SERVER = "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer";
-    private static final String FQN_ENABLE_RESOURCE_SERVER = "org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer";
     private static final String LEGACY_OAUTH2_MESSAGE = "Migrate off the end-of-life spring-security-oauth2 project first: " +
             "it registers a WebSecurityConfigurerAdapter of its own, which cannot be combined with a SecurityFilterChain bean";
 
@@ -95,7 +94,7 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<AtomicBoolean> 
     final String displayName = "Spring Security 5.4 introduces the ability to configure `HttpSecurity` by creating a `SecurityFilterChain` bean";
 
     @Getter
-    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details. Repositories that still use `@EnableOAuth2Sso`, `@EnableAuthorizationServer` or `@EnableResourceServer` of the end-of-life `spring-security-oauth2` project are left unchanged and their `WebSecurityConfigurerAdapter` configuration classes are marked, as that project registers an adapter of its own that cannot be combined with a `SecurityFilterChain` bean.";
+    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details. Repositories that still use `@EnableOAuth2Sso` or `@EnableAuthorizationServer` of the end-of-life `spring-security-oauth2` project are left unchanged and their `WebSecurityConfigurerAdapter` configuration classes are marked, as that project registers an adapter of its own that cannot be combined with a `SecurityFilterChain` bean.";
 
     @Override
     public AtomicBoolean getInitialValue(ExecutionContext ctx) {
@@ -105,15 +104,16 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<AtomicBoolean> 
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean usesLegacyOAuth2) {
         // The end-of-life `spring-security-oauth2` project registers a `WebSecurityConfigurerAdapter` of its own for each of
-        // these, and Spring Security refuses to start with both an adapter and a `SecurityFilterChain` bean
+        // these, and Spring Security refuses to start with both an adapter and a `SecurityFilterChain` bean.
+        // `@EnableResourceServer` is not checked: `MigrateSpringSecurityOAuth` turns resource servers into a `SecurityFilterChain`
+        // bean in the same Spring Security 6.5 upgrade, which would otherwise leave this adapter behind uncompilable.
         if (usesLegacyOAuth2.get()) {
             return TreeVisitor.noop();
         }
         return Preconditions.check(
                 Preconditions.or(
                         new UsesType<>(FQN_ENABLE_OAUTH2_SSO, false),
-                        new UsesType<>(FQN_ENABLE_AUTHORIZATION_SERVER, false),
-                        new UsesType<>(FQN_ENABLE_RESOURCE_SERVER, false)),
+                        new UsesType<>(FQN_ENABLE_AUTHORIZATION_SERVER, false)),
                 new TreeVisitor<Tree, ExecutionContext>() {
                     @Override
                     public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
