@@ -716,6 +716,24 @@ recipeList:
       oldPropertyKey: spring.redis.host
       newPropertyKey: spring.data.redis.host
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.jedis.pool.enabled
+      newPropertyKey: spring.data.redis.jedis.pool.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.jedis.pool.max-active
+      newPropertyKey: spring.data.redis.jedis.pool.max-active
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.jedis.pool.max-idle
+      newPropertyKey: spring.data.redis.jedis.pool.max-idle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.jedis.pool.max-wait
+      newPropertyKey: spring.data.redis.jedis.pool.max-wait
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.jedis.pool.min-idle
+      newPropertyKey: spring.data.redis.jedis.pool.min-idle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.jedis.pool.time-between-eviction-runs
+      newPropertyKey: spring.data.redis.jedis.pool.time-between-eviction-runs
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.redis.lettuce.cluster.refresh.adaptive
       newPropertyKey: spring.data.redis.lettuce.cluster.refresh.adaptive
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
@@ -724,6 +742,24 @@ recipeList:
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.redis.lettuce.cluster.refresh.period
       newPropertyKey: spring.data.redis.lettuce.cluster.refresh.period
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.lettuce.pool.enabled
+      newPropertyKey: spring.data.redis.lettuce.pool.enabled
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.lettuce.pool.max-active
+      newPropertyKey: spring.data.redis.lettuce.pool.max-active
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.lettuce.pool.max-idle
+      newPropertyKey: spring.data.redis.lettuce.pool.max-idle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.lettuce.pool.max-wait
+      newPropertyKey: spring.data.redis.lettuce.pool.max-wait
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.lettuce.pool.min-idle
+      newPropertyKey: spring.data.redis.lettuce.pool.min-idle
+  - org.openrewrite.java.spring.ChangeSpringPropertyKey:
+      oldPropertyKey: spring.redis.lettuce.pool.time-between-eviction-runs
+      newPropertyKey: spring.data.redis.lettuce.pool.time-between-eviction-runs
   - org.openrewrite.java.spring.ChangeSpringPropertyKey:
       oldPropertyKey: spring.redis.lettuce.shutdown-timeout
       newPropertyKey: spring.data.redis.lettuce.shutdown-timeout
@@ -836,42 +872,6 @@ recipeList:
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.mvc.ignore-default-model-on-redirect
       comment: "This property is deprecated: Deprecated for removal in Spring MVC"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.jedis.pool.enabled
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.jedis.pool.max-active
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.jedis.pool.max-idle
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.jedis.pool.max-wait
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.jedis.pool.min-idle
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.jedis.pool.time-between-eviction-runs
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.lettuce.pool.enabled
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.lettuce.pool.max-active
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.lettuce.pool.max-idle
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.lettuce.pool.max-wait
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.lettuce.pool.min-idle
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
-  - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
-      propertyKey: spring.redis.lettuce.pool.time-between-eviction-runs
-      comment: "This property is deprecated and will be removed in future Spring Boot versions"
   - org.openrewrite.java.spring.CommentOutSpringPropertyKey:
       propertyKey: spring.webflux.multipart.streaming
       comment: "This property is deprecated: Replaced by the PartEventHttpMessageReader and the PartEvent API."
