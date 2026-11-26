@@ -106,19 +106,21 @@ public class WebSecurityConfigurerAdapter extends ScanningRecipe<AtomicBoolean> 
     public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean usesLegacyOAuth2) {
         // The end-of-life `spring-security-oauth2` project registers a `WebSecurityConfigurerAdapter` of its own for each of
         // these, and Spring Security refuses to start with both an adapter and a `SecurityFilterChain` bean
-        TreeVisitor<?, ExecutionContext> legacyOAuth2 = Preconditions.or(
-                new UsesType<>(FQN_ENABLE_OAUTH2_SSO, false),
-                new UsesType<>(FQN_ENABLE_AUTHORIZATION_SERVER, false),
-                new UsesType<>(FQN_ENABLE_RESOURCE_SERVER, false));
-        return new TreeVisitor<Tree, ExecutionContext>() {
-            @Override
-            public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
-                if (!usesLegacyOAuth2.get() && tree instanceof JavaSourceFile && legacyOAuth2.visit(tree, ctx) != tree) {
-                    usesLegacyOAuth2.set(true);
-                }
-                return tree;
-            }
-        };
+        if (usesLegacyOAuth2.get()) {
+            return TreeVisitor.noop();
+        }
+        return Preconditions.check(
+                Preconditions.or(
+                        new UsesType<>(FQN_ENABLE_OAUTH2_SSO, false),
+                        new UsesType<>(FQN_ENABLE_AUTHORIZATION_SERVER, false),
+                        new UsesType<>(FQN_ENABLE_RESOURCE_SERVER, false)),
+                new TreeVisitor<Tree, ExecutionContext>() {
+                    @Override
+                    public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                        usesLegacyOAuth2.set(true);
+                        return tree;
+                    }
+                });
     }
 
     @Override
