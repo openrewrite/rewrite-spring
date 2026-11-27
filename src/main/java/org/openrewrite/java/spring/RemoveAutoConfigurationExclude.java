@@ -129,7 +129,7 @@ public class RemoveAutoConfigurationExclude extends Recipe {
 
                     private boolean isTargetClassReference(Expression expr) {
                         return expr instanceof J.FieldAccess &&
-                                TypeUtils.isAssignableTo(fullyQualifiedName, ((J.FieldAccess) expr).getTarget().getType());
+                                TypeUtils.isOfClassType(((J.FieldAccess) expr).getTarget().getType(), fullyQualifiedName);
                     }
 
                     private boolean isTargetNameLiteral(Expression expr) {
