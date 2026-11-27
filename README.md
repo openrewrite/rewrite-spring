@@ -30,6 +30,29 @@ Browse [a selection of recipes available through this module in the recipe catal
 
 See the full documentation at [docs.openrewrite.org](https://docs.openrewrite.org/).
 
+## Spring Boot upgrade recipes
+
+Each recipe migrates a project to the listed Spring Boot version from the preceding one (2.0 migrates from Spring Boot 1.x).
+
+| Spring Boot version | Recipe |
+|---------------------|--------|
+| 2.0 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_0` |
+| 2.1 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_1` |
+| 2.2 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_2` |
+| 2.3 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_3` |
+| 2.4 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_4` |
+| 2.5 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_5` |
+| 2.6 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_6` |
+| 2.7 | `org.openrewrite.java.spring.boot2.UpgradeSpringBoot_2_7` |
+| 3.0 | `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0` |
+| 3.1 | `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_1` |
+| 3.2 | `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2` |
+| 3.3 | `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3` |
+| 3.4 | `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4` |
+| 3.5 | `org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5` |
+| 4.0 | `org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0` |
+| 4.1 | `org.openrewrite.java.spring.boot4.SpringBootProperties_4_1` (configuration properties only) |
+
 ## How to generate Spring Boot configuration properties replacement recipes?
 
 1. Run [GeneratePropertiesMigratorConfiguration.java](src/test/java/org/openrewrite/java/spring/internal/GeneratePropertiesMigratorConfiguration.java)
