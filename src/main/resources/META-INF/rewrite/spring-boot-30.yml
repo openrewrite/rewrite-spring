@@ -233,7 +233,10 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.java.spring.boot3.UpgradeMyBatisToSpringBoot_3_0
 displayName: Upgrade MyBatis to Spring Boot 3.0
-description: Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.0.
+description: >-
+  Upgrade MyBatis Spring modules to a version corresponding to Spring Boot 3.0. Also upgrade the PageHelper Spring Boot
+  starter to 1.4.6 or later, as older versions only register their auto-configuration in `spring.factories`, which
+  Spring Boot 3 ignores, so pagination is silently turned off.
 preconditions:
   - org.openrewrite.Singleton
 recipeList:
@@ -243,6 +246,10 @@ recipeList:
       artifactId: "*"
       newVersion: 3.0.2
       overrideManagedVersion: true
+  - org.openrewrite.java.dependencies.UpgradeDependencyVersion:
+      groupId: com.github.pagehelper
+      artifactId: pagehelper-spring-boot-*
+      newVersion: 1.4.x
 
 ---
 type: specs.openrewrite.org/v1beta/recipe

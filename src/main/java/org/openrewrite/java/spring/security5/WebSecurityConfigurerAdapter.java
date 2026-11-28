@@ -36,7 +36,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.nCopies;
 import static java.util.stream.Collectors.toSet;
 
-public class WebSecurityConfigurerAdapter extends Recipe {
+public class WebSecurityConfigurerAdapter extends ScanningRecipe<AtomicBoolean> {
 
     private static final Collection<J.Modifier.Type> EXPLICIT_ACCESS_LEVELS = Arrays.asList(J.Modifier.Type.Public,
             J.Modifier.Type.Private, J.Modifier.Type.Protected);
@@ -56,6 +56,11 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     private static final String FQN_IN_MEMORY_USER_BUILDER = "org.springframework.security.config.annotation.authentication.configurers.provisioning.UserDetailsManagerConfigurer$UserDetailsBuilder";
     private static final String FQN_USER_DETAILS = "org.springframework.security.core.userdetails.UserDetails";
     private static final String FQN_BEAN = "org.springframework.context.annotation.Bean";
+
+    private static final String FQN_ENABLE_OAUTH2_SSO = "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso";
+    private static final String FQN_ENABLE_AUTHORIZATION_SERVER = "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer";
+    private static final String LEGACY_OAUTH2_MESSAGE = "Migrate off the end-of-life spring-security-oauth2 project first: " +
+            "it registers a WebSecurityConfigurerAdapter of its own, which cannot be combined with a SecurityFilterChain bean";
 
     private static final MethodMatcher CONFIGURE_HTTP_SECURITY_METHOD_MATCHER =
             new MethodMatcher("org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter configure(org.springframework.security.config.annotation.web.builders.HttpSecurity)", true);
@@ -89,17 +94,51 @@ public class WebSecurityConfigurerAdapter extends Recipe {
     final String displayName = "Spring Security 5.4 introduces the ability to configure `HttpSecurity` by creating a `SecurityFilterChain` bean";
 
     @Getter
-    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details.";
+    final String description = "The Spring Security `WebSecurityConfigurerAdapter` was deprecated 5.7, this recipe will transform `WebSecurityConfigurerAdapter` classes by using a component based approach. Check out the [spring-security-without-the-websecurityconfigureradapter](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter) blog for more details. Repositories that still use `@EnableOAuth2Sso` or `@EnableAuthorizationServer` of the end-of-life `spring-security-oauth2` project are left unchanged and their `WebSecurityConfigurerAdapter` configuration classes are marked, as that project registers an adapter of its own that cannot be combined with a `SecurityFilterChain` bean.";
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public AtomicBoolean getInitialValue(ExecutionContext ctx) {
+        return new AtomicBoolean();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(AtomicBoolean usesLegacyOAuth2) {
+        // The end-of-life `spring-security-oauth2` project registers a `WebSecurityConfigurerAdapter` of its own for each of
+        // these, and Spring Security refuses to start with both an adapter and a `SecurityFilterChain` bean.
+        // `@EnableResourceServer` is not checked: `MigrateSpringSecurityOAuth` turns resource servers into a `SecurityFilterChain`
+        // bean in the same Spring Security 6.5 upgrade, which would otherwise leave this adapter behind uncompilable.
+        if (usesLegacyOAuth2.get()) {
+            return TreeVisitor.noop();
+        }
+        return Preconditions.check(
+                Preconditions.or(
+                        new UsesType<>(FQN_ENABLE_OAUTH2_SSO, false),
+                        new UsesType<>(FQN_ENABLE_AUTHORIZATION_SERVER, false)),
+                new TreeVisitor<Tree, ExecutionContext>() {
+                    @Override
+                    public @Nullable Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                        usesLegacyOAuth2.set(true);
+                        return tree;
+                    }
+                });
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(AtomicBoolean usesLegacyOAuth2) {
+        if (usesLegacyOAuth2.get()) {
+            return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
+                @Override
+                public J.ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
+                    J.ClassDeclaration c = super.visitClassDeclaration(classDecl, ctx);
+                    return isAdapterConfigurationClass(c) ? SearchResult.found(c, LEGACY_OAUTH2_MESSAGE) : c;
+                }
+            });
+        }
         return Preconditions.check(new UsesType<>(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, false), new JavaIsoVisitor<ExecutionContext>() {
 
             @Override
             public J.@Nullable ClassDeclaration visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
-                boolean isWebSecurityConfigurerAdapterClass = TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType()) &&
-                        (isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION) ||
-                         classDecl.getType() != null && isMetaAnnotated(classDecl.getType(), FQN_CONFIGURATION, new HashSet<>()));
+                boolean isWebSecurityConfigurerAdapterClass = isAdapterConfigurationClass(classDecl);
                 boolean hasConflict = false;
                 if (isWebSecurityConfigurerAdapterClass) {
                     for (Statement s : classDecl.getBody().getStatements()) {
@@ -425,6 +464,12 @@ public class WebSecurityConfigurerAdapter extends Recipe {
             newName = newName + beanType;
         }
         return newName;
+    }
+
+    private static boolean isAdapterConfigurationClass(J.ClassDeclaration classDecl) {
+        return TypeUtils.isAssignableTo(FQN_WEB_SECURITY_CONFIGURER_ADAPTER, classDecl.getType()) &&
+                (isAnnotatedWith(classDecl.getLeadingAnnotations(), FQN_CONFIGURATION) ||
+                 classDecl.getType() != null && isMetaAnnotated(classDecl.getType(), FQN_CONFIGURATION, new HashSet<>()));
     }
 
     private static boolean isMetaAnnotated(JavaType.FullyQualified t, String fqn, Set<JavaType.FullyQualified> visited) {
