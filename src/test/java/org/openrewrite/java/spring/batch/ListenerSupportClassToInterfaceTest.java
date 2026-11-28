@@ -224,4 +224,35 @@ class ListenerSupportClassToInterfaceTest implements RewriteTest {
           )
         );
     }
+
+    @Test
+    void classAlreadyImplementingInterface() {
+        //language=java
+        rewriteRun(
+          java(
+            """
+              import org.springframework.batch.core.JobExecution;
+              import org.springframework.batch.core.JobExecutionListener;
+              import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+
+              class MyListener extends JobExecutionListenerSupport implements JobExecutionListener {
+                  @Override
+                  public void afterJob(JobExecution jobExecution) {
+                      super.afterJob(jobExecution);
+                  }
+              }
+              """,
+            """
+              import org.springframework.batch.core.JobExecution;
+              import org.springframework.batch.core.JobExecutionListener;
+
+              class MyListener implements JobExecutionListener {
+                  @Override
+                  public void afterJob(JobExecution jobExecution) {
+                  }
+              }
+              """
+          )
+        );
+    }
 }
