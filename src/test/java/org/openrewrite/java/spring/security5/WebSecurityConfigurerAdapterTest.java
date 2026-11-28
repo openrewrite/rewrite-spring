@@ -16,6 +16,8 @@
 package org.openrewrite.java.spring.security5;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
@@ -24,6 +26,7 @@ import org.openrewrite.test.RewriteTest;
 import org.openrewrite.test.TypeValidation;
 
 import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
 
 @SuppressWarnings({"RedundantThrows", "UnnecessaryLocalVariable"})
 class WebSecurityConfigurerAdapterTest implements RewriteTest {
@@ -32,6 +35,21 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
     public void defaults(RecipeSpec spec) {
         spec.recipe(new WebSecurityConfigurerAdapter())
           .parser(JavaParser.fromJavaVersion()
+            //language=java
+            .dependsOn(
+              """
+                package org.springframework.boot.autoconfigure.security.oauth2.client;
+                public @interface EnableOAuth2Sso {}
+                """,
+              """
+                package org.springframework.security.oauth2.config.annotation.web.configuration;
+                public @interface EnableAuthorizationServer {}
+                """,
+              """
+                package org.springframework.security.oauth2.config.annotation.web.configuration;
+                public @interface EnableResourceServer {}
+                """
+            )
             .classpathFromResources(new InMemoryExecutionContext(),
               "spring-boot-autoconfigure-2.7",
               "spring-boot-2.7",
@@ -1047,6 +1065,113 @@ class WebSecurityConfigurerAdapterTest implements RewriteTest {
                   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
                       auth.inMemoryAuthentication().withUser("user").password("{noop}user").roles("USER");
                       auth.inMemoryAuthentication().withUser("admin").password("{noop}admin").roles("ADMIN");
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso",
+      "org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer"
+    })
+    void legacyOAuth2InAnotherModuleIsMarked(String annotation) {
+        rewriteRun(
+          mavenProject("legacy-oauth2",
+            //language=java
+            java(
+              """
+                import org.springframework.context.annotation.Configuration;
+
+                @%s
+                @Configuration
+                public class LegacyOAuth2Configuration {
+                }
+                """.formatted(annotation)
+            )
+          ),
+          mavenProject("web",
+            //language=java
+            java(
+              """
+                import org.springframework.context.annotation.Configuration;
+                import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+                import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+                @Configuration
+                public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+                    @Override
+                    protected void configure(HttpSecurity http) throws Exception {
+                        http.authorizeRequests().anyRequest().authenticated();
+                    }
+                }
+                """,
+              """
+                import org.springframework.context.annotation.Configuration;
+                import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+                import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+                /*~~(Migrate off the end-of-life spring-security-oauth2 project first: it registers a WebSecurityConfigurerAdapter of its own, which cannot be combined with a SecurityFilterChain bean)~~>*/@Configuration
+                public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+                    @Override
+                    protected void configure(HttpSecurity http) throws Exception {
+                        http.authorizeRequests().anyRequest().authenticated();
+                    }
+                }
+                """
+            )
+          )
+        );
+    }
+
+    @Test
+    void resourceServerDoesNotStopMigration() {
+        rewriteRun(
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
+              @EnableResourceServer
+              @Configuration
+              public class ResourceServerConfiguration {
+              }
+              """
+          ),
+          //language=java
+          java(
+            """
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+              @Configuration
+              public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+                  @Override
+                  protected void configure(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                  }
+              }
+              """,
+            """
+              import org.springframework.context.annotation.Bean;
+              import org.springframework.context.annotation.Configuration;
+              import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+              import org.springframework.security.web.SecurityFilterChain;
+
+              @Configuration
+              public class SecurityConfiguration {
+
+                  @Bean
+                  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                      http.authorizeRequests().anyRequest().authenticated();
+                      return http.build();
                   }
               }
               """
